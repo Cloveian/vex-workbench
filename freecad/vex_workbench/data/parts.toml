@@ -1,0 +1,1021 @@
+# vex parts catalog
+# inches everywhere, bleh
+
+[grid]
+pitch = 0.5
+hole = 0.182
+end = 0.25
+
+[metal]
+thickness = { Aluminum = 0.062, Steel = 0.046 }
+# todo bend radius.
+
+# generated parts
+
+[[family]]
+id = "c-channel"
+folder = "Structure/{material}/{width}x C-Channel"
+name = "1x{width}x1x{holes} {material} C-Channel"
+material = ["Aluminum", "Steel"]
+width = [2, 3, 5]
+holes = { from = 1, to = 35 }
+fixtures = [
+  "1x2x1x25 Aluminum C-Channel (276-2288)",
+  "1x2x1x35 Aluminum C-Channel (276-2289)",
+  "1x2x1x35 Steel C-Channel (276-2906)",
+  "1x3x1x35 Aluminum C-Channel (276-4359)",
+  "1x5x1x25 Aluminum C-Channel (276-2290)",
+  "1x5x1x35 Aluminum C-Channel (276-2298)",
+  "1x5x1x25 Steel C-Channel (275-1138)",
+  "1x5x1x35 Steel C-Channel (275-1139)",
+]
+
+[[family]]
+id = "u-channel"
+folder = "Structure/{material}/2x U-Channel"
+name = "2x2x2x{holes} {material} U-Channel"
+material = ["Aluminum", "Steel"]
+holes = { from = 1, to = 20 }
+fixtures = ["2x2x2x20 Aluminum U-Channel (6-pack) (276-7285)", "U-Channel 2x2x2x20 (276-7285)"]
+
+[[family]]
+id = "angle-1x1"
+folder = "Structure/{material}/1x1 Angle ({variant})"
+name = "1x1x{holes} {material} Angle ({variant})"
+material = ["Aluminum", "Steel"]
+variant = ["Regular", "Regular 2-Wide", "Thick 5-Wide", "Thin 5-Wide"]
+holes = { from = 1, to = 35 }
+fixtures = ["1x1x35 Aluminum Angle (217-6484)"] # regular, 0.5 legs
+
+[[family]]
+id = "angle-2x2"
+folder = "Structure/{material}/2x2 Angle"
+name = "2x2x{holes} {material} Angle"
+material = ["Aluminum", "Steel"]
+holes = { from = 1, to = 35 }
+fixtures = ["2x2x25 Steel Angle (275-1142)", "2x2x35 Steel Angle (275-1143)"]
+
+[[family]]
+id = "angle-3x3"
+folder = "Structure/{material}/3x3 Angle"
+name = "3x3x{holes} {material} Angle"
+material = ["Steel"]
+holes = { from = 1, to = 35 }
+fixtures = ["3x3x35 Steel Angle (275-1144)"]
+
+[[family]]
+id = "plate-5x"
+folder = "Structure/{material}"
+name = "5x{holes} {material} Plate"
+material = ["Aluminum", "Steel"]
+holes = { from = 1, to = 35 }
+fixtures = ["5x15 Steel Plate (275-2023)", "5x25 Steel Plate (275-1140)"]
+
+[[family]]
+id = "bar-1x"
+folder = "Structure/{material}"
+name = "1x{holes} {material} Bar"
+material = ["Aluminum", "Steel"]
+holes = { from = 1, to = 35 }
+fixtures = ["1x25 Steel Bar (275-1141)"]
+
+[[family]]
+id = "ls-shaft"
+folder = "Motion/LS Shafts"
+name = "{length:.3f} LS Shaft"
+size = 0.125
+length = { from = 0.5, to = 12.0, step = 0.5 }
+fixtures = ["2 Shaft (276-2011-001)", "3 Shaft (276-2011-002)", "Drive Shaft 12 (276-1149)"]
+
+[[family]]
+id = "hs-shaft"
+folder = "Motion/HS Shafts"
+name = "{length:.3f} HS Shaft"
+size = 0.25
+length = { from = 0.5, to = 24.0, step = 0.5 }
+fixtures = [
+  "2 High Strength Shaft (276-3440)",
+  "3 High Strength Shaft (276-3522)",
+  "4 High Strength Shaft (276-3523)",
+  "24 High Strength Shaft (276-7465)",
+]
+
+[[family]]
+id = "pitch-shaft"
+folder = "Motion/LS Shafts"
+name = "{n}x Pitch Shaft"
+size = 0.125
+n = { from = 2, to = 8 }
+short = 0.070
+fixtures = [
+  "2x Pitch Shaft (228-2500-117)",
+  "3x Pitch Shaft (228-2500-119)",
+  "4x Pitch Shaft (228-2500-120)",
+  "5x Pitch Shaft (228-2500-121)",
+  "6x Pitch Shaft (228-2500-122)",
+  "7x Pitch Shaft (228-2500-123)",
+  "8x Pitch Shaft (228-2500-124)",
+]
+
+[[family]]
+id = "standoff"
+folder = "Hardware/Standoffs"
+name = "{length:.3f} Standoff (8-32, Aluminum)"
+hex = 0.25 # vex standoff page
+# 0.375 and 0.875 are robosource
+length = [0.25, 0.375, 0.5, 0.75, 0.875, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0]
+fixtures = [
+  "1_4 Standoff (275-1013)",
+  "1_2 Standoff (275-1014)",
+  "3_4 Standoff (275-1015)",
+  "1.00 Standoff (275-1016)",
+  "1.500 Standoff (275-1017)",
+  "2.00 Standoff (275-1018)",
+  "2.50 Standoff (275-1019)",
+  "3.00 Standoff (275-1020)",
+  "4.00 Standoff (275-1021)",
+  "5.00 Standoff (275-1022)",
+  "6.00 Standoff (275-1023)",
+]
+
+[[family]]
+id = "hex-screw"
+generator = "button-screw"
+drive = "hex"
+folder = "Hardware/Screws/8-32/Steel/Hex"
+name = "{length:.3f} Hex Screw (8-32, Steel)"
+length = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5]
+fixtures = [
+  "#8-32 x 1_4 Screw (275-1002)",
+  "#8-32 x 3_8 Screw (275-1003)",
+  "#8-32 x 1_2 Screw (275-1004)",
+  "#8-32 x 5_8 Screw (275-1005)",
+  "#8-32 x 3_4 Screw (275-1006)",
+  "#8-32 x 7_8 Screw (275-1007)",
+  "#8-32 x 1.000 Screw (275-1008)",
+  "#8-32 x 1.250 Screw (275-1009)",
+  "#8-32 x 1.750 Screw (275-1011)",
+  "#8-32 x 2.000 Screw (275-1012)",
+]
+
+[[family]]
+id = "star-screw"
+generator = "button-screw"
+drive = "star"
+folder = "Hardware/Screws/8-32/Steel/Torx (Star)"
+name = "{length:.3f} Torx (Star) Screw (8-32, Steel)"
+# 0.290 is robosource
+length = [0.25, 0.29, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5]
+fixtures = [
+  "#8-32 x 1_4 Star Drive Screw (276-4990)",
+  "#8-32 x 3_8 Star Drive Screw (276-4991)",
+  "#8-32 x 1_2 Star Drive Screw (276-4992)",
+  "#8-32 x 5_8 Star Drive Screw (276-4993)",
+  "#8-32 x 3_4 Star Drive Screw (276-4994)",
+  "#8-32 x 7_8 Star Drive Screw (276-4995)",
+  "#8-32 x 1.000 Star Drive Screw (276-4996)",
+  "#8-32 x 1.250 Star Drive Screw (276-4997)",
+  "#8-32 x 1.500 Star Drive Screw (276-4998)",
+  "#8-32 x 1.750 Star Drive Screw (276-4999)",
+  "#8-32 x 2.000 Star Drive Screw (276-5004)",
+  "#8-32 x 2.250 Star Drive Screw (276-8015)",
+  "#8-32 x 2.500 Star Drive Screw (276-8016)",
+]
+
+[[family]]
+id = "shoulder-screw"
+drive = "star"
+folder = "Hardware/Screws/8-32/Steel/Shoulder Screws/Robosource"
+name = "{size[0]:.3f}, {size[1]:.2f} Robosource Shoulder Screw (8-32, Steel)"
+# [screw length, shoulder length under head], pairs off the fusion names
+size = [[0.29, 0.09], [0.375, 0.12], [0.5, 0.04], [0.5, 0.18], [1.0, 0.12], [1.5, 0.18], [2.0, 0.04]]
+shoulder = 0.176
+
+[[family]]
+id = "thin-nylock"
+folder = "Hardware/Nuts/8-32 Nuts/Nylock Nuts"
+name = "Thin Nylock Nut (8-32, Steel)"
+from = "#8-32 Nylock Nut (275-1027)"
+height = 0.171875 # robosource, 11/64 (shave off non-nylon side to make thiner)
+
+[[family]]
+id = "hex-nut"
+folder = "Hardware/Nuts/8-32 Nuts/Hex Nuts"
+name = "Hex Nut (8-32, {material})"
+from = "#8-32 Hex Nut (275-1028)"
+material = ["Nylon", "Aluminum"]
+
+[[family]]
+id = "extra-low-nut"
+folder = "Hardware/Nuts/8-32 Nuts"
+name = "Extra-Low Profile Nut (8-32, Steel)"
+# robosource, really just a 3/32 tall standoff but steel
+hex = 0.25
+height = 0.09375 # 3/32
+
+# todo: nylon flange nut, nylock flange nut, wing nut
+
+[[family]]
+id = "spacer"
+folder = "Motion/Spacers/{od} OD"
+name = "{od} OD Spacer, {length:.3f} (Nylon)"
+od = [0.313, 0.375, 0.5]
+length = [0.125, 0.25, 0.375, 0.5, 0.875]
+bore = 0.194 # 275-1066 steps
+# 8mm Plastic Spacer (276-2019) is 0.32 OD but its own thing
+fixtures = [
+  "1_8 Nylon Spacer (275-1066-001)",
+  "1_4 Nylon Spacer (275-1066-002)",
+  "3_8 Nylon Spacer (275-1066-003)",
+  "1_2 Nylon Spacer (275-1066-004)",
+]
+
+[[family]]
+id = "hs-spacer"
+folder = "Motion/Spacers/HS Spacers"
+name = "0.5 OD HS Spacer, {length:.4g} (Nylon)"
+across = 0.425 # not round, vex steps. fusion calls it 0.5 OD
+bore = 0.25 # square, todo clearance
+length = [0.0625, 0.125, 0.25, 0.375, 0.5]
+fixtures = [
+  "1_16 High Strength Shaft Spacer (276-3441-001)",
+  "1_8 High Strength Shaft Spacer (276-3441-002)",
+  "1_4 High Strength Shaft Spacer (276-3441-003)",
+  "1_2 High Strength Shaft Spacer (276-3441-004)",
+]
+
+[[family]]
+id = "washer"
+folder = "Motion/Spacers/Washers/{material}"
+name = "Washer, {od:.3f} OD, {thickness:.3f} ({material})"
+# robosource. vex steel (275-1024) and teflon (275-1025) are their own sizes, step parts
+sizes = [
+  { material = "Steel", od = 0.354, bore = 0.169, thickness = 0.031 },
+  { material = "Steel", od = 0.438, bore = 0.188, thickness = 0.042 },
+  { material = "Nylon", od = 0.375, bore = 0.173, thickness = 0.016 },
+  { material = "Nylon", od = 0.375, bore = 0.173, thickness = 0.032 },
+  { material = "Nylon", od = 0.375, bore = 0.173, thickness = 0.062 },
+]
+
+[[family]]
+id = "hs-lockbar"
+folder = "Motion/Lock Bars"
+name = "{holes} Hole HS Lockbar"
+holes = [3, 5, 7] # todo dims
+
+[[family]]
+id = "license-plate"
+folder = "Structure"
+name = "{color} License Plate"
+from = "V5RC License Plate (276-3938)"
+color = ["Red", "Blue"]
+
+[[family]]
+id = "drilled-gear"
+folder = "Motion/Gears/Low Strength/Drilled Gears"
+name = "LS {teeth}T Gear (Drilled)"
+teeth = [12, 36, 60, 84]
+from = ["12T Gear (276-2169-001)", "36T Gear (276-2169-002)", "60T Gear (276-2169-003)", "84T Gear (276-2169-004)"]
+# todo hole pattern
+
+# --- step parts ---
+# vex-step/{folder}/{file}, one [[group]] per folder
+
+[[group]]
+folder = "Electronics"
+parts = [
+  { sku = "276-4820", name = "V5 Controller", file = "V5 Controller (276-4820).step" },
+  { sku = "276-4811", name = "V5 Robot Battery", file = "V5 Robot Battery (276-4811).step" },
+  { sku = "276-4810", name = "V5 Robot Brain", file = "V5 Robot Brain (276-4810).step" },
+  { sku = "276-4831", name = "V5 Robot Radio", file = "V5 Robot Radio (276-4831).step" },
+  { sku = "276-4840", name = "V5 Smart Motor", file = "V5 Smart Motor (276-4840).step" },
+  { sku = "276-4842", name = "V5 Smart Motor (5.5W)", file = "V5 Smart Motor (5.5W) (276-4842).step" },
+]
+
+[[group]]
+folder = "Electronics/Brain & Battery Accessories"
+parts = [
+  { sku = "276-6020", name = "V5 Battery Clip", file = "V5 Battery Clip (276-6020).step" },
+  { sku = "276-4810-003", name = "V5 Robot Brain Mounting Flange (Long)", file = "V5 Robot Brain Mounting Flange (Long) (276-4810-003).step" },
+  { sku = "276-4810-002", name = "V5 Robot Brain Mounting Flange (Short)", file = "V5 Robot Brain Mounting Flange (Short) (276-4810-002).step" },
+  { sku = "276-4810-030", name = "V5 Robot Brain Screen Protector", file = "V5 Robot Brain Screen Protector (276-4810-030).step" },
+]
+
+[[group]]
+folder = "Electronics/Legacy (Cortex)"
+parts = [
+  { sku = "276-2177", name = "2-Wire Motor 393", file = "2-Wire Motor 393 (276-2177).step" },
+  { sku = "276-2162", name = "3-Wire Servo", file = "3-Wire Servo (276-2162).step" },
+  { sku = "276-1456", name = "7.2V Robot Battery NiMH 2000mAh", file = "7.2V Robot Battery NiMH 2000mAh (276-1456).step" },
+  { sku = "276-1491", name = "7.2V Robot Battery NiMH 3000mAh", file = "7.2V Robot Battery NiMH 3000mAh (276-1491).step" },
+  { sku = "276-4042", name = "Battery Clip", file = "Battery Clip (276-4042).step" },
+  { sku = "276-3442", name = "Battery Extension Cable", file = "Battery Extension Cable (276-3442).step" },
+  { sku = "276-2219", name = "Battery Strap", file = "Battery Strap (276-2219).step" },
+  { sku = "276-2210", name = "Flashlight", file = "Flashlight (276-2210).step" },
+  { sku = "276-2193", name = "Motor Controller 29", file = "Motor Controller 29 (276-2193).step" },
+  { sku = "276-2271", name = "Power Expander", file = "Power Expander (276-2271).step" },
+]
+
+[[group]]
+folder = "Electronics/Sensors"
+parts = [
+  { sku = "276-8659", name = "AI Vision Sensor", file = "AI Vision Sensor (276-8659).step" },
+  { sku = "276-5299", name = "V5 3-Wire Expander", file = "V5 3-Wire Expander (276-5299).step" },
+  { sku = "276-4852", name = "V5 Distance Sensor", file = "V5 Distance Sensor (276-4852).step" },
+  { sku = "276-4855", name = "V5 Inertial Sensor", file = "V5 Inertial Sensor (276-4855).step" },
+  { sku = "276-7043", name = "V5 Optical Sensor", file = "V5 Optical Sensor (276-7043).step" },
+  { sku = "276-6050", name = "V5 Rotation Sensor", file = "V5 Rotation Sensor (276-6050).step" },
+  { sku = "276-7405", name = "VEX GPS Sensor", file = "VEX GPS Sensor (276-7405).step" },
+]
+
+[[group]]
+folder = "Electronics/Sensors/3-Wire"
+parts = [
+  { sku = "276-2332", name = "Analog Accelerometer V1.0", file = "Analog Accelerometer V1.0 (276-2332).step" },
+  { sku = "276-2159", name = "Bumper Switch", file = "Bumper Switch (276-2159).step" },
+  { sku = "276-4858", name = "Bumper Switch v2", file = "Bumper Switch v2 (276-4858).step" },
+  { sku = "276-2158", name = "Light Sensor", file = "Light Sensor (276-2158).step" },
+  { sku = "276-2174", name = "Limit Switch", file = "Limit Switch (276-2174).step" },
+  { sku = "276-2154", name = "Line Tracker", file = "Line Tracker (276-2154).step" },
+  { sku = "276-7417", name = "Potentiometer V2", file = "Potentiometer V2 (276-7417).step" },
+]
+
+[[group]]
+folder = "Electronics/Wires & Cables"
+parts = [
+  { sku = "276-2173", name = "Competition Cortex Wire Retaining Clip", file = "Competition Cortex Wire Retaining Clip (276-2173).step" },
+  { sku = "276-4128", name = "Extension Cable Retaining Clip", file = "Extension Cable Retaining Clip (276-4128).step" },
+]
+
+[[group]]
+folder = "Field Elements"
+parts = [
+  { sku = "276-8242", name = "VEX Portable Competition Field Perimeter", file = "VEX Portable Competition Field Perimeter (276-8242).step" },
+]
+
+[[group]]
+folder = "Hardware/Nuts/8-32 Nuts"
+parts = [
+  { sku = "275-1026", name = "#8-32 Keps Nut", file = "#8-32 Keps Nut (275-1026).step" },
+  { sku = "276-7767", name = "#8-32 Low Profile Nut", file = "#8-32 Low Profile Nut (276-7767).step" },
+]
+
+[[group]]
+folder = "Hardware/Nuts/8-32 Nuts/Hex Nuts"
+parts = [
+  { sku = "275-1028", name = "#8-32 Hex Nut", file = "#8-32 Hex Nut (275-1028).step" },
+]
+
+[[group]]
+folder = "Hardware/Nuts/8-32 Nuts/Nylock Nuts"
+parts = [
+  { sku = "275-1027", name = "#8-32 Nylock Nut", file = "#8-32 Nylock Nut (275-1027).step" },
+]
+
+[[group]]
+folder = "Hardware/Retainers"
+parts = [
+  { sku = "276-6482", name = "1-Post Hex Nut Retainer", file = "1-Post Hex Nut Retainer (276-6482).step" },
+  { sku = "276-8020", name = "1-Post Standoff Retainer", file = "1-Post Standoff Retainer (276-8020).step" },
+  { sku = "276-6483", name = "4-Post Hex Nut Retainer", file = "4-Post Hex Nut Retainer (276-6483).step" },
+  { sku = "276-8022", name = "4-Post Standoff Retainer", file = "4-Post Standoff Retainer (276-8022).step" },
+]
+
+[[group]]
+folder = "Hardware/Screws"
+parts = [
+  { sku = "275-1169", name = "#6-32 x 1/2\" Screw", file = "#6-32 x 1_2 Screw (275-1169).step" },
+  { sku = "275-0659", name = "#6-32 x 1/4\" Screw", file = "#6-32 x 1_4 Screw (275-0659).step" },
+]
+
+[[group]]
+folder = "Hardware/Screws/8-32/Nylon"
+parts = [
+  { sku = "275-1485", name = "1/2\" Thumbscrew", file = "1_2 Thumbscrew (275-1485).step" },
+]
+
+[[group]]
+folder = "Hardware/Screws/8-32/Steel/Hex"
+parts = [
+  { sku = "275-1008", name = "#8-32 x 1.000\" Screw", file = "#8-32 x 1.000 Screw (275-1008).step" },
+  { sku = "275-1009", name = "#8-32 x 1.250\" Screw", file = "#8-32 x 1.250 Screw (275-1009).step" },
+  { sku = "275-1011", name = "#8-32 x 1.750\" Screw", file = "#8-32 x 1.750 Screw (275-1011).step" },
+  { sku = "275-1004", name = "#8-32 x 1/2\" Screw", file = "#8-32 x 1_2 Screw (275-1004).step" },
+  { sku = "275-1002", name = "#8-32 x 1/4\" Screw", file = "#8-32 x 1_4 Screw (275-1002).step" },
+  { sku = "275-1012", name = "#8-32 x 2.000\" Screw", file = "#8-32 x 2.000 Screw (275-1012).step" },
+  { sku = "275-1006", name = "#8-32 x 3/4\" Screw", file = "#8-32 x 3_4 Screw (275-1006).step" },
+  { sku = "275-1003", name = "#8-32 x 3/8\" Screw", file = "#8-32 x 3_8 Screw (275-1003).step" },
+  { sku = "275-1005", name = "#8-32 x 5/8\" Screw", file = "#8-32 x 5_8 Screw (275-1005).step" },
+  { sku = "275-1007", name = "#8-32 x 7/8\" Screw", file = "#8-32 x 7_8 Screw (275-1007).step" },
+]
+
+[[group]]
+folder = "Hardware/Screws/8-32/Steel/Shoulder Screws"
+parts = [
+  { sku = "276-1408", name = "#8-32 Shoulder Screws", file = "#8-32 Shoulder Screws (276-1408).step" },
+]
+
+[[group]]
+folder = "Hardware/Screws/8-32/Steel/Torx (Star)"
+parts = [
+  { sku = "276-4996", name = "#8-32 x 1.000\" Star Drive Screw", file = "#8-32 x 1.000 Star Drive Screw (276-4996).step" },
+  { sku = "276-4997", name = "#8-32 x 1.250\" Star Drive Screw", file = "#8-32 x 1.250 Star Drive Screw (276-4997).step" },
+  { sku = "276-4998", name = "#8-32 x 1.500\" Star Drive Screw", file = "#8-32 x 1.500 Star Drive Screw (276-4998).step" },
+  { sku = "276-4999", name = "#8-32 x 1.750\" Star Drive Screw", file = "#8-32 x 1.750 Star Drive Screw (276-4999).step" },
+  { sku = "276-4992", name = "#8-32 x 1/2\" Star Drive Screw", file = "#8-32 x 1_2 Star Drive Screw (276-4992).step" },
+  { sku = "276-4990", name = "#8-32 x 1/4\" Star Drive Screw", file = "#8-32 x 1_4 Star Drive Screw (276-4990).step" },
+  { sku = "276-5004", name = "#8-32 x 2.000\" Star Drive Screw", file = "#8-32 x 2.000 Star Drive Screw (276-5004).step" },
+  { sku = "276-8015", name = "#8-32 x 2.250\" Star Drive Screw", file = "#8-32 x 2.250 Star Drive Screw (276-8015).step" },
+  { sku = "276-8016", name = "#8-32 x 2.500\" Star Drive Screw", file = "#8-32 x 2.500 Star Drive Screw (276-8016).step" },
+  { sku = "276-4994", name = "#8-32 x 3/4\" Star Drive Screw", file = "#8-32 x 3_4 Star Drive Screw (276-4994).step" },
+  { sku = "276-4991", name = "#8-32 x 3/8\" Star Drive Screw", file = "#8-32 x 3_8 Star Drive Screw (276-4991).step" },
+  { sku = "276-4993", name = "#8-32 x 5/8\" Star Drive Screw", file = "#8-32 x 5_8 Star Drive Screw (276-4993).step" },
+  { sku = "276-4995", name = "#8-32 x 7/8\" Star Drive Screw", file = "#8-32 x 7_8 Star Drive Screw (276-4995).step" },
+]
+
+[[group]]
+folder = "Hardware/Standoffs"
+parts = [
+  { sku = "275-1000", name = "#8-32 x 0.500\" Hex Drive Coupler", file = "#8-32 x 0.500 Hex Drive Coupler (275-1000).step" },
+  { sku = "276-4989", name = "#8-32 x 0.500\" Star Drive Coupler", file = "#8-32 x 0.500 Star Drive Coupler (276-4989).step" },
+  { sku = "275-1001", name = "#8-32 x 1.000\" Hex Drive Coupler", file = "#8-32 x 1.000 Hex Drive Coupler (275-1001).step" },
+  { sku = "276-4988", name = "#8-32 x 1.000\" Star Drive Coupler", file = "#8-32 x 1.000 Star Drive Coupler (276-4988).step" },
+  { sku = "275-1016", name = "1.00\" Standoff", file = "1.00 Standoff (275-1016).step" },
+  { sku = "275-1017", name = "1.500\" Standoff", file = "1.500 Standoff (275-1017).step" },
+  { sku = "275-1014", name = "1/2\" Standoff", file = "1_2 Standoff (275-1014).step" },
+  { sku = "275-1013", name = "1/4\" Standoff", file = "1_4 Standoff (275-1013).step" },
+  { sku = "275-1018", name = "2.00\" Standoff", file = "2.00 Standoff (275-1018).step" },
+  { sku = "275-1019", name = "2.50\" Standoff", file = "2.50 Standoff (275-1019).step" },
+  { sku = "275-1020", name = "3.00\" Standoff", file = "3.00 Standoff (275-1020).step" },
+  { sku = "275-1015", name = "3/4\" Standoff", file = "3_4 Standoff (275-1015).step" },
+  { sku = "275-1021", name = "4.00\" Standoff", file = "4.00 Standoff (275-1021).step" },
+  { sku = "275-1022", name = "5.00\" Standoff", file = "5.00 Standoff (275-1022).step" },
+  { sku = "275-1023", name = "6.00\" Standoff", file = "6.00 Standoff (275-1023).step" },
+]
+
+[[group]]
+folder = "Kits"
+parts = [
+  { sku = "276-6010", name = "V5 Claw Kit", file = "V5 Claw Kit (276-6010).step" },
+  { sku = "276-6009", name = "V5 Clawbot", file = "V5 Clawbot (276-6009).step" },
+]
+
+[[group]]
+folder = "Motion/Advanced"
+parts = [
+  { sku = "276-2045-066", name = "Cam Follower", file = "Cam Follower (276-2045-066).step" },
+  { sku = "276-1098", name = "Clutch", file = "Clutch (276-1098).step" },
+  { sku = "276-2045-061", name = "Drop Off Cam", file = "Drop Off Cam (276-2045-061).step" },
+  { sku = "276-2045-001", name = "Hand Crank", file = "Hand Crank (276-2045-001).step" },
+  { sku = "276-2045-032", name = "Lead Screw", file = "Lead Screw (276-2045-032).step" },
+  { sku = "276-2045-033", name = "Lead Screw Bracket", file = "Lead Screw Bracket (276-2045-033).step" },
+  { sku = "276-2045-031", name = "Lead Screw Nut", file = "Lead Screw Nut (276-2045-031).step" },
+  { sku = "276-1843-002", name = "Motor Post", file = "Motor Post (276-1843-002).step" },
+  { sku = "276-1843-001", name = "Shaft Coupler", file = "Shaft Coupler (276-1843-001).step" },
+  { sku = "217-3288", name = "Short Shifter Shaft 2.65 Ratio Spread", file = "Short Shifter Shaft 2.65 Ratio Spread (217-3288).step" },
+  { sku = "276-2045-020", name = "U-Joint", file = "U-Joint (276-2045-020).step" },
+  { sku = "276-2723", name = "Universal Joints", file = "Universal Joints (276-2723).step" },
+  { sku = "276-8794", name = "V5 Flywheel Weight", file = "V5 Flywheel Weight (276-8794).step" },
+]
+
+[[group]]
+folder = "Motion/Bearings"
+parts = [
+  { sku = "276-6481", name = "1-Post Hex Nut Retainer w/ Bearing Flat", file = "1-Post Hex Nut Retainer w_ Bearing Flat (276-6481).step" },
+  { sku = "276-8021", name = "1-Post Standoff Retainer with Bearing Flat", file = "1-Post Standoff Retainer with Bearing Flat (276-8021).step" },
+  { sku = "276-2016-001", name = "Bearing Blocks", file = "Bearing Blocks (276-2016-001).step" },
+  { sku = "276-1209", name = "Flat Bearing", file = "Flat Bearing (276-1209).step" },
+  { sku = "276-7582-001", name = "High Strength Bushing Kit (1/8\" Thick)", file = "High Strength Bushing Kit (1_8 Thick) (276-7582-001).step" },
+  { sku = "276-7582-002", name = "High Strength Bushing Kit (5/16\" Thick)", file = "High Strength Bushing Kit (5_16 Thick) (276-7582-002).step" },
+  { sku = "276-8383", name = "High Strength Pillow Block Bearing", file = "High Strength Pillow Block Bearing (276-8383).step" },
+  { sku = "276-3521", name = "High Strength Shaft Bearing", file = "High Strength Shaft Bearing (276-3521).step" },
+  { sku = "276-8023", name = "Low Profile Bearing Flat", file = "Low Profile Bearing Flat (276-8023).step" },
+  { sku = "276-8024", name = "Shaft Collar Retainer with Bearing Flat", file = "Shaft Collar Retainer with Bearing Flat (276-8024).step" },
+]
+
+[[group]]
+folder = "Motion/Chain Links/9P (High Strength Chain)"
+parts = [
+  { sku = "276-2252-002", name = "High Strength Chain Attachment Links", file = "High Strength Chain Attachment Links (276-2252-002).stp" },
+  { sku = "276-2252-001", name = "High Strength Chain Links", file = "High Strength Chain Links (276-2252-001).stp" },
+  { sku = "276-7141", name = "High Strength Conveyor Chain", file = "High Strength Conveyor Chain (276-7141).step" },
+]
+
+[[group]]
+folder = "Motion/Chain Links/Tank Tread"
+parts = [
+  { sku = "276-2214-001", name = "Conveyor-belt Base Links", file = "Conveyor-belt Base Links (276-2214-001).step" },
+  { sku = "276-2214-002", name = "Medium Conveyor-belt Inserts", file = "Medium Conveyor-belt Inserts (276-2214-002).step" },
+  { sku = "275-1029", name = "Rubber Link", file = "Rubber Link (275-1029).step" },
+  { sku = "276-2214-003", name = "Short Conveyor-belt Inserts", file = "Short Conveyor-belt Inserts (276-2214-003).step" },
+  { sku = "276-2214-004", name = "Tall Conveyor-belt Inserts", file = "Tall Conveyor-belt Inserts (276-2214-004).step" },
+  { sku = "276-2168-001", name = "Tank Tread Drive Wheels", file = "Tank Tread Drive Wheels (276-2168-001).step" },
+  { sku = "276-2214-005", name = "Tank Tread Traction Links", file = "Tank Tread Traction Links (276-2214-005).step" },
+  { sku = "276-2168-004", name = "Tread Links", file = "Tread Links (276-2168-004).step" },
+]
+
+[[group]]
+folder = "Motion/Collars"
+parts = [
+  { sku = "276-3520", name = "High Strength Clamping Shaft Collar", file = "High Strength Clamping Shaft Collar (276-3520).step" },
+  { sku = "276-7580", name = "Low Profile High Strength Clamping Shaft Collar", file = "Low Profile High Strength Clamping Shaft Collar (276-7580).step" },
+  { sku = "228-3510", name = "Rubber Shaft Collar", file = "Rubber Shaft Collar (228-3510).step" },
+  { sku = "276-6101", name = "Star Drive Clamping Shaft Collar", file = "Star Drive Clamping Shaft Collar (276-6101).step" },
+  { sku = "276-6103", name = "Star Drive Shaft Collar", file = "Star Drive Shaft Collar (276-6103).step" },
+]
+
+[[group]]
+folder = "Motion/Gears"
+parts = [
+  { sku = "276-2184-003", name = "Rack Gear & Pinion", file = "Rack Gear & Pinion (276-2184-003).step" },
+  { sku = "276-4782", name = "Rack Gear v2", file = "Rack Gear v2 (276-4782).step" },
+  { sku = "276-2184-004", name = "Worm Gear & Wheel", file = "Worm Gear & Wheel (276-2184-004).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v1)/12T"
+parts = [
+  { sku = "276-2251", name = "12T High Strength Metal Pinion", file = "12T High Strength Metal Pinion (276-2251).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v1)/36T"
+parts = [
+  { sku = "276-5034", name = "36T High Strength Gear", file = "36T High Strength Gear (276-5034).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v1)/60T"
+parts = [
+  { sku = "276-5035", name = "60T High Strength Gear", file = "60T High Strength Gear (276-5035).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v1)/84T"
+parts = [
+  { sku = "276-3438", name = "84T High Strength Gear", file = "84T High Strength Gear (276-3438).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v2)/24T"
+parts = [
+  { sku = "276-7572", name = "24T High Strength Gear v2", file = "24T High Strength Gear v2 (276-7572).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v2)/36T"
+parts = [
+  { sku = "276-7747", name = "36T High Strength Gear v2 (8-pack)", file = "36T High Strength Gear v2 (8-pack) (276-7747).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v2)/48T"
+parts = [
+  { sku = "276-7573", name = "48T High Strength Gear v2 (8-Pack)", file = "48T High Strength Gear v2 (8-Pack) (276-7573).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v2)/60T"
+parts = [
+  { sku = "276-7748", name = "60T High Strength Gear v2 (8-pack)", file = "60T High Strength Gear v2 (8-pack) (276-7748).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v2)/72T"
+parts = [
+  { sku = "276-7574", name = "72T High Strength Gear v2 (6-Pack)", file = "72T High Strength Gear v2 (6-Pack) (276-7574).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/High Strength (v2)/84T"
+parts = [
+  { sku = "276-7749", name = "84T High Strength Gear v2 (4-pack)", file = "84T High Strength Gear v2 (4-pack) (276-7749).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/Low Strength"
+parts = [
+  { sku = "276-2169-001", name = "12T Gear", file = "12T Gear (276-2169-001).step" },
+  { sku = "276-7368", name = "12T Metal Gear", file = "12T Metal Gear (276-7368).step" },
+  { sku = "276-2169-002", name = "36T Gear", file = "36T Gear (276-2169-002).step" },
+  { sku = "276-2169-003", name = "60T Gear", file = "60T Gear (276-2169-003).step" },
+  { sku = "276-2169-004", name = "84T Gear", file = "84T Gear (276-2169-004).step" },
+]
+
+[[group]]
+folder = "Motion/Gears/Low Strength/Bevel Gears"
+parts = [
+  { sku = "276-2045-051", name = "16t Bevel Gear", file = "16t Bevel Gear (276-2045-051).step" },
+  { sku = "276-2184-001", name = "24T Bevel Gear", file = "24T Bevel Gear (276-2184-001).step" },
+  { sku = "276-2045-052", name = "32t Bevel Gear", file = "32t Bevel Gear (276-2045-052).step" },
+  { sku = "276-2184-002", name = "Differential & Bevel Gear", file = "Differential & Bevel Gear (276-2184-002).step" },
+]
+
+[[group]]
+folder = "Motion/HS Shafts"
+parts = [
+  { sku = "276-3440", name = "2\" High Strength Shaft", file = "2 High Strength Shaft (276-3440).step" },
+  { sku = "276-7465", name = "24\" High Strength Shaft", file = "24 High Strength Shaft (276-7465).step" },
+  { sku = "276-3522", name = "3 High Strength Shaft", file = "3 High Strength Shaft (276-3522).step" },
+  { sku = "276-3523", name = "4\" High Strength Shaft", file = "4 High Strength Shaft (276-3523).step" },
+]
+
+[[group]]
+folder = "Motion/Inserts"
+parts = [
+  { sku = "276-8034", name = "High Strength Shaft Adapter (#8 Round Bore, 1/2\" Long)", file = "High Strength Shaft Adapter (#8 Round Bore, 1_2 Long) (276-8034).step" },
+  { sku = "276-8235", name = "High Strength Shaft Adapter (1/8\" Square Bore, 1/2\" Long)", file = "High Strength Shaft Adapter (1_8 Square Bore, 1_2 Long) (276-8235).step" },
+  { sku = "276-3881-002", name = "Metal Shaft Inserts", file = "Metal Shaft Inserts (276-3881-002).step" },
+  { sku = "276-3881-001", name = "Plastic Shaft Inserts", file = "Plastic Shaft Inserts (276-3881-001).step" },
+]
+
+[[group]]
+folder = "Motion/LS Shafts"
+parts = [
+  { sku = "228-2500-2219", name = "1\" Capped Shaft", file = "1 Capped Shaft (228-2500-2219).step" },
+  { sku = "228-2500-2221", name = "1.5\" Capped Shaft", file = "1.5 Capped Shaft (228-2500-2221).step" },
+  { sku = "228-2500-2223", name = "2\" Capped Shaft", file = "2 Capped Shaft (228-2500-2223).step" },
+  { sku = "276-2011-001", name = "2\" Shaft", file = "2 Shaft (276-2011-001).step" },
+  { sku = "228-2500-2225", name = "2.5\" Capped Shaft", file = "2.5 Capped Shaft (228-2500-2225).step" },
+  { sku = "228-2500-117", name = "2x Pitch Shaft", file = "2x Pitch Shaft (228-2500-117).step" },
+  { sku = "228-2500-2226", name = "3\" Capped Shaft", file = "3 Capped Shaft (228-2500-2226).step" },
+  { sku = "276-2011-002", name = "3\" Shaft", file = "3 Shaft (276-2011-002).step" },
+  { sku = "228-2500-2227", name = "3.5\" Capped Shaft", file = "3.5 Capped Shaft (228-2500-2227).step" },
+  { sku = "228-2500-119", name = "3x Pitch Shaft", file = "3x Pitch Shaft (228-2500-119).step" },
+  { sku = "228-2500-2228", name = "4\" Capped Shaft", file = "4 Capped Shaft (228-2500-2228).step" },
+  { sku = "228-2500-2229", name = "4.5\" Capped Shaft", file = "4.5 Capped Shaft (228-2500-2229).step" },
+  { sku = "228-2500-120", name = "4x Pitch Shaft", file = "4x Pitch Shaft (228-2500-120).step" },
+  { sku = "228-2500-2230", name = "5\" Capped Shaft", file = "5 Capped Shaft (228-2500-2230).step" },
+  { sku = "228-2500-2231", name = "5.5\" Capped Shaft", file = "5.5 Capped Shaft (228-2500-2231).step" },
+  { sku = "228-2500-121", name = "5x Pitch Shaft", file = "5x Pitch Shaft (228-2500-121).step" },
+  { sku = "228-2500-2232", name = "6\" Capped Shaft", file = "6 Capped Shaft (228-2500-2232).step" },
+  { sku = "228-2500-122", name = "6x Pitch Shaft", file = "6x Pitch Shaft (228-2500-122).step" },
+  { sku = "228-2500-123", name = "7x Pitch Shaft", file = "7x Pitch Shaft (228-2500-123).step" },
+  { sku = "228-2500-124", name = "8x Pitch Shaft", file = "8x Pitch Shaft (228-2500-124).step" },
+  { sku = "276-1149", name = "Drive Shaft 12\"", file = "Drive Shaft 12 (276-1149).step" },
+]
+
+[[group]]
+folder = "Motion/Lock Bars"
+parts = [
+  { sku = "275-1065", name = "Drive Shaft Bar Lock", file = "Drive Shaft Bar Lock (275-1065).step" },
+  { sku = "276-2016-002", name = "Lock Bar", file = "Lock Bar (276-2016-002).step" },
+]
+
+[[group]]
+folder = "Motion/Pneumatics/New"
+parts = [
+  { name = "25mm Stroke Pneumatic Cylinder", file = "25mm Stroke Pneumatic Cylinder.step" },
+  { name = "50mm Stroke Pneumatic Cylinder", file = "50mm Stroke Pneumatic Cylinder.step" },
+  { name = "75mm Stroke Pneumatic Cylinder", file = "75mm Stroke Pneumatic Cylinder.step" },
+  { name = "Air Flow Valve Fitting", file = "Air Flow Valve Fitting.step" },
+  { name = "Air Pressure Regulator Mounting Bracket", file = "Air Pressure Regulator Mounting Bracket.step" },
+  { name = "Elbow Fitting", file = "Elbow Fitting.step" },
+  { name = "Manifold Assembly", file = "Manifold Assembly.step" },
+  { name = "Pneumatic Fitting Plug", file = "Pneumatic Fitting Plug.step" },
+  { name = "Pneumatic Hand Valve", file = "Pneumatic Hand Valve.step" },
+  { name = "Pneumatic Reservoir Assembly", file = "Pneumatic Reservoir Assembly.step" },
+  { name = "Pressure Gauge", file = "Pressure Gauge.step" },
+  { name = "Pressure Regulator", file = "Pressure Regulator.step" },
+  { name = "Schrader Valve", file = "Schrader Valve.step" },
+  { name = "Straight Pneumatic Fitting", file = "Straight Pneumatic Fitting.step" },
+  { name = "Tee Fittings", file = "Tee Fittings.step" },
+]
+
+[[group]]
+folder = "Motion/Spacers/0.313 OD"
+parts = [
+  { sku = "276-2019", name = "8mm Plastic Spacer", file = "8mm Plastic Spacer (276-2019).step" },
+]
+
+[[group]]
+folder = "Motion/Spacers/0.375 OD"
+parts = [
+  { sku = "276-8019-001", name = "3/8\" OD x #8 Click-On Spacer, 0.063\"", file = "3_8 OD x #8 Click-On Spacer, 0.063 (276-8019-001).step" },
+  { sku = "276-8019-002", name = "3/8\" OD x #8 Click-On Spacer, 0.125\"", file = "3_8 OD x #8 Click-On Spacer, 0.125 (276-8019-002).step" },
+  { sku = "276-8019-003", name = "3/8\" OD x #8 Click-On Spacer, 0.250\"", file = "3_8 OD x #8 Click-On Spacer, 0.250 (276-8019-003).step" },
+]
+
+[[group]]
+folder = "Motion/Spacers/0.5 OD"
+parts = [
+  { sku = "275-1066-004", name = "1/2\" Nylon Spacer", file = "1_2 Nylon Spacer (275-1066-004).step" },
+  { sku = "275-1066-002", name = "1/4\" Nylon Spacer", file = "1_4 Nylon Spacer (275-1066-002).step" },
+  { sku = "275-1066-001", name = "1/8\" Nylon Spacer", file = "1_8 Nylon Spacer (275-1066-001).step" },
+  { sku = "275-1066-003", name = "3/8\" Nylon Spacer", file = "3_8 Nylon Spacer (275-1066-003).step" },
+]
+
+[[group]]
+folder = "Motion/Spacers/HS Spacers"
+parts = [
+  { sku = "276-3441-001", name = "1/16\" High Strength Shaft Spacer", file = "1_16 High Strength Shaft Spacer (276-3441-001).step" },
+  { sku = "276-3441-004", name = "1/2\" High Strength Shaft Spacer", file = "1_2 High Strength Shaft Spacer (276-3441-004).step" },
+  { sku = "276-3441-003", name = "1/4\" High Strength Shaft Spacer", file = "1_4 High Strength Shaft Spacer (276-3441-003).step" },
+  { sku = "276-3441-002", name = "1/8\" High Strength Shaft Spacer", file = "1_8 High Strength Shaft Spacer (276-3441-002).step" },
+]
+
+[[group]]
+folder = "Motion/Spacers/Washers/Steel"
+parts = [
+  { sku = "275-1024", name = "Steel Washer", file = "Steel Washer (275-1024).step" },
+]
+
+[[group]]
+folder = "Motion/Spacers/Washers/Teflon"
+parts = [
+  { sku = "275-1025", name = "Teflon Washer", file = "Teflon Washer (275-1025).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/6P/16T"
+parts = [
+  { sku = "276-8328", name = "16T Sprocket, 6P", file = "16T Sprocket, 6P (276-8328).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/6P/24T"
+parts = [
+  { sku = "276-8329", name = "24T Sprocket, 6P", file = "24T Sprocket, 6P (276-8329).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/6P/32T"
+parts = [
+  { sku = "276-8330", name = "32T Sprocket, 6P", file = "32T Sprocket, 6P (276-8330).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/6P/40T"
+parts = [
+  { sku = "276-8331", name = "40T Sprocket, 6P", file = "40T Sprocket, 6P (276-8331).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/6P/8T"
+parts = [
+  { sku = "276-8030", name = "8T Sprocket, 6P", file = "8T Sprocket, 6P (276-8030).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/9P/12T"
+parts = [
+  { sku = "276-3877", name = "12T High Strength Sprocket", file = "12T High Strength Sprocket (276-3877).stp" },
+  { sku = "276-3877", name = "12T High Strength Sprocket (HS Bore)", file = "12T High Strength Sprocket (HS Bore) (276-3877).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/9P/18T"
+parts = [
+  { sku = "276-3878", name = "18T High Strength Sprocket", file = "18T High Strength Sprocket (276-3878).stp" },
+  { sku = "276-3878", name = "18T High Strength Sprocket (HS Bore)", file = "18T High Strength Sprocket (HS Bore) (276-3878).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/9P/24T"
+parts = [
+  { sku = "276-3879", name = "24T High Strength Sprocket", file = "24T High Strength Sprocket (276-3879).stp" },
+  { sku = "276-3879", name = "24T High Strength Sprocket (HS Bore)", file = "24T High Strength Sprocket (HS Bore) (276-3879).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/9P/30T"
+parts = [
+  { sku = "276-3880", name = "30T High Strength Sprocket", file = "30T High Strength Sprocket (276-3880).stp" },
+  { sku = "276-3880", name = "30T High Strength Sprocket (HS Bore)", file = "30T High Strength Sprocket (HS Bore) (276-3880).step" },
+]
+
+[[group]]
+folder = "Motion/Sprockets/9P/6T"
+parts = [
+  { sku = "276-3876", name = "6T High Strength Sprocket", file = "6T High Strength Sprocket (276-3876).stp" },
+  { sku = "276-3876", name = "6T High Strength Sprocket (HS Bore)", file = "6T High Strength Sprocket (HS Bore) (276-3876).step" },
+]
+
+[[group]]
+folder = "Motion/Turntables"
+parts = [
+  { sku = "276-5652-000", name = "Large Turntable Bearing", file = "Large Turntable Bearing (276-5652-000).step" },
+  { sku = "276-5652-004", name = "Small Turntable Bearing", file = "Small Turntable Bearing (276-5652-004).step" },
+  { sku = "276-5652-007", name = "Turntable Mounting Bracket", file = "Turntable Mounting Bracket (276-5652-007).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels"
+parts = [
+  { sku = "276-2168-002", name = "Double Bogie Wheel", file = "Double Bogie Wheel (276-2168-002).step" },
+  { sku = "276-1499", name = "Intake Rollers", file = "Intake Rollers (276-1499).step" },
+  { sku = "276-2168-003", name = "Single Bogie Wheel", file = "Single Bogie Wheel (276-2168-003).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Mecanum Wheels/2 Inch/V1/Left"
+parts = [
+  { sku = "217-7400", name = "2\" Mecanum Wheel- Left", file = "2 Mecanum Wheel- Left (217-7400).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Mecanum Wheels/2 Inch/V1/Right"
+parts = [
+  { sku = "217-7400", name = "2\" Mecanum Wheel- Right", file = "2 Mecanum Wheel- Right (217-7400).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Mecanum Wheels/2 Inch/V2/Left"
+parts = [
+  { sku = "276-9041-801", name = "2” Mecanum Wheels V2 (Left)", file = "2” Mecanum Wheels V2 (Left) (276-9041-801) .step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Mecanum Wheels/2 Inch/V2/Right"
+parts = [
+  { sku = "276-9041-802", name = "2” Mecanum Wheels V2 (Right)", file = "2” Mecanum Wheels V2 (Right) (276-9041-802) .step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Mecanum Wheels/4 Inch"
+parts = [
+  { sku = "276-1447", name = "4\" Mecanum Wheel", file = "4 Mecanum Wheel (276-1447) .step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Omni Wheels/2 Inch"
+parts = [
+  { sku = "276-9044", name = "2” Omni-Directional Wheel", file = "2” Omni-Directional Wheel (276-9044).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Omni Wheels/2.75 Inch/Antistatic"
+parts = [
+  { sku = "276-8106", name = "2.75\" (220mm Travel) Omni-Directional Anti-Static Wheel", file = "2.75 (220mm Travel) Omni-Directional Anti-Static Wheel (276-8106).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Omni Wheels/3.25 Inch/Antistatic"
+parts = [
+  { sku = "276-8026", name = "3.25\" (260mm Travel) Omni-Directional Anti-Static Wheel", file = "3.25 (260mm Travel) Omni-Directional Anti-Static Wheel (276-8026).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Omni Wheels/4 Inch/Antistatic"
+parts = [
+  { sku = "276-8107", name = "4\" (320mm Travel) Omni-Directional Anti-Static Wheel", file = "4 (320mm Travel) Omni-Directional Anti-Static Wheel (276-8107).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Traction Wheels/2.75 Inch/Antistatic"
+parts = [
+  { sku = "276-8098", name = "2.75\" (220mm Travel) Anti-Static Wheel", file = "2.75 (220mm Travel) Anti-Static Wheel (276-8098).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Traction Wheels/2.75 Inch/Legacy"
+parts = [
+  { sku = "276-1496", name = "2.75\" Wheel", file = "2.75 Wheel (276-1496) .step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Traction Wheels/3.25 Inch/Antistatic"
+parts = [
+  { sku = "276-7771", name = "3.25\" (260mm Travel) Anti-Static Wheel", file = "3.25 (260mm Travel) Anti-Static Wheel (276-7771).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Traction Wheels/4 Inch/Antistatic"
+parts = [
+  { sku = "276-8103", name = "4\" (320mm Travel) Anti-Static Wheel (2-Pack)", file = "4 (320mm Travel) Anti-Static Wheel (2-Pack) (276-8103).step" },
+]
+
+[[group]]
+folder = "Motion/Wheels/Traction Wheels/4 Inch/Legacy"
+parts = [
+  { sku = "276-1497", name = "4\" Wheel", file = "4 Wheel (276-1497) .step" },
+  { sku = "276-1497-110", name = "4\" Wheel (High Strength Bore)", file = "4 Wheel (High Strength Bore) (276-1497-110).step" },
+]
+
+[[group]]
+folder = "Structure"
+parts = [
+  { sku = "275-1272", name = "Hinge", file = "Hinge (275-1272).step" },
+  { sku = "276-7499", name = "Rubber Bumper", file = "Rubber Bumper (276-7499).step" },
+  { sku = "276-3938", name = "V5RC License Plate", file = "V5RC License Plate (276-3938).step" },
+]
+
+[[group]]
+folder = "Structure/Aluminum/1x1 Angle (Regular)"
+parts = [
+  { sku = "217-6484", name = "1x1x35 Aluminum Angle", file = "1x1x35 Aluminum Angle (217-6484).step" },
+]
+
+[[group]]
+folder = "Structure/Aluminum/2x C-Channel"
+parts = [
+  { sku = "276-2288", name = "1x2x1x25 Aluminum C-Channel", file = "1x2x1x25 Aluminum C-Channel (276-2288).step" },
+  { sku = "276-2289", name = "1x2x1x35 Aluminum C-Channel", file = "1x2x1x35 Aluminum C-Channel (276-2289).step" },
+]
+
+[[group]]
+folder = "Structure/Aluminum/2x U-Channel"
+parts = [
+  { sku = "276-7285", name = "2x2x2x20 Aluminum U-Channel (6-pack)", file = "2x2x2x20 Aluminum U-Channel (6-pack) (276-7285).step" },
+  { sku = "276-7285", name = "U-Channel 2x2x2x20", file = "U-Channel 2x2x2x20 (276-7285).step" },
+]
+
+[[group]]
+folder = "Structure/Aluminum/3x C-Channel"
+parts = [
+  { sku = "276-4359", name = "1x3x1x35 Aluminum C-Channel", file = "1x3x1x35 Aluminum C-Channel (276-4359).step" },
+]
+
+[[group]]
+folder = "Structure/Aluminum/5x C-Channel"
+parts = [
+  { sku = "276-2290", name = "1x5x1x25 Aluminum C-Channel", file = "1x5x1x25 Aluminum C-Channel (276-2290).step" },
+  { sku = "276-2298", name = "1x5x1x35 Aluminum C-Channel", file = "1x5x1x35 Aluminum C-Channel (276-2298).step" },
+]
+
+[[group]]
+folder = "Structure/Brackets"
+parts = [
+  { sku = "275-1189", name = "Bevel Gearbox Bracket", file = "Bevel Gearbox Bracket (275-1189).step" },
+  { sku = "276-5771", name = "Rack Gearbox Bracket v2", file = "Rack Gearbox Bracket v2 (276-5771).step" },
+  { sku = "275-1187", name = "Worm Gearbox Bracket", file = "Worm Gearbox Bracket (275-1187).step" },
+]
+
+[[group]]
+folder = "Structure/Gussets"
+parts = [
+  { sku = "276-2576", name = "Angle Corner Gusset", file = "Angle Corner Gusset (276-2576).step" },
+  { sku = "276-2578", name = "Angle Coupler Gusset", file = "Angle Coupler Gusset (276-2578).step" },
+  { sku = "276-2575", name = "C-Channel Coupler Gusset", file = "C-Channel Coupler Gusset (276-2575).step" },
+  { sku = "276-1110", name = "Gusset Pack - Angle", file = "Gusset Pack - Angle (276-1110).step" },
+  { sku = "276-1110", name = "Gusset Pack - Pivot", file = "Gusset Pack - Pivot (276-1110).step" },
+  { sku = "276-1110", name = "Gusset Pack - Plus", file = "Gusset Pack - Plus (276-1110).step" },
+]
+
+[[group]]
+folder = "Structure/Gussets/30 Degrees"
+parts = [
+  { sku = "276-7758-002", name = "30 Degree Bent Gusset", file = "30 Degree Bent Gusset (276-7758-002).step" },
+  { sku = "276-7758-001", name = "30 Degree Flat Gusset", file = "30 Degree Flat Gusset (276-7758-001).step" },
+]
+
+[[group]]
+folder = "Structure/Gussets/45 Degrees"
+parts = [
+  { sku = "276-7759-002", name = "45 Degree Bent Gusset", file = "45 Degree Bent Gusset (276-7759-002).step" },
+  { sku = "276-7759-001", name = "45 Degree Flat Gusset", file = "45 Degree Flat Gusset (276-7759-001).step" },
+  { sku = "275-1186", name = "45 Degree Gusset", file = "45 Degree Gusset (275-1186).step" },
+]
+
+[[group]]
+folder = "Structure/Gussets/60 Degrees"
+parts = [
+  { sku = "276-7760-002", name = "60 Degree Bent Gusset", file = "60 Degree Bent Gusset (276-7760-002).step" },
+  { sku = "276-7760-001", name = "60 Degree Flat Gusset", file = "60 Degree Flat Gusset (276-7760-001).step" },
+]
+
+[[group]]
+folder = "Structure/Gussets/90 Degrees"
+parts = [
+  { sku = "276-7761-002", name = "90 Degree Bent Gusset", file = "90 Degree Bent Gusset (276-7761-002).step" },
+  { sku = "276-7761-001", name = "90 Degree Flat Gusset", file = "90 Degree Flat Gusset (276-7761-001).step" },
+  { sku = "276-2577", name = "90-Degree Gusset Set - Angle", file = "90-Degree Gusset Set - Angle (276-2577).step" },
+  { sku = "276-2577", name = "90-Degree Gusset Set - Plate", file = "90-Degree Gusset Set - Plate (276-2577).step" },
+]
+
+[[group]]
+folder = "Structure/Steel"
+parts = [
+  { sku = "276-1341", name = "15x30 Base Plate", file = "15x30 Base Plate (276-1341).step" },
+  { sku = "275-1141", name = "1x25 Steel Bar", file = "1x25 Steel Bar (275-1141).step" },
+  { sku = "275-1145", name = "2x1x25 Steel Chassis Rail", file = "2x1x25 Steel Chassis Rail (275-1145).step" },
+  { sku = "275-1146", name = "2x1x35 Steel Chassis Rail", file = "2x1x35 Steel Chassis Rail (275-1146).step" },
+  { sku = "275-2023", name = "5x15 Steel Plate", file = "5x15 Steel Plate (275-2023).step" },
+  { sku = "275-1140", name = "5x25 Steel Plate", file = "5x25 Steel Plate (275-1140).step" },
+]
+
+[[group]]
+folder = "Structure/Steel/2x C-Channel"
+parts = [
+  { sku = "276-2906", name = "1x2x1x35 Steel C-Channel", file = "1x2x1x35 Steel C-Channel (276-2906).step" },
+]
+
+[[group]]
+folder = "Structure/Steel/2x2 Angle"
+parts = [
+  { sku = "275-1142", name = "2x2x25 Steel Angle", file = "2x2x25 Steel Angle (275-1142).step" },
+  { sku = "275-1143", name = "2x2x35 Steel Angle", file = "2x2x35 Steel Angle (275-1143).step" },
+]
+
+[[group]]
+folder = "Structure/Steel/3x3 Angle"
+parts = [
+  { sku = "275-1144", name = "3x3x35 Steel Angle", file = "3x3x35 Steel Angle (275-1144).step" },
+]
+
+[[group]]
+folder = "Structure/Steel/5x C-Channel"
+parts = [
+  { sku = "275-1138", name = "1x5x1x25 Steel C-Channel", file = "1x5x1x25 Steel C-Channel (275-1138).step" },
+  { sku = "275-1139", name = "1x5x1x35 Steel C-Channel", file = "1x5x1x35 Steel C-Channel (275-1139).step" },
+]
