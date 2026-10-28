@@ -10,8 +10,9 @@
 | `freecad/vex_workbench/metal.py`   | channels, angles, plate, bar as Part shapes                           |
 | `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s |
 | `freecad/vex_workbench/browser.py` | the VEX parts dock                                                    |
+| `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`           |
 | `freecad/vex_workbench/data/parts.toml` | the [catalog](../design-choices/catalog.md)                      |
-| `freecad/vex_workbench/resources/icons/` | the workbench icon                                              |
+| `freecad/vex_workbench/resources/icons/` | the workbench and command icons                                 |
 | `package.xml`                      | addon manager metadata                                                |
 | `tests/`                           | `python tests/test_catalog.py` and so on                              |
 | `tools/fetch_vex_cad.py`           | pulls every V5 step off vexrobotics.com, `uv run` it                  |

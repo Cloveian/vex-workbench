@@ -15,10 +15,11 @@ class VexWorkbench(Gui.Workbench):
     Icon = os.path.join(ICONS, "vex.svg")
 
     def Initialize(self):
-        from . import browser
+        from . import browser, snap
         Gui.addCommand("Vex_Browser", browser.ShowBrowser())
-        self.appendToolbar("VEX", ["Vex_Browser"])
-        self.appendMenu("VEX", ["Vex_Browser"])
+        Gui.addCommand("Vex_HoleFrame", snap.HoleFrame())
+        self.appendToolbar("VEX", ["Vex_Browser", "Vex_HoleFrame"])
+        self.appendMenu("VEX", ["Vex_Browser", "Vex_HoleFrame"])
 
     def GetClassName(self):
         return "Gui::PythonWorkbench"

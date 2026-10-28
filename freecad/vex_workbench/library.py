@@ -2,10 +2,12 @@
 import functools
 
 import Part
+from FreeCAD import Placement, Rotation, Vector
 
 from . import catalog, metal
 
 GROUP = "VexParts"
+HOLE_MAX = 0.5 * metal.IN  # mm, anything bigger isnt a hole you'd put a screw or shaft through
 
 
 @functools.cache
@@ -118,6 +120,41 @@ def retarget(link):
         part = variant(family, {prop: getattr(link, prop) for prop, _ in options(family)})
     link.LinkedObject = source(link.Document, part)
     link.Label = part["name"]
+
+
+def holes(shape):
+    # (center, outwerd normal) of every inner loop on a flat face. square, round, whatever
+    out = []
+    for f in shape.Faces:
+        if f.Surface.TypeId != "Part::GeomPlane":
+            continue
+        n = f.normalAt(0, 0)
+        for w in f.Wires:
+            b = w.BoundBox
+            if not w.isSame(f.OuterWire) and max(b.XLength, b.YLength, b.ZLength) <= HOLE_MAX:
+                out.append((b.Center, n))
+    return out
+
+
+def hole_frame(link, point):
+    # LCS on the exact center of the hole nearset point (link coords), z out of the face, x along the length if it can
+    # it goes in the source so every copy has it
+    src = link.LinkedObject
+    found = holes(Part.getShape(src))
+    if not found:
+        raise ValueError(f"no holes on {link.Label}")
+    center, n = min(found, key=lambda h: (h[0] - point).Length)
+    for o in src.Group:
+        if o.TypeId == "App::LocalCoordinateSystem" and (o.Placement.Base - center).Length < 1e-6 \
+                and (o.Placement.Rotation.multVec(Vector(0, 0, 1)) - n).Length < 1e-6:
+            return o
+    x = Vector(1, 0, 0) - n * n.x
+    if x.Length < 1e-6:
+        x = Vector(0, 1, 0) - n * n.y
+    lcs = link.Document.addObject("App::LocalCoordinateSystem", "Hole")
+    lcs.Placement = Placement(center, Rotation(x, n.cross(x), n, "ZXY"))
+    src.addObject(lcs)
+    return lcs
 
 
 class Observer:
