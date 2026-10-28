@@ -60,8 +60,8 @@ def square(size, r):
     return f.makeOffset2D(r, 0) if r > 0 else f
 
 
-def diamond(side):
-    h = side / 2**0.5
+def diamond(h):
+    # h = half diaganal, how deep it notches an edge
     return Part.Face(Part.makePolygon([Vector(h, 0, 0), Vector(0, h, 0), Vector(-h, 0, 0), Vector(0, -h, 0), Vector(h, 0, 0)]))
 
 
@@ -132,12 +132,19 @@ def make(part, cat):
         cutters += [place(hole, pts[k] + d[k] * a + X * x, d[k], n[k]) for a, x in spots]
     if "diamond" in p:
         # every grid point, edges included
-        dia = prism(diamond(p["diamond"]), t)
+        dia = prism(diamond(p["diamond"] / 2**0.5), t)
         width = round((pts[1] - pts[0]).Length / g["pitch"])
         cutters += [place(dia, pts[0] + d[0] * (g["pitch"] * j) + X * (g["pitch"] * i), d[0], n[0])
                     for i in range(p["holes"] + 1) for j in range(width + 1)]
-    # todo count mark notches every 5 holes
-    # todo the tip chamfers on the cut ends (steel c-channel 0.064, angles ~0.09)
+    if len(pts) > 2:
+        # count marks + end chamfers on the free edges of the first and last leg
+        notch, cham = prism(diamond(metal["mark"]), t), prism(diamond(p["chamfer"]), t)
+        every = metal["marks"] * g["pitch"]
+        xs = [every * i for i in range(1, int(length / every - 1e-6) + 1)]
+        for tip, k in [(pts[0], 0), (pts[-1], -1)]:
+            cutters += [place(notch, tip + X * x, d[k], n[k]) for x in xs]
+            cutters += [place(cham, tip + X * x, d[k], n[k]) for x in (0, length)]
+    # todo bend reliefs at the count marks. flat pattern diamond on the inside surface, 0.0898 across the bend x 0.0798 along, wraped round the bend (helicoid sides)
     solid = solid.cut(cutters)
     solid.scale(IN)
     return solid

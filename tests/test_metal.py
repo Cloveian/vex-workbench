@@ -80,8 +80,8 @@ for fam in cat["family"]:
         vol = ours.Volume / theirs.Volume - 1
         m = best(po, pt)
         holes = "no orientation fits" if m is None else f"holes off {m[1]} missing / {m[2]} extra"
-        # todo 1.5% till the count marks every 5 holes and the end chamfers are in
-        ok = m is not None and m[0] == 0 and abs(vol) < 0.015 and ours.isValid()
+        # todo 1% till the bend reliefs are in, theyre all thats left (+0.84% on the 2x channel)
+        ok = m is not None and m[0] == 0 and abs(vol) < 0.01 and ours.isValid()
         note = ""
         if not ok and fx in OFF:
             note, ok = f" (known: {OFF[fx]})", True

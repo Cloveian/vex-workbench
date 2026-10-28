@@ -48,8 +48,8 @@ A, one file, `freecad/vex_workbench/data/parts.toml`. inches everywhere (vex is 
 
 how its laid out:
 
-- `[grid]` and `[metal]` up top: 0.5 pitch, 0.182 square holes with 0.02 corners, first hole center 0.25 in from the end and 0.296 past the outside of a bend, aluminum 0.062 wall, steel 0.046, 0.032 inside bend radius
-- a family can override any of those for itself (the plate's sharp holes, the bar's 0.056 steel), and the metal ones add their shape: `flange`, `between` for the staggered middle row, `diamond` for the plate / bar diamonds
+- `[grid]` and `[metal]` up top: 0.5 pitch, 0.182 square holes with 0.02 corners, first hole center 0.25 in from the end and 0.296 past the outside of a bend, aluminum 0.062 wall, steel 0.046, 0.032 inside bend radius, count notches 0.0798 deep every 5 holes
+- a family can override any of those for itself (the plate's sharp holes, the bar's 0.056 steel), and the metal ones add their shape: `flange`, `between` for the staggered middle row, `diamond` for the plate / bar diamonds, `chamfer` for the tip corners on the cut ends of channels and angles
 - `[[family]]` for each generated thing. `name` and `folder` are templates filled from the params (`"1x{width}x1x{holes} {material} C-Channel"`). a param is a list or a `{ from, to, step }` range, every combo is a part. a list of tables is rows, one part each (the washers, the drilled gears). `fixtures` = the vex steps it has to match. `base` = a step it's made out of (the thin nylock is the vex nylock with the plain end shaved down to 11/64)
 - after `# --- step parts ---`, one `[[group]]` per folder with `{ sku, name, file }` rows. the 15 pneumatics parts have no sku
 

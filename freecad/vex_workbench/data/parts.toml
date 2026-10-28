@@ -11,6 +11,8 @@ past_bend = 0.296 # outside of a bend to the first hole center
 [metal]
 thickness = { Aluminum = 0.062, Steel = 0.046 }
 bend = 0.032 # inside radius, steel and al steps both
+marks = 5 # count notches on the free edges, every 5 holes
+mark = 0.0798 # 45 deg V, this deep
 
 # generated parts
 
@@ -23,6 +25,7 @@ material = ["Aluminum", "Steel"]
 sizes = [{ width = 2, between = true }, { width = 3 }, { width = 5 }]
 holes = { from = 1, to = 35 }
 flange = 0.546
+chamfer = 0.064 # flange tip corners on the cut ends
 fixtures = [
   "1x2x1x25 Aluminum C-Channel (276-2288)",
   "1x2x1x35 Aluminum C-Channel (276-2289)",
@@ -50,6 +53,7 @@ material = ["Aluminum", "Steel"]
 variant = ["Regular", "Regular 2-Wide", "Thick 5-Wide", "Thin 5-Wide"]
 holes = { from = 1, to = 35 }
 thickness = { Aluminum = 0.063 }
+chamfer = 0.09
 fixtures = ["1x1x35 Aluminum Angle (217-6484)"] # regular, 0.5 legs
 
 [[family]]
@@ -59,6 +63,7 @@ name = "2x2x{holes} {material} Angle"
 material = ["Aluminum", "Steel"]
 holes = { from = 1, to = 35 }
 between = true
+chamfer = 0.09
 fixtures = ["2x2x25 Steel Angle (275-1142)", "2x2x35 Steel Angle (275-1143)"]
 
 [[family]]
@@ -68,6 +73,7 @@ name = "3x3x{holes} {material} Angle"
 material = ["Steel"]
 holes = { from = 1, to = 35 }
 between = true
+chamfer = 0.09
 fixtures = ["3x3x35 Steel Angle (275-1144)"]
 
 [[family]]
