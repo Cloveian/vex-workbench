@@ -5,7 +5,7 @@ in build order, each one is something i can open and poke at
 - [x] Catalog, every step + the generated families (`parts.toml`)
 - [x] Design docs
 - [x] **Workbench skeleton**: `package.xml`, `init_gui.py`, icon. done when `freecad -M .` shows a VEX workbench in 1.1
-- [ ] **Catalog reader**: `parts.toml` -> the actual list of parts, every family expanded. plain python, no FreeCAD. done when the test checks counts, unique names and that every fixture file exists
+- [x] **Catalog reader**: `parts.toml` -> the actual list of parts, every family expanded. plain python, no FreeCAD. done when the test checks counts, unique names and that every fixture file exists
 - [ ] **Metal generator**: channels, U-channel, angles, plate and bar are all one cross section stretched to length with square holes on every flat face, so one generator. editable `holes` / `material`. done when it matches the steel steps exactly (aluminum ones flare, looser check)
 - [ ] **Part browser + insert** - common families at the root, fusion folders under. step parts imported once and linked after
 - [ ] **Snap to hole**. click a hole, frame at its exact center. two channels jointed hole to hole should be 0 apart

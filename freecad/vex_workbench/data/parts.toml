@@ -195,14 +195,14 @@ shoulder = 0.176
 id = "thin-nylock"
 folder = "Hardware/Nuts/8-32 Nuts/Nylock Nuts"
 name = "Thin Nylock Nut (8-32, Steel)"
-from = "#8-32 Nylock Nut (275-1027)"
+base = "#8-32 Nylock Nut (275-1027)"
 height = 0.171875 # robosource, 11/64 (shave off non-nylon side to make thiner)
 
 [[family]]
 id = "hex-nut"
 folder = "Hardware/Nuts/8-32 Nuts/Hex Nuts"
 name = "Hex Nut (8-32, {material})"
-from = "#8-32 Hex Nut (275-1028)"
+base = "#8-32 Hex Nut (275-1028)"
 material = ["Nylon", "Aluminum"]
 
 [[family]]
@@ -267,15 +267,19 @@ holes = [3, 5, 7] # todo dims
 id = "license-plate"
 folder = "Structure"
 name = "{color} License Plate"
-from = "V5RC License Plate (276-3938)"
+base = "V5RC License Plate (276-3938)"
 color = ["Red", "Blue"]
 
 [[family]]
 id = "drilled-gear"
 folder = "Motion/Gears/Low Strength/Drilled Gears"
 name = "LS {teeth}T Gear (Drilled)"
-teeth = [12, 36, 60, 84]
-from = ["12T Gear (276-2169-001)", "36T Gear (276-2169-002)", "60T Gear (276-2169-003)", "84T Gear (276-2169-004)"]
+sizes = [
+  { teeth = 12, base = "12T Gear (276-2169-001)" },
+  { teeth = 36, base = "36T Gear (276-2169-002)" },
+  { teeth = 60, base = "60T Gear (276-2169-003)" },
+  { teeth = 84, base = "84T Gear (276-2169-004)" },
+]
 # todo hole pattern
 
 # --- step parts ---
