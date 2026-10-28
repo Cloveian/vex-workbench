@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="8" fill="#c8102e"/>
+  <!-- a bit of 1x2 c-channel, from above -->
+  <rect x="8" y="18" width="48" height="28" rx="1.5" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5"/>
+  <line x1="8" y1="22" x2="56" y2="22" stroke="#7a8189" stroke-width="1"/>
+  <line x1="8" y1="42" x2="56" y2="42" stroke="#7a8189" stroke-width="1"/>
+  <g fill="#3a3f45">
+    <rect x="12" y="25" width="5" height="5"/>
+    <rect x="24" y="25" width="5" height="5"/>
+    <rect x="36" y="25" width="5" height="5"/>
+    <rect x="48" y="25" width="5" height="5"/>
+    <rect x="12" y="34" width="5" height="5"/>
+    <rect x="24" y="34" width="5" height="5"/>
+    <rect x="36" y="34" width="5" height="5"/>
+    <rect x="48" y="34" width="5" height="5"/>
+  </g>
+</svg>

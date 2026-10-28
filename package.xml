@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
+    <name>VEX Workbench</name>
+    <description>VEX V5 parts at exact dimensions, with snap frames for the built-in Assembly workbench</description>
+    <version>0.1.0</version>
+    <date>2026-10-27</date>
+
+    <freecadmin>1.1.0</freecadmin>
+
+    <maintainer email="146399971+Cloveian@users.noreply.github.com">Cloveian</maintainer>
+    <author>Cloveian</author>
+
+    <icon>freecad/vex_workbench/resources/icons/vex.svg</icon>
+
+    <url type="repository" branch="main">https://github.com/Cloveian/vex-workbench</url>
+    <url type="bugtracker">https://github.com/Cloveian/vex-workbench/issues</url>
+
+    <content>
+        <workbench>
+            <name>VEX</name>
+            <classname>VexWorkbench</classname>
+            <subdirectory>./</subdirectory>
+        </workbench>
+    </content>
+</package>
