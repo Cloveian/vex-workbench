@@ -62,9 +62,16 @@ def square(size, r):
     return f.makeOffset2D(r, 0) if r > 0 else f
 
 
-def diamond(h):
-    # h = half diaganal, how deep it notches an edge
-    return Part.Face(Part.makePolygon([Vector(h, 0, 0), Vector(0, h, 0), Vector(-h, 0, 0), Vector(0, -h, 0), Vector(h, 0, 0)]))
+def diamond(h, r=0):
+    # h = half diaganal, how deep it notches an edge. r rounds the two y points, the notch bottoms
+    if not r:
+        return Part.Face(Part.makePolygon([Vector(h, 0, 0), Vector(0, h, 0), Vector(-h, 0, 0), Vector(0, -h, 0), Vector(h, 0, 0)]))
+    a, b = r / 2**0.5, r * (2**0.5 - 1)  # tangant points, and how much the tip pulls in
+    tip, edges = Vector(h, 0, 0), []
+    for s in (1, -1):
+        p, m, q = Vector(s * a, s * (h - a), 0), Vector(0, s * (h - b), 0), Vector(-s * a, s * (h - a), 0)
+        edges += [Part.LineSegment(tip * s, p).toShape(), Part.Arc(p, m, q).toShape(), Part.LineSegment(q, tip * -s).toShape()]
+    return Part.Face(Part.Wire(edges))
 
 
 def place(tool, origin, d, n):
@@ -176,10 +183,11 @@ def make(part, cat):
         spots += [(a, g["pitch"] * (i + 1)) for a in between for i in range(p["holes"] - 1)]
         cutters += [place(hole, pts[k] + d[k] * a + X * x, d[k], n[k]) for a, x in spots]
     if "diamond" in p:
-        # every grid point, edges included
-        dia = prism(diamond(p["diamond"] / 2**0.5), t)
+        # every grid point, edges included. the corner chamfers at the ends stay sharp
+        h = p["diamond"] / 2**0.5
+        sharp, dia = prism(diamond(h), t), prism(diamond(h, p.get("root", 0)), t)
         width = round((pts[1] - pts[0]).Length / g["pitch"])
-        cutters += [place(dia, pts[0] + d[0] * (g["pitch"] * j) + X * (g["pitch"] * i), d[0], n[0])
+        cutters += [place(dia if 0 < i < p["holes"] else sharp, pts[0] + d[0] * (g["pitch"] * j) + X * (g["pitch"] * i), d[0], n[0])
                     for i in range(p["holes"] + 1) for j in range(width + 1)]
     if len(pts) > 2:
         # count marks + end chamfers on the free edges of the first and last leg

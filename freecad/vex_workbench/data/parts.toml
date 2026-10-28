@@ -111,6 +111,7 @@ material = ["Aluminum", "Steel"]
 holes = { from = 1, to = 35 }
 thickness = { Steel = 0.056 } # thicker than the rest, 275-1141
 diamond = 0.1129 # only the edge notches, its 1 wide. smaller than the plate ones (0.0798 deep)
+root = 0.005 # notch bottoms rounded, the plates are sharp
 fixtures = ["1x25 Steel Bar (275-1141)"]
 
 [[family]]
