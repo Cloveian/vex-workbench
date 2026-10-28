@@ -64,7 +64,7 @@ id = "angle-2x2"
 title = "2x2 Angle"
 folder = "Structure/{material}/2x2 Angle"
 name = "2x2x{holes} {material} Angle"
-material = ["Aluminum", "Steel"]
+material = ["Steel"]
 holes = { from = 1, to = 35 }
 between = true
 chamfer = 0.09
@@ -86,7 +86,7 @@ id = "plate-5x"
 title = "5x Plate"
 folder = "Structure/{material}"
 name = "5x{holes} {material} Plate"
-material = ["Aluminum", "Steel"]
+material = ["Steel"]
 holes = { from = 1, to = 35 }
 # sharp squares, diamonds on every grid point. the edge ones are the notches and corner chamfers
 round = 0
