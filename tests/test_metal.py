@@ -28,7 +28,7 @@ OFF = {
 
 def points(shape):
     # hole centers on flat faces, inches from the bbox corner
-    b = shape.BoundBox
+    b = shape.optimalBoundingBox()  # plain BoundBox is ~0.011 loose round the relief faces
     out = []
     for f in shape.Faces:
         if f.Surface.TypeId != "Part::GeomPlane":
@@ -80,8 +80,8 @@ for fam in cat["family"]:
         vol = ours.Volume / theirs.Volume - 1
         m = best(po, pt)
         holes = "no orientation fits" if m is None else f"holes off {m[1]} missing / {m[2]} extra"
-        # todo 1% till the bend reliefs are in, theyre all thats left (+0.84% on the 2x channel)
-        ok = m is not None and m[0] == 0 and abs(vol) < 0.01 and ours.isValid()
+        # vex's reliefs are all a bit *dih*frent from ours (+0.13% on the 2x steel channel)
+        ok = m is not None and m[0] == 0 and abs(vol) < 0.002 and ours.isValid()
         note = ""
         if not ok and fx in OFF:
             note, ok = f" (known: {OFF[fx]})", True

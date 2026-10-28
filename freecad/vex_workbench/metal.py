@@ -1,4 +1,6 @@
 # channels, angles, plate, bar: one bent section stretched along x, holes cut through each flat leg
+import math
+
 import Part
 from FreeCAD import Matrix, Placement, Vector
 
@@ -73,17 +75,35 @@ def place(tool, origin, d, n):
     return c
 
 
+def reliefs(pts, d, n, t, r, xs, half, k):
+    # flat pattern diamond (half diagonal `half`) wrapped round every bend at each x
+    ro, rn = r + t, r + k * t
+    edge = half - rn * math.pi / 4  # half width where bend meets leg, also how far it runs onto the leg
+    reach = (ro + EPS) / math.cos(math.radians(7.5))  # chords cut short of the outside without the 1/cos
+    tri = Part.Face(Part.makePolygon([Vector(-edge, 0, 0), Vector(edge, 0, 0), Vector(0, -edge, 0), Vector(-edge, 0, 0)]))
+    back, on = prism(tri, t), prism(tri.mirror(Vector(0, 0, 0), Vector(0, 1, 0)), t)
+    out = []
+    for j in range(1, len(pts) - 1):
+        q, din, dout = pts[j], d[j - 1], d[j]
+        c = q - din * ro + dout * ro
+        for x in xs:
+            # ruled loft of radial rectangles every 15 deg
+            rings = []
+            for i in range(7):
+                s = i / 6  # 0 = incoming leg, 1 = outgoing
+                u = dout * -math.cos(s * math.pi / 2) + din * math.sin(s * math.pi / 2)
+                a = half - rn * abs(s - 0.5) * math.pi / 2
+                p = [c + u * (r - EPS) + X * (x - a), c + u * reach + X * (x - a), c + u * reach + X * (x + a), c + u * (r - EPS) + X * (x + a)]
+                rings.append(Part.makePolygon(p + p[:1]))
+            out.append(Part.makeLoft(rings, True, True))
+            out.append(place(back, q - din * ro + X * x, din, n[j - 1]))
+            out.append(place(on, q + dout * ro + X * x, dout, n[j]))
+    return out
+
+
 # --- profiles ---
 # each gives the outside corners and, per leg, where the holes go across it (from the leg start)
 # between = the staggered rows, half a pitch along
-
-
-def c_channel(p, g):
-    h, w = p["flange"], p["width"] * g["pitch"]
-    pts = [yz(0, 0), yz(h, 0), yz(h, w), yz(0, w)]
-    web = [g["end"] + g["pitch"] * i for i in range(p["width"])]
-    mid = [g["pitch"] * (i + 1) for i in range(p["width"] - 1)] if p.get("between") else []
-    return pts, [([h - g["past_bend"]], []), (web, mid), ([g["past_bend"]], [])]
 
 
 def rows(size, p, g):
@@ -92,6 +112,15 @@ def rows(size, p, g):
     far = [b + g["pitch"] * i for i in range(size)]
     mid = [b + g["pitch"] * (i + 0.5) for i in range(size - 1)] if p.get("between") else []
     return far, mid
+
+
+def c_channel(p, g):
+    h, w = p["flange"], p["width"] * g["pitch"]
+    pts = [yz(0, 0), yz(h, 0), yz(h, w), yz(0, w)]
+    web = [g["end"] + g["pitch"] * i for i in range(p["width"])]
+    mid = [g["pitch"] * (i + 1) for i in range(p["width"] - 1)] if p.get("between") else []
+    flange, _ = rows(1, p, g)
+    return pts, [([h - x for x in flange], []), (web, mid), (flange, [])]
 
 
 def angle(size):
@@ -160,7 +189,7 @@ def make(part, cat):
         for tip, k in [(pts[0], 0), (pts[-1], -1)]:
             cutters += [place(notch, tip + X * x, d[k], n[k]) for x in xs]
             cutters += [place(cham, tip + X * x, d[k], n[k]) for x in (0, length)]
-    # todo bend reliefs at the count marks. flat pattern diamond on the inside surface, 0.0898 across the bend x 0.0798 along, wraped round the bend (helicoid sides)
+        cutters += reliefs(pts, d, n, t, metal["bend"], xs, metal["relief"], metal["k"])
     solid = solid.cut(cutters)
     solid.scale(IN)
     return solid

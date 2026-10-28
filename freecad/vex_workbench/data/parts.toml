@@ -13,6 +13,9 @@ thickness = { Aluminum = 0.062, Steel = 0.046 }
 bend = 0.032 # inside radius, steel and al steps both
 marks = 5 # count notches on the free edges, every 5 holes
 mark = 0.0798 # 45 deg V, this deep
+# bend reliefs at the marks, a 45 deg diamond in the flat pattern. vex's are all over the place (0.0846-0.0934, k 0.135-0.44), this is the most common one
+relief = 0.0898 # half diagonal
+k = 0.44 # nuetral line for unrolling the bend, r + k*t. inventor's default
 
 # generated parts
 
