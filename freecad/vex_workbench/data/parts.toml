@@ -45,7 +45,13 @@ folder = "Structure/{material}/2x U-Channel"
 name = "2x2x2x{holes} {material} U-Channel"
 material = ["Aluminum", "Steel"]
 holes = { from = 1, to = 20 }
-fixtures = ["2x2x2x20 Aluminum U-Channel (6-pack) (276-7285)", "U-Channel 2x2x2x20 (276-7285)"]
+flange = 1.017
+web = 1.1417 # 29 mm, so 0.0157 wider than 1.0 inside. a 2x c-channel slides in
+thickness = { Aluminum = 0.063 }
+past_bend = 0.313 # 0.25 off the inside
+between = true
+chamfer = 0.064
+fixtures = ["2x2x2x20 Aluminum U-Channel (6-pack) (276-7285)"] # U-Channel 2x2x2x20 (276-7285) is the same solid
 
 [[family]]
 id = "angle-1x1"

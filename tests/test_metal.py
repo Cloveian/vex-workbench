@@ -85,8 +85,8 @@ for fam in cat["family"]:
         note = ""
         if not ok and fx in OFF:
             note, ok = f" (known: {OFF[fx]})", True
-        if not ok and "Aluminum" in fx and "Angle" not in fx:
-            # al channel steps are their own shape (0.55 tall, flange holes 0.3, the 5x flares), ours is the steel layout
+        if not ok and "Aluminum C-Channel" in fx:
+            # al c-channel steps are their own shape (0.55 tall, flange holes 0.3, the 5x flares), ours is the steel layout
             note, ok = " (info, al step)", True
         bad += not ok
         print(f"{'ok ' if ok else 'BAD'} {fx}: {size} vol {vol * 100:+.2f}% {holes}, {ms:.0f} ms{note}")

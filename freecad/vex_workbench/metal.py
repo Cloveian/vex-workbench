@@ -86,14 +86,29 @@ def c_channel(p, g):
     return pts, [([h - g["past_bend"]], []), (web, mid), ([g["past_bend"]], [])]
 
 
+def rows(size, p, g):
+    # hole rows counted from the outside of a bend
+    b = p.get("past_bend", g["past_bend"])
+    far = [b + g["pitch"] * i for i in range(size)]
+    mid = [b + g["pitch"] * (i + 0.5) for i in range(size - 1)] if p.get("between") else []
+    return far, mid
+
+
 def angle(size):
     def profile(p, g):
         a = size * g["pitch"]
         pts = [yz(0, 0), yz(a, 0), yz(a, a)]
-        far = [g["past_bend"] + g["pitch"] * i for i in range(size)]
-        mid = [g["past_bend"] + g["pitch"] * (i + 0.5) for i in range(size - 1)] if p.get("between") else []
+        far, mid = rows(size, p, g)
         return pts, [([a - x for x in far], [a - x for x in mid]), (far, mid)]
     return profile
+
+
+def u_channel(p, g):
+    # web rows from one bend too, so a hair off center
+    h = p["flange"]
+    pts = [yz(0, 0), yz(h, 0), yz(h, p["web"]), yz(0, p["web"])]
+    far, mid = rows(2, p, g)
+    return pts, [([h - x for x in far], [h - x for x in mid]), (far, mid), (far, mid)]
 
 
 def flat(size):
@@ -105,6 +120,7 @@ def flat(size):
 
 PROFILES = {
     "c-channel": c_channel,
+    "u-channel": u_channel,
     "angle-1x1": angle(1),
     "angle-2x2": angle(2),
     "angle-3x3": angle(3),
