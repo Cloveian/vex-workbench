@@ -7,6 +7,7 @@
 | `freecad/vex_workbench/`           | the workbench itself (new style addon, FreeCAD finds it by this path) |
 | `freecad/vex_workbench/init_gui.py` | registers the workbench, gui only                                    |
 | `freecad/vex_workbench/catalog.py` | `parts.toml` -> every part, no FreeCAD needed                         |
+| `freecad/vex_workbench/metal.py`   | channels, angles, plate, bar as Part shapes                           |
 | `freecad/vex_workbench/data/parts.toml` | the [catalog](../design-choices/catalog.md)                      |
 | `freecad/vex_workbench/resources/icons/` | the workbench icon                                              |
 | `package.xml`                      | addon manager metadata                                                |
@@ -22,7 +23,7 @@ the fetch script drives my real firefox (selenium + geckodriver) with my cookies
 ## Testing
 
 - anything that doesnt need FreeCAD (the catalog reader) is plain python, asserts top to bottom, no pytest. the test imports `catalog` straight from its folder, cuz the system `freecad` package loads FreeCAD on import and then it isnt FreeCAD free anymore
-- geometry runs headless in `freecadcmd`, generated parts checked against their fixture steps (volume and bounding box, in inches)
+- geometry tests import `freecad` on purpose, that puts FreeCAD on the path so plain `python` runs them. generated parts get checked against their fixture steps (volume, bounding box and hole centers, in inches)
 
 ---
 Back to [code](index.md)

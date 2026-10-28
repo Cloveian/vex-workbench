@@ -4,11 +4,13 @@
 [grid]
 pitch = 0.5
 hole = 0.182
+round = 0.02 # hole corners
 end = 0.25
+past_bend = 0.296 # outside of a bend to the first hole center
 
 [metal]
 thickness = { Aluminum = 0.062, Steel = 0.046 }
-# todo bend radius.
+bend = 0.032 # inside radius, steel and al steps both
 
 # generated parts
 
@@ -17,8 +19,10 @@ id = "c-channel"
 folder = "Structure/{material}/{width}x C-Channel"
 name = "1x{width}x1x{holes} {material} C-Channel"
 material = ["Aluminum", "Steel"]
-width = [2, 3, 5]
+# between = the staggered row down the middle, only the 2 wide has it
+sizes = [{ width = 2, between = true }, { width = 3 }, { width = 5 }]
 holes = { from = 1, to = 35 }
+flange = 0.546
 fixtures = [
   "1x2x1x25 Aluminum C-Channel (276-2288)",
   "1x2x1x35 Aluminum C-Channel (276-2289)",
@@ -45,6 +49,7 @@ name = "1x1x{holes} {material} Angle ({variant})"
 material = ["Aluminum", "Steel"]
 variant = ["Regular", "Regular 2-Wide", "Thick 5-Wide", "Thin 5-Wide"]
 holes = { from = 1, to = 35 }
+thickness = { Aluminum = 0.063 }
 fixtures = ["1x1x35 Aluminum Angle (217-6484)"] # regular, 0.5 legs
 
 [[family]]
@@ -53,6 +58,7 @@ folder = "Structure/{material}/2x2 Angle"
 name = "2x2x{holes} {material} Angle"
 material = ["Aluminum", "Steel"]
 holes = { from = 1, to = 35 }
+between = true
 fixtures = ["2x2x25 Steel Angle (275-1142)", "2x2x35 Steel Angle (275-1143)"]
 
 [[family]]
@@ -61,6 +67,7 @@ folder = "Structure/{material}/3x3 Angle"
 name = "3x3x{holes} {material} Angle"
 material = ["Steel"]
 holes = { from = 1, to = 35 }
+between = true
 fixtures = ["3x3x35 Steel Angle (275-1144)"]
 
 [[family]]
@@ -69,6 +76,9 @@ folder = "Structure/{material}"
 name = "5x{holes} {material} Plate"
 material = ["Aluminum", "Steel"]
 holes = { from = 1, to = 35 }
+# sharp squares, diamonds on every grid point. the edge ones are the notches and corner chamfers
+round = 0
+diamond = 0.127
 fixtures = ["5x15 Steel Plate (275-2023)", "5x25 Steel Plate (275-1140)"]
 
 [[family]]
@@ -77,6 +87,8 @@ folder = "Structure/{material}"
 name = "1x{holes} {material} Bar"
 material = ["Aluminum", "Steel"]
 holes = { from = 1, to = 35 }
+thickness = { Steel = 0.056 } # thicker than the rest, 275-1141
+diamond = 0.1129 # only the edge notches, its 1 wide. smaller than the plate ones (0.0798 deep)
 fixtures = ["1x25 Steel Bar (275-1141)"]
 
 [[family]]

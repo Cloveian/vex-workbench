@@ -18,7 +18,7 @@ in build order, each one is something i can open and poke at
 - [ ] Bending metal
 
 ## Still need numbers for
-- [ ] bend radius
+- [x] bend radius
 - [ ] 1x1 angle variants (Regular 2-Wide, Thick 5-Wide, Thin 5-Wide)
 - [ ] flange nuts (nylon, nylock), wing nut
 - [ ] HS spacer bore clearance

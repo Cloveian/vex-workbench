@@ -8,6 +8,18 @@
 - shoulder screws are torx, shoulder is 0.176 (a 0.182 hole leaves 0.006, so its a pivot pin), and the pairs are `[screw length, shoulder length]` under a `length` key. `size` only means shaft width now
 - added the github remote
 
+later, the actual workbench
+
+- it shows up in FreeCAD 1.1 now, `freecad -M .` and theres a VEX workbench with an empty toolbar. package.xml, init_gui.py, an icon of a bit of c-channel
+- `catalog.py` reads the toml into 939 generated parts + 289 steps in 29 ms, no FreeCAD. the drilled gears were two lists that had to line up, as an every-combo param that was 16 gears, rows now. family level `from` is `base` now so `from` only means a range start
+- metal generator (`metal.py`). the section is built from its outside corners with real bends, holes cut per leg in one boolean, ~1 s for a 35 long channel. turns out vex's steps *do* have bends, i was wrong yesterday: **0.032 inside radius** on steel and al. also found
+	- the holes on channels / angles / bar have 0.02 corners, the plates are sharp
+	- every first hole past a bend is 0.296 from the outside of it, web holes are centered
+	- the 2x c-channel and the 2x2 / 3x3 angles have a staggered row down the middle (that 104 = 35\*2 + 34 from yesterday), the 3x and 5x channels dont
+	- plates have 0.127 diamonds on every grid point, the edge ones are the notches. the bar has the notches too but smaller (0.0798 deep), and its 0.056 thick
+	- notches every 5 holes on the free edges *and* through the bends, little count marks. not in yet
+- vs vex: plates 0.00%, bar -0.01%, angles and the 2x channel have every hole right and are +0.5 to +1.1% heavy till the count marks are in. the al channel steps are a different shape (0.55 tall, flange holes 0.3, the 5x ones flare to 2.545) so theyre just reported. and vex's 5x steel channels have the web holes 0.24 from one side, ours are centered
+
 ## 2026-10-26 - every V5 step, and the catalog
 
 - `tools/fetch_vex_cad.py` pulls every V5 step off vexrobotics.com. headless got a cloudflare 403, so it drives my real firefox through selenium with my cookies in a temp profile (the real profile is 1.6 GB and locked while firefox is open). the search page is algolia with 5 searches on it, each with its own pages, so the next button is the one whose only page key is the cad one. counting cards from all 5 was 137 a page lol
