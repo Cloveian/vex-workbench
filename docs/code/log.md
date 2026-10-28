@@ -1,5 +1,27 @@
 # Log
 
+## 2026-10-28 - the metal is done
+
+- aluminum 2x2 angles and aluminum plates arent a thing, so theyre gone. 869 generated now
+- U-channel generator. 1.017 deep, 1.1417 tall (thats 29.0 mm, so 0.0157 more than 1.0 inside and a 2x c-channel slides in), 0.063 wall, two rows + the staggered one on all three sides. holes start 0.313 past the outside of a bend, which is 0.25 off the *inside*, same as the steel channel's 0.296 = 0.25 + 0.046. the web is a hair off center cuz of it. all 177 holes land on vex's
+- bend reliefs are in. through the bend the walls are radial, on the legs they're a triangle straight through. unrolled its one diamond, except vex drew every file *dih*frently:
+
+	| step | half width mid bend | k |
+	|---|---|---|
+	| 2x steel c | 0.0846 (stretched) | 0.135 |
+	| 5x steel c | 0.0898 | 0.135 |
+	| 2x2 steel angle | 0.0934 (stretched) | 0.41 |
+	| 3x3 steel angle | 0.0898 | 0.41 |
+	| al U | 0.0898 | 0.44 |
+	| al 1x1 angle | 0.0934 (stretched) | 0.41 |
+
+	so ours is the populer one, 45 deg, 0.0898, k = 0.44 (inventor's default, and the U on the nose). built as a ruled loft of radial rectangles every 15 deg, the chord error is ~0.00003. angles went from +0.26 to +0.78% to within 0.03%, the U +0.01%, the 2x steel channel +0.13% (its the stretched one). test tolerance 1% -> 0.2%
+
+- the plain `BoundBox` is ~0.011 loose around the loft faces, the test uses `optimalBoundingBox()` now. had me thinking the reliefs made the parts *bigger* for a sec lol
+- the bar's notch bottoms are r0.005, only the bottoms, the mouths and end chamfers are sharp and so are the plate's. the bar is face for face with vex now (48 r0.005s, 100 r0.02s, 254 planes)
+- the reliefs cost time, a 1x5x1x35 channel is 3.1 s to build now (was 2.1), the 3x3x35 angle 3.6 (was 3.1)
+- the 1x1 variants (2-wide, thick 5-wide, thin 5-wide) are only in the fusion library as f3d, and all i could get out of those is a 256 px thumbnail. so still no numbers
+
 ## 2026-10-27 - how its gonna work
 
 - went through how i want it to work and wrote it all down as [design choices](../design-choices/index.md): FreeCAD 1.1 only with the built in Assembly, generate what we can and ship steps for the rest, every part an `App::Part` with copies as `App::Link`s, nominal sizes, frames on exact hole centers with zero clearance, joints center, step parts get their holes found on import, the browser has common families at the root
