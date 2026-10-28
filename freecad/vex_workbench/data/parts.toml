@@ -186,9 +186,9 @@ fixtures = [
 id = "shoulder-screw"
 drive = "star"
 folder = "Hardware/Screws/8-32/Steel/Shoulder Screws/Robosource"
-name = "{size[0]:.3f}, {size[1]:.2f} Robosource Shoulder Screw (8-32, Steel)"
-# [screw length, shoulder length under head], pairs off the fusion names
-size = [[0.29, 0.09], [0.375, 0.12], [0.5, 0.04], [0.5, 0.18], [1.0, 0.12], [1.5, 0.18], [2.0, 0.04]]
+name = "{length[0]:.3f}, {length[1]:.2f} Robosource Shoulder Screw (8-32, Steel)"
+# [screw length, shoulder length under head]
+length = [[0.29, 0.09], [0.375, 0.12], [0.5, 0.04], [0.5, 0.18], [1.0, 0.12], [1.5, 0.18], [2.0, 0.04]]
 shoulder = 0.176
 
 [[family]]

@@ -43,7 +43,7 @@ BLOCK_MARKERS = ["access temporarily blocked", "just a moment", "verify you are 
 WAIT_FOR_ME = True  # headed: wait for me to do a bot check by hand
 SOLVE_WAIT = 180  # s
 
-# page has 5 searches (products, cads, pages, resources, news) each with its own pagination, so only cards with a cad link count
+# page has 5 searches (products, cads, pages, resources, news) each with its own pagenation, so only cards with a cad link count
 # one object per card, climbs up from the cad link until the parent would hold a 2nd one
 SCRAPE_JS = """
 () => [...document.querySelectorAll('a.cad-link')].map(cad => {
@@ -60,7 +60,7 @@ SCRAPE_JS = """
   };
 })
 """
-# cads next link is the visible one that only pages the cads index, the others carry page= or their own [page] keys
+# cads next link is the visable one that only pages the cads index, the others carry page= or their own [page] keys
 NEXT_JS = """
 const cadsOnly = a => {
   const keys = [...new URL(a.href).searchParams.keys()].filter(k => k === 'page' || k.endsWith('[page]'));

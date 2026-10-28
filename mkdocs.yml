@@ -1,0 +1,76 @@
+site_name: VEX Workbench
+site_description: A FreeCAD workbench for VEX V5 robots - design notes
+site_author: Cloveian
+site_url: https://cloveian.github.io/vex-workbench/
+
+repo_name: Cloveian/vex-workbench
+repo_url: https://github.com/Cloveian/vex-workbench/
+
+theme:
+  name: material
+  font: false
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.instant
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+  palette:
+    - scheme: slate
+      primary: red
+      accent: red
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: red
+      accent: red
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.details
+  - pymdownx.tilde
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  # same heading links as obsidian
+  - toc:
+      permalink: true
+      toc_depth: 4
+      slugify: !!python/object/apply:pymdownx.slugs.slugify {kwds: {case: lower}}
+
+plugins:
+  - search
+
+# in the order i made the decisions
+nav:
+  - Home:
+      - index.md
+      - Goals & constraints: goals.md
+  - Design choices:
+      - design-choices/index.md
+      - Platform: design-choices/platform.md
+      - Part sources: design-choices/part-sources.md
+      - Catalog: design-choices/catalog.md
+      - Parts: design-choices/parts.md
+      - Snap points: design-choices/snap-points.md
+      - Part browser: design-choices/browser.md
+  - Code:
+      - code/index.md
+      - Structure: code/structure.md
+      - Log: code/log.md
+  - Roadmap: roadmap.md

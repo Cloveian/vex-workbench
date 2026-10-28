@@ -12,7 +12,7 @@ SRC = [ROOT / "downloads" / "vex-v5"]
 OUT = ROOT / "vex-step"
 FUSION_REPO = "VEX-CAD/VEX-CAD-Fusion-360-Library"
 
-# first match wins, so specific before general. {0} {1} are the regex groups, title-cased (12t -> 12T, steel -> Steel)
+# first match wins, so spesific before general. {0} {1} are the regex groups, title-cased (12t -> 12T, steel -> Steel)
 RULES = [
     # --- hardware ---
     (r"^#6-32 x", "Hardware/Screws"),
