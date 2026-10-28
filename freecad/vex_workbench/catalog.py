@@ -4,9 +4,10 @@ import tomllib
 from pathlib import Path
 
 CATALOG = Path(__file__).parent / "data" / "parts.toml"
+STEP_DIR = Path(__file__).parents[2] / "vex-step"  # the repo checkout for now, todo where shipped ones go
 
 # everything else in a [[family]] is a param
-FAMILY_KEYS = ("id", "folder", "name", "fixtures")
+FAMILY_KEYS = ("id", "title", "folder", "name", "fixtures")
 
 
 def load(path=CATALOG):
@@ -30,15 +31,15 @@ def axes(family):
         if isinstance(v, dict) and "to" in v:
             v = span(v)
         if isinstance(v, list):
-            out.append([x if isinstance(x, dict) else {key: x} for x in v])
+            out.append((key, [x if isinstance(x, dict) else {key: x} for x in v]))
         else:
-            out.append([{key: v}])
+            out.append((key, [{key: v}]))
     return out
 
 
 def variants(family):
     out = []
-    for combo in itertools.product(*axes(family)):
+    for combo in itertools.product(*(c for _, c in axes(family))):
         params = {}
         for c in combo:
             params.update(c)

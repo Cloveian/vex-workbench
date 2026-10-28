@@ -20,6 +20,7 @@ later, the actual workbench
 	- notches every 5 holes on the free edges *and* through the bends, little count marks. not in yet
 - vs vex: plates 0.00%, bar -0.01%, angles and the 2x channel have every hole right and are +0.5 to +1.1% heavy till the count marks are in. the al channel steps are a different shape (0.55 tall, flange holes 0.3, the 5x ones flare to 2.545) so theyre just reported. and vex's 5x steel channels have the web holes 0.24 from one side, ours are centered
 - count marks are in on the free edges, and the tip chamfers on the cut ends (0.064 on the steel channel, 0.09 on the angles). angles are +0.26 to +0.78% now, the 2x steel channel +0.84%. whats left is the bend reliefs at the count marks, a 0.0898 x 0.0798 diamond wrapped round the inside of the bend, so helicoid sides. *bleh*
+- parts can go in a document now. a VEX parts dock (families up top, greyed out till they have a generator, the fusion folders under, a search box), pick the options, Place. each variant gets one hidden `App::Part` source under "VEX parts", every placed one is a plain `App::Link` to it with the params as properties (Holes, Material, Size...). change one and a document observer points just that link at the other variant. had to be a plain `App::Link`, not `App::LinkPython`, the assembly code checks `TypeId == "App::Link"` exactly
 
 ## 2026-10-26 - every V5 step, and the catalog
 

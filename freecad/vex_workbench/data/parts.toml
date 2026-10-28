@@ -18,6 +18,7 @@ mark = 0.0798 # 45 deg V, this deep
 
 [[family]]
 id = "c-channel"
+title = "C-Channel"
 folder = "Structure/{material}/{width}x C-Channel"
 name = "1x{width}x1x{holes} {material} C-Channel"
 material = ["Aluminum", "Steel"]
@@ -39,6 +40,7 @@ fixtures = [
 
 [[family]]
 id = "u-channel"
+title = "U-Channel"
 folder = "Structure/{material}/2x U-Channel"
 name = "2x2x2x{holes} {material} U-Channel"
 material = ["Aluminum", "Steel"]
@@ -47,6 +49,7 @@ fixtures = ["2x2x2x20 Aluminum U-Channel (6-pack) (276-7285)", "U-Channel 2x2x2x
 
 [[family]]
 id = "angle-1x1"
+title = "1x1 Angle"
 folder = "Structure/{material}/1x1 Angle ({variant})"
 name = "1x1x{holes} {material} Angle ({variant})"
 material = ["Aluminum", "Steel"]
@@ -58,6 +61,7 @@ fixtures = ["1x1x35 Aluminum Angle (217-6484)"] # regular, 0.5 legs
 
 [[family]]
 id = "angle-2x2"
+title = "2x2 Angle"
 folder = "Structure/{material}/2x2 Angle"
 name = "2x2x{holes} {material} Angle"
 material = ["Aluminum", "Steel"]
@@ -68,6 +72,7 @@ fixtures = ["2x2x25 Steel Angle (275-1142)", "2x2x35 Steel Angle (275-1143)"]
 
 [[family]]
 id = "angle-3x3"
+title = "3x3 Angle"
 folder = "Structure/{material}/3x3 Angle"
 name = "3x3x{holes} {material} Angle"
 material = ["Steel"]
@@ -78,6 +83,7 @@ fixtures = ["3x3x35 Steel Angle (275-1144)"]
 
 [[family]]
 id = "plate-5x"
+title = "5x Plate"
 folder = "Structure/{material}"
 name = "5x{holes} {material} Plate"
 material = ["Aluminum", "Steel"]
@@ -89,6 +95,7 @@ fixtures = ["5x15 Steel Plate (275-2023)", "5x25 Steel Plate (275-1140)"]
 
 [[family]]
 id = "bar-1x"
+title = "1x Bar"
 folder = "Structure/{material}"
 name = "1x{holes} {material} Bar"
 material = ["Aluminum", "Steel"]
@@ -99,6 +106,7 @@ fixtures = ["1x25 Steel Bar (275-1141)"]
 
 [[family]]
 id = "ls-shaft"
+title = "LS Shaft"
 folder = "Motion/LS Shafts"
 name = "{length:.3f} LS Shaft"
 size = 0.125
@@ -107,6 +115,7 @@ fixtures = ["2 Shaft (276-2011-001)", "3 Shaft (276-2011-002)", "Drive Shaft 12 
 
 [[family]]
 id = "hs-shaft"
+title = "HS Shaft"
 folder = "Motion/HS Shafts"
 name = "{length:.3f} HS Shaft"
 size = 0.25
@@ -120,6 +129,7 @@ fixtures = [
 
 [[family]]
 id = "pitch-shaft"
+title = "Pitch Shaft"
 folder = "Motion/LS Shafts"
 name = "{n}x Pitch Shaft"
 size = 0.125
@@ -137,6 +147,7 @@ fixtures = [
 
 [[family]]
 id = "standoff"
+title = "Standoff"
 folder = "Hardware/Standoffs"
 name = "{length:.3f} Standoff (8-32, Aluminum)"
 hex = 0.25 # vex standoff page
@@ -158,6 +169,7 @@ fixtures = [
 
 [[family]]
 id = "hex-screw"
+title = "Hex Screw"
 generator = "button-screw"
 drive = "hex"
 folder = "Hardware/Screws/8-32/Steel/Hex"
@@ -178,6 +190,7 @@ fixtures = [
 
 [[family]]
 id = "star-screw"
+title = "Torx (Star) Screw"
 generator = "button-screw"
 drive = "star"
 folder = "Hardware/Screws/8-32/Steel/Torx (Star)"
@@ -202,6 +215,7 @@ fixtures = [
 
 [[family]]
 id = "shoulder-screw"
+title = "Shoulder Screw"
 drive = "star"
 folder = "Hardware/Screws/8-32/Steel/Shoulder Screws/Robosource"
 name = "{length[0]:.3f}, {length[1]:.2f} Robosource Shoulder Screw (8-32, Steel)"
@@ -211,6 +225,7 @@ shoulder = 0.176
 
 [[family]]
 id = "thin-nylock"
+title = "Thin Nylock Nut"
 folder = "Hardware/Nuts/8-32 Nuts/Nylock Nuts"
 name = "Thin Nylock Nut (8-32, Steel)"
 base = "#8-32 Nylock Nut (275-1027)"
@@ -218,6 +233,7 @@ height = 0.171875 # robosource, 11/64 (shave off non-nylon side to make thiner)
 
 [[family]]
 id = "hex-nut"
+title = "Hex Nut"
 folder = "Hardware/Nuts/8-32 Nuts/Hex Nuts"
 name = "Hex Nut (8-32, {material})"
 base = "#8-32 Hex Nut (275-1028)"
@@ -225,6 +241,7 @@ material = ["Nylon", "Aluminum"]
 
 [[family]]
 id = "extra-low-nut"
+title = "Extra-Low Profile Nut"
 folder = "Hardware/Nuts/8-32 Nuts"
 name = "Extra-Low Profile Nut (8-32, Steel)"
 # robosource, really just a 3/32 tall standoff but steel
@@ -235,6 +252,7 @@ height = 0.09375 # 3/32
 
 [[family]]
 id = "spacer"
+title = "Spacer"
 folder = "Motion/Spacers/{od} OD"
 name = "{od} OD Spacer, {length:.3f} (Nylon)"
 od = [0.313, 0.375, 0.5]
@@ -250,6 +268,7 @@ fixtures = [
 
 [[family]]
 id = "hs-spacer"
+title = "HS Spacer"
 folder = "Motion/Spacers/HS Spacers"
 name = "0.5 OD HS Spacer, {length:.4g} (Nylon)"
 across = 0.425 # not round, vex steps. fusion calls it 0.5 OD
@@ -264,6 +283,7 @@ fixtures = [
 
 [[family]]
 id = "washer"
+title = "Washer"
 folder = "Motion/Spacers/Washers/{material}"
 name = "Washer, {od:.3f} OD, {thickness:.3f} ({material})"
 # robosource. vex steel (275-1024) and teflon (275-1025) are their own sizes, step parts
@@ -277,12 +297,14 @@ sizes = [
 
 [[family]]
 id = "hs-lockbar"
+title = "HS Lockbar"
 folder = "Motion/Lock Bars"
 name = "{holes} Hole HS Lockbar"
 holes = [3, 5, 7] # todo dims
 
 [[family]]
 id = "license-plate"
+title = "License Plate"
 folder = "Structure"
 name = "{color} License Plate"
 base = "V5RC License Plate (276-3938)"
@@ -290,6 +312,7 @@ color = ["Red", "Blue"]
 
 [[family]]
 id = "drilled-gear"
+title = "Drilled Gear"
 folder = "Motion/Gears/Low Strength/Drilled Gears"
 name = "LS {teeth}T Gear (Drilled)"
 sizes = [
