@@ -50,7 +50,7 @@ for p in gen:
     assert b is None or b in stems, (p["name"], b)
 
 # and on disk, if theyre here (gitignored)
-vs = ROOT / "vex-step"
+vs = catalog.STEP_DIR
 if vs.is_dir():
     gone = [p["file"] for p in steps if not (vs / p["folder"] / p["file"]).is_file()]
     assert not gone, gone

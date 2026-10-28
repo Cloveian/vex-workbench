@@ -74,7 +74,7 @@ for fam in cat["family"]:
         ours = metal.make(part, cat)
         ms = (time.time() - t0) * 1000
         theirs = Part.Shape()
-        theirs.read(str(ROOT / "vex-step" / step["folder"] / step["file"]))
+        theirs.read(str(catalog.STEP_DIR / step["folder"] / step["file"]))
         po, pt = points(ours), points(theirs)
         size = sorted(round(x, 3) for x in po[1])
         vol = ours.Volume / theirs.Volume - 1
