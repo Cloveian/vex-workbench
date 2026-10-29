@@ -53,6 +53,7 @@ try:
     w.tree.setCurrentItem(w.tree.findItems("Shoulder Screw", QtCore.Qt.MatchExactly)[0])
     w.combos["Length"].setCurrentText("0.5, 0.18")
     w.place()
+    assert QtWidgets.QApplication.overrideCursor() is None, "wait cursor stuck"
     got = Gui.Selection.getSelection()[0].Label
     assert got == "0.500, 0.18 Robosource Shoulder Screw (8-32, Steel)", got
     say("ok")

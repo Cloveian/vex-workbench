@@ -89,12 +89,17 @@ class Browser(QtWidgets.QWidget):
         doc = App.ActiveDocument or App.newDocument()
         import UtilsAssembly  # Assembly workbench, only once theres a gui
         App.setActiveTransaction("Place VEX part")
+        err = None
+        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)  # a 35 long channel is a few s to build
         try:
             link = library.place(doc, part, UtilsAssembly.activePartOrAssembly())
         except ValueError as e:
-            # no generator / no dims for that one yet
+            err = str(e)  # no generator / no dims for that one yet
+        finally:
+            QtWidgets.QApplication.restoreOverrideCursor()
+        if err is not None:
             App.closeActiveTransaction(True)
-            QtWidgets.QMessageBox.warning(self, "VEX parts", str(e))
+            QtWidgets.QMessageBox.warning(self, "VEX parts", err)
             return
         App.closeActiveTransaction()
         doc.recompute()
