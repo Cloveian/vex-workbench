@@ -1,4 +1,4 @@
-# toolbar, colurs, the parts list and the dock inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+# toolbar, colurs, the parts list, the dock and snapping on a link array inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import os
 import sys
 import traceback
@@ -57,6 +57,25 @@ try:
     assert QtWidgets.QApplication.overrideCursor() is None, "wait cursor stuck"
     got = Gui.Selection.getSelection()[0].Label
     assert got == "0.500, 0.18 Robosource Shoulder Screw (8-32, Steel)", got
+
+    # a click on the second element of a link array lands on that element's hole
+    from freecad.vex_workbench import snap
+    arr = library.place(doc, gen["1x2x1x5 Steel C-Channel"])
+    arr.ElementCount = 2
+    arr.ElementList[1].Placement = App.Placement(App.Vector(100, 0, 0), App.Rotation())  # PlacementList doesnt move them with ShowElement on
+    doc.recompute()
+    shape = arr.LinkedObject.Group[0].Shape
+    i, f = next((i, f) for i, f in enumerate(shape.Faces) if len(f.Wires) > 1)
+    # first hole along x. without element 1's placement the click lands past the end and snaps to the last one
+    loop = min((w for w in f.Wires if not w.isSame(f.OuterWire)), key=lambda w: w.BoundBox.Center.x)
+    on = arr.getSubObject("1.", retType=3).multVec(loop.Edges[0].valueAt(loop.Edges[0].FirstParameter))
+    # by index, and by the element's own name
+    for elem in ("1", arr.ElementList[1].Name):
+        Gui.Selection.clearSelection()
+        Gui.Selection.addSelection(doc.Name, arr.Name, f"{elem}.Face{i + 1}", on.x, on.y, on.z)
+        (link, pt), = snap.picked()
+        frame = library.hole_frame(link, pt)
+        assert (frame.Placement.Base - loop.BoundBox.Center).Length < 1e-6, (elem, frame.Placement.Base, loop.BoundBox.Center)
     say("ok")
     failed = False
 except Exception:

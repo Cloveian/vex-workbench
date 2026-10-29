@@ -15,8 +15,12 @@ def picked():
             k = max((i for i, o in enumerate(objs) if hasattr(o, "VexFamily") or hasattr(o, "VexStep")), default=None)
             if k is None:
                 continue
+            names = sub.split(".")
+            # a link array element sits under the link, its placement counts too. a number in the path, or a LinkElement with ShowElement on
+            element = names[k].isdigit() or (k + 1 < len(objs) and objs[k + 1].isDerivedFrom("App::LinkElement"))
+            n = k + 1 if element else k
             # placement of the link through the whole path, assembly and all. App::Link has no getGlobalPlacement in 1.1
-            plc = sel.Object.getSubObject(".".join(sub.split(".")[:k]) + ".", retType=3) if k else sel.Object.Placement
+            plc = sel.Object.getSubObject(".".join(names[:n]) + ".", retType=3) if n else sel.Object.Placement
             out.append((objs[k], plc.inverse().multVec(pt)))
     return out
 
