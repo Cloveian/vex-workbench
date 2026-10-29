@@ -51,12 +51,14 @@ class Browser(QtWidgets.QWidget):
             QtWidgets.QTreeWidgetItem(parent, [p["name"]]).setData(0, KIND, ("step", key))
 
     def filter(self, text):
-        # an item shows if it or anything under it matches
+        # an item shows if it or anything under it has every word, any order
+        words = text.lower().split()
+
         def walk(it):
-            hit = text.lower() in it.text(0).lower()
+            hit = all(w in it.text(0).lower() for w in words)
             kids = [walk(it.child(i)) for i in range(it.childCount())]
             it.setHidden(not (hit or any(kids)))
-            if text and any(kids):
+            if words and any(kids):
                 it.setExpanded(True)
             return hit or any(kids)
         for i in range(self.tree.topLevelItemCount()):

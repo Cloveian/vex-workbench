@@ -69,6 +69,12 @@ try:
     assert QtWidgets.QApplication.overrideCursor() is None, "wait cursor stuck"
     got = Gui.Selection.getSelection()[0].Label
     assert got == "0.500, 0.18 Robosource Shoulder Screw (8-32, Steel)", got
+    # search, words in any order
+    w.search.setText("motor smart")
+    hit = w.tree.findItems("Smart Motor", QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive)[0]
+    assert not hit.isHidden() and not hit.parent().isHidden(), hit.text(0)
+    assert w.tree.findItems("Shoulder Screw", QtCore.Qt.MatchExactly)[0].isHidden()
+    w.search.setText("")
 
     # a click on the second element of a link array lands on that element's hole
     from freecad.vex_workbench import snap
