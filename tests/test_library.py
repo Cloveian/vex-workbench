@@ -61,6 +61,16 @@ doc.redo()
 doc.recompute()
 assert len(doc.Objects) == n and a.Label.startswith("1x2x1x15 Steel C-Channel"), (len(doc.Objects), n, a.Label)
 
+# pairs and the renamed keys read right, and switching by them works
+s = library.place(doc, gen["0.290, 0.09 Robosource Shoulder Screw (8-32, Steel)"])
+s.Length = "1, 0.12"
+doc.recompute()
+assert s.Label == "1.000, 0.12 Robosource Shoulder Screw (8-32, Steel)", s.Label
+sp = library.place(doc, gen["0.5 OD Spacer, 0.250 (Nylon)"])
+assert (sp.OD, sp.Length) == ("0.5", "0.25"), (sp.OD, sp.Length)
+for o in (s, sp):
+    doc.removeObject(o.Name)
+
 # step part
 w = library.place(doc, steps["Motion/Spacers/Washers/Steel/Steel Washer (275-1024).step"])
 doc.recompute()

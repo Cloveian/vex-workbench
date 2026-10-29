@@ -1,11 +1,11 @@
-# toolbar, colurs and the parts list inside the gui, run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+# toolbar, colurs, the parts list and the dock inside the gui, run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import sys
 import traceback
 
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
-from PySide import QtWidgets
+from PySide import QtCore, QtWidgets
 
 
 def say(msg):
@@ -45,6 +45,16 @@ try:
 
     Gui.runCommand("Vex_PartsList")
     assert doc.getObject("VexPartsList").get("A5").startswith("Total, 2 parts, 1 without")
+
+    # the dock, a family with pairs
+    from freecad.vex_workbench import browser
+    Gui.runCommand("Vex_Browser")
+    w = browser._dock.widget()
+    w.tree.setCurrentItem(w.tree.findItems("Shoulder Screw", QtCore.Qt.MatchExactly)[0])
+    w.combos["Length"].setCurrentText("0.5, 0.18")
+    w.place()
+    got = Gui.Selection.getSelection()[0].Label
+    assert got == "0.500, 0.18 Robosource Shoulder Screw (8-32, Steel)", got
     say("ok")
 except Exception:
     say(traceback.format_exc())

@@ -11,6 +11,7 @@ GROUP = "VexParts"
 # family id -> make(part, cat)
 GENERATORS = dict.fromkeys(metal.PROFILES, metal.make) | dict.fromkeys(stock.FAMILIES, stock.make) | dict.fromkeys(derived.FAMILIES, derived.make)
 HOLE_MAX = 0.5 * metal.IN  # mm, anything bigger isnt a hole you'd put a screw or shaft through
+NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 
 
 @functools.cache
@@ -28,7 +29,12 @@ def index():
 
 
 def label(choice):
-    vals = [v for v in choice.values() if not isinstance(v, bool)]
+    vals = []
+    for v in choice.values():
+        if isinstance(v, list):
+            vals += v  # pairs (the shoulder screws) read flat, "0.29, 0.09"
+        elif not isinstance(v, bool):
+            vals.append(v)
     return ", ".join(f"{v:g}" if isinstance(v, float) else str(v) for v in vals)
 
 
@@ -38,7 +44,7 @@ def options(family):
     for key, choices in catalog.axes(family):
         if len(choices) > 1:
             rows = any(set(c) != {key} for c in choices)
-            out.append(("Size" if rows else key.title(), choices))
+            out.append(("Size" if rows else NAMES.get(key, key.title()), choices))
     return out
 
 
