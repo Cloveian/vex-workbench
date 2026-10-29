@@ -1,4 +1,5 @@
 # toolbar, colurs, the parts list and the dock inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+import os
 import sys
 import traceback
 
@@ -57,8 +58,12 @@ try:
     got = Gui.Selection.getSelection()[0].Label
     assert got == "0.500, 0.18 Robosource Shoulder Screw (8-32, Steel)", got
     say("ok")
+    failed = False
 except Exception:
     say(traceback.format_exc())
+    failed = True
 for d in list(App.listDocuments()):
     App.closeDocument(d)  # else the save prompt hangs offscreen
+if failed:
+    os._exit(1)  # closing the window always exits 0
 Gui.getMainWindow().close()
