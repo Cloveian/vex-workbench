@@ -192,8 +192,9 @@ fixtures = [
 [[family]]
 id = "hex-screw"
 title = "Hex Screw"
-generator = "button-screw"
 drive = "hex"
+base = "#8-32 x 1_2 Screw (275-1004)" # head and tip off this one, our shank between
+head = 0.087
 folder = "Hardware/Screws/8-32/Steel/Hex"
 name = "{length:.3f} Hex Screw (8-32, Steel)"
 length = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5]
@@ -213,8 +214,9 @@ fixtures = [
 [[family]]
 id = "star-screw"
 title = "Torx (Star) Screw"
-generator = "button-screw"
 drive = "star"
+base = "#8-32 x 1_2 Star Drive Screw (276-4992)"
+head = 0.087
 folder = "Hardware/Screws/8-32/Steel/Torx (Star)"
 name = "{length:.3f} Torx (Star) Screw (8-32, Steel)"
 # 0.290 is robosource
@@ -239,6 +241,8 @@ fixtures = [
 id = "shoulder-screw"
 title = "Shoulder Screw"
 drive = "star"
+base = "#8-32 x 1_2 Star Drive Screw (276-4992)"
+head = 0.087
 folder = "Hardware/Screws/8-32/Steel/Shoulder Screws/Robosource"
 name = "{length[0]:.3f}, {length[1]:.2f} Robosource Shoulder Screw (8-32, Steel)"
 # [screw length, shoulder length under head]

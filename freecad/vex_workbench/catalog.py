@@ -59,3 +59,10 @@ def generated(cat):
 def step_parts(cat):
     # vex-step/{folder}/{file}, the pneumatics ones have no sku
     return [{**p, "folder": g["folder"]} for g in cat["group"] for p in g["parts"]]
+
+
+def step_path(step):
+    path = STEP_DIR / step["folder"] / step["file"]
+    if not path.is_file():
+        raise ValueError(f"no step file at {path}")
+    return path

@@ -4,10 +4,11 @@ import functools
 import Part
 from FreeCAD import Placement, Rotation, Vector
 
-from . import catalog, metal, stock
+from . import catalog, derived, metal, stock
 
 GROUP = "VexParts"
-GENERATORS = dict.fromkeys(metal.PROFILES, metal.make) | dict.fromkeys(stock.FAMILIES, stock.make)  # family id -> make(part, cat)
+# family id -> make(part, cat)
+GENERATORS = dict.fromkeys(metal.PROFILES, metal.make) | dict.fromkeys(stock.FAMILIES, stock.make) | dict.fromkeys(derived.FAMILIES, derived.make)
 HOLE_MAX = 0.5 * metal.IN  # mm, anything bigger isnt a hole you'd put a screw or shaft through
 
 
@@ -42,10 +43,7 @@ def options(family):
 
 def shape(part):
     if "file" in part:
-        path = catalog.STEP_DIR / part["folder"] / part["file"]
-        if not path.is_file():
-            raise ValueError(f"no step file at {path}")
-        return Part.read(str(path))
+        return Part.read(str(catalog.step_path(part)))
     if part["family"] in GENERATORS:
         return GENERATORS[part["family"]](part, cat())
     raise ValueError(f"no generator for {part['family']} yet")

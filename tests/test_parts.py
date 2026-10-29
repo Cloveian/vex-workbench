@@ -1,4 +1,4 @@
-# shafts, standoffs, spacers vs vex's steps, run with: python tests/test_stock.py (needs FreeCAD + vex-step/)
+# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts) vs vex's steps, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
 import re
 import sys
 from pathlib import Path
@@ -9,7 +9,7 @@ sys.path.insert(0, str(ROOT))
 import freecad  # noqa: E402,F401
 import Part  # noqa: E402
 
-from freecad.vex_workbench import catalog, stock  # noqa: E402
+from freecad.vex_workbench import catalog, library, metal  # noqa: E402
 
 IN = 25.4
 cat = catalog.load()
@@ -31,21 +31,22 @@ def size(shape):
 
 def nominal(fx):
     # the length in the name, 1_4 = 1/4
-    m = re.search(r"(\d+)_(\d+)|(\d+(?:\.\d+)?)", re.sub(r" \([\d-]+\)$", "", fx))
+    m = re.search(r"(\d+)_(\d+)|(\d+(?:\.\d+)?)", re.sub(r"^#8-32 x | \([\d-]+\)$", "", fx))
     return int(m[1]) / int(m[2]) if m[1] else float(m[3])
 
 
 bad = 0
 for fam in cat["family"]:
-    if fam["id"] not in stock.FAMILIES:
+    if fam["id"] not in library.GENERATORS or fam["id"] in metal.PROFILES:
         continue
+    make = library.GENERATORS[fam["id"]]
     parts = [p for p in gen if p["family"] == fam["id"]]
     for fx in fam.get("fixtures", []):
         step = steps[fx]
         theirs = Part.read(str(catalog.STEP_DIR / step["folder"] / step["file"]))
         want, n = size(theirs), nominal(fx)
         # spacers come in 3 ODs at each length, take the one that fits
-        tries = [stock.make(p, cat) for p in parts if n in (p["params"].get("length"), p["params"].get("n"))]
+        tries = [make(p, cat) for p in parts if n in (p["params"].get("length"), p["params"].get("n"))]
         ours = min(tries, key=lambda s: sum(abs(a - b) for a, b in zip(size(s), want)))
         got = size(ours)
         vol = ours.Volume / theirs.Volume - 1
@@ -56,9 +57,9 @@ for fam in cat["family"]:
         bad += not ok
         print(f"{'ok ' if ok else 'BAD'} {fx}: {got} vs {want} vol {vol * 100:+.2f}%{note}")
     if "fixtures" not in fam:
-        # nothing to check against (wsahers, robosource nut), they just have to build
+        # nothing to check against (wsahers, robosource parts, other materials), they just have to build
         for p in parts:
-            ok = stock.make(p, cat).isValid()
+            ok = make(p, cat).isValid()
             bad += not ok
             print(f"{'ok ' if ok else 'BAD'} {p['name']}: builds")
 
