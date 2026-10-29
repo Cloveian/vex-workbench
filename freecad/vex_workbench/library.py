@@ -179,13 +179,19 @@ def hole_frame(link, point):
     # LCS on the exact center of the hole nearset point (link coords), z out of the face, x along the length if it can
     # it goes in the source so every copy has it
     src = link.LinkedObject
-    found = holes(Part.getShape(src))
-    if not found:
-        raise ValueError(f"no holes on {link.Label}")
-    # nearest loop, the motor's vents sit closer to a screw hole's edge than its own center does
-    v = Part.Vertex(point)
-    near = [h for h in found if (h[1] - point).Length < HOLE_MAX] or found
-    _, center, n = min(near, key=lambda h: h[0].distToShape(v)[0])
+    shape = Part.getShape(src)
+    if getattr(link, "VexFamily", None) in stock.FAMILIES:
+        # shafts have no loop to find. stock parts run up z from 0 on the axis, so the end nearer the click
+        h = shape.optimalBoundingBox().ZMax
+        center, n = (Vector(0, 0, h), Vector(0, 0, 1)) if point.z > h / 2 else (Vector(), Vector(0, 0, -1))
+    else:
+        found = holes(shape)
+        if not found:
+            raise ValueError(f"no holes on {link.Label}")
+        # nearest loop, the motor's vents sit closer to a screw hole's edge than its own center does
+        v = Part.Vertex(point)
+        near = [h for h in found if (h[1] - point).Length < HOLE_MAX] or found
+        _, center, n = min(near, key=lambda h: h[0].distToShape(v)[0])
     for o in src.Group:
         if o.TypeId == "App::LocalCoordinateSystem" and (o.Placement.Base - center).Length < 1e-6 \
                 and (o.Placement.Rotation.multVec(Vector(0, 0, 1)) - n).Length < 1e-6:

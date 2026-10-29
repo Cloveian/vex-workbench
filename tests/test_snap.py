@@ -44,5 +44,22 @@ doc.recompute()
 pa, pb = a.Placement.multiply(fa.Placement), b.Placement.multiply(fb.Placement)
 apart = (pa.Base - pb.Base).Length
 assert apart < 1e-9, apart
+
+# a shaft through fa, end frame on its axis
+s = library.place(doc, gen["2.000 LS Shaft"], asm)
+s.Placement = App.Placement(App.Vector(-20, 10, 5), App.Rotation(30, 0, 40))
+doc.recompute()
+fs = library.hole_frame(s, App.Vector(0.01, 0.02, 0.1) * IN)
+assert fs.Placement.Base.Length < 1e-9, fs.Placement.Base
+j = joints.newObject("App::FeaturePython", "Joint")
+JointObject.Joint(j, JointObject.JointTypes.index("Fixed"))
+j.Proxy.setJointConnectors(j, [[a, [fa.Name + ".", fa.Name + "."]], [s, [fs.Name + ".", fs.Name + "."]]])
+assert asm.solve() == 0
+doc.recompute()
+axis = pa.Rotation.multVec(App.Vector(0, 0, 1))
+off = (s.Placement.multVec(App.Vector(0, 0, 25)) - pa.Base).cross(axis).Length
+assert off < 1e-9, off
+assert (s.Placement.Base - pa.Base).Length < 1e-9, s.Placement.Base
+
 App.closeDocument(doc.Name)
-print(f"ok, holes {apart:.1e} mm apart")
+print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis")

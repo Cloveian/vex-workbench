@@ -24,7 +24,7 @@ def picked():
 class HoleFrame:
     def GetResources(self):
         return {"Pixmap": "vex-hole.svg", "MenuText": "Frame on hole",
-                "ToolTip": "Frame on the exact center of each clicked hole, to joint to"}
+                "ToolTip": "Frame on the exact center of each clicked hole, or on the end of a shaft, to joint to"}
 
     def Activated(self):
         spots = picked()
