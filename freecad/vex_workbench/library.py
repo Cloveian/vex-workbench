@@ -122,7 +122,7 @@ def retarget(link):
 
 
 def holes(shape):
-    # (center, outwerd normal) of every inner loop on a flat face. square, round, whatever
+    # (loop, center, outwerd normal) of every inner loop on a flat face. square, round, whatever
     out = []
     for f in shape.Faces:
         if f.Surface.TypeId != "Part::GeomPlane":
@@ -131,7 +131,7 @@ def holes(shape):
         for w in f.Wires:
             b = w.BoundBox
             if not w.isSame(f.OuterWire) and max(b.XLength, b.YLength, b.ZLength) <= HOLE_MAX:
-                out.append((b.Center, n))
+                out.append((w, b.Center, n))
     return out
 
 
@@ -142,7 +142,10 @@ def hole_frame(link, point):
     found = holes(Part.getShape(src))
     if not found:
         raise ValueError(f"no holes on {link.Label}")
-    center, n = min(found, key=lambda h: (h[0] - point).Length)
+    # nearest loop, the motor's vents sit closer to a screw hole's edge than its own center does
+    v = Part.Vertex(point)
+    near = [h for h in found if (h[1] - point).Length < HOLE_MAX] or found
+    _, center, n = min(near, key=lambda h: h[0].distToShape(v)[0])
     for o in src.Group:
         if o.TypeId == "App::LocalCoordinateSystem" and (o.Placement.Base - center).Length < 1e-6 \
                 and (o.Placement.Rotation.multVec(Vector(0, 0, 1)) - n).Length < 1e-6:
