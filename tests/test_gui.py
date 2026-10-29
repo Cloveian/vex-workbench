@@ -15,6 +15,18 @@ def say(msg):
     sys.__stdout__.flush()
 
 
+def snapped(obj, path, face, click, center):
+    # fakke click on a hole down path under obj, picked() point and the frame both have to come out right
+    on = obj.getSubObject(path, retType=3).multVec(click)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(obj.Document.Name, obj.Name, path + face, on.x, on.y, on.z)
+    (link, pt), = snap.picked()
+    assert (pt - click).Length < 1e-6, (path, pt, click)
+    frame = library.hole_frame(link, pt)
+    assert (frame.Placement.Base - center).Length < 1e-6, (path, frame.Placement.Base, center)
+    return link
+
+
 try:
     from freecad.vex_workbench import catalog, library
 
@@ -69,15 +81,9 @@ try:
     # first hole along x. without element 1's placement the click lands past the end and snaps to the last one
     loop = min((w for w in f.Wires if not w.isSame(f.OuterWire)), key=lambda w: w.BoundBox.Center.x)
     click = loop.Edges[0].valueAt(loop.Edges[0].FirstParameter)  # part's own coords
-    on = arr.getSubObject("1.", retType=3).multVec(click)
     # by index, and by the element's own name
     for elem in ("1", arr.ElementList[1].Name):
-        Gui.Selection.clearSelection()
-        Gui.Selection.addSelection(doc.Name, arr.Name, f"{elem}.Face{i + 1}", on.x, on.y, on.z)
-        (link, pt), = snap.picked()
-        assert (pt - click).Length < 1e-6, (elem, pt, click)
-        frame = library.hole_frame(link, pt)
-        assert (frame.Placement.Base - loop.BoundBox.Center).Length < 1e-6, (elem, frame.Placement.Base, loop.BoundBox.Center)
+        snapped(arr, f"{elem}.", f"Face{i + 1}", click, loop.BoundBox.Center)
 
     # same through a linked sub-assembly, moved 200 over and turned
     side = doc.addObject("App::Part", "Side")
@@ -87,13 +93,7 @@ try:
     copy.LinkedObject = side
     copy.Placement = App.Placement(App.Vector(0, 200, 0), App.Rotation(0, 0, 90))
     doc.recompute()
-    on = copy.getSubObject(f"{ch2.Name}.", retType=3).multVec(click)
-    Gui.Selection.clearSelection()
-    Gui.Selection.addSelection(doc.Name, copy.Name, f"{ch2.Name}.Face{i + 1}", on.x, on.y, on.z)
-    (link, pt), = snap.picked()
-    assert (pt - click).Length < 1e-6, (pt, click)
-    frame = library.hole_frame(link, pt)
-    assert link == ch2 and (frame.Placement.Base - loop.BoundBox.Center).Length < 1e-6, (link.Name, frame.Placement.Base)
+    assert snapped(copy, f"{ch2.Name}.", f"Face{i + 1}", click, loop.BoundBox.Center) == ch2
     say("ok")
     failed = False
 except Exception:
