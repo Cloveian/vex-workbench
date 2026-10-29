@@ -69,6 +69,13 @@ def source(doc, part):
     src.VexName = name
     solid = doc.addObject("Part::Feature", "Solid")
     solid.Shape = s
+    p = part.get("params", {})
+    if p.get("material") in cat()["density"]:
+        src.addProperty("App::PropertyMass", "VexMass", "VEX")
+        src.VexMass = f"{s.Volume * cat()['density'][p['material']] / 1000} g"  # mm3 * g/cm3
+    color = cat()["colors"].get(p.get("color", p.get("material")))
+    if color and solid.ViewObject:  # none headless
+        solid.ViewObject.ShapeColor = tuple(color)
     src.addObject(solid)
     group(doc).addObject(src)
     src.Visibility = False

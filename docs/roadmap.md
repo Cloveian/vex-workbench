@@ -11,7 +11,7 @@ in build order, each one is something i can open and poke at
 - [x] **Snap to hole**. click a hole, frame at its exact center. two channels jointed hole to hole should be 0 apart
 - [x] **The other generators**: shafts, standoffs, spacers, washers, nuts (thin nylock = vex nylock shaved to 11/64), torx button screws, shoulder screws. each checked against its step where there is one
 - [ ] **Hole finding on step parts**, the 0.182 square and 8-32 round holes, so motors and gears snap too
-- [ ] Extras like colors per material, weight, a parts list
+- [x] Extras like colors per material, weight, a parts list
 
 ## Later
 - [ ] Screw and nut tool. pick two lined up holes, it works out the stack and the screw

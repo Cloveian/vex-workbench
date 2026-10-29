@@ -17,6 +17,19 @@ mark = 0.0798 # 45 deg V, this deep
 relief = 0.0898 # half diagonal
 k = 0.44 # nuetral line for unrolling the bend, r + k*t. inventor's default
 
+# by material, or by color for the license plates. rgb 0-1, eyeballed
+[colors]
+Aluminum = [0.80, 0.81, 0.83]
+Steel = [0.55, 0.57, 0.60]
+Nylon = [0.93, 0.92, 0.86]
+Red = [0.80, 0.10, 0.12]
+Blue = [0.10, 0.25, 0.75]
+
+[density] # g/cm3. 6061 al, mild steel, nylon 6/6
+Aluminum = 2.70
+Steel = 7.85
+Nylon = 1.14
+
 # generated parts
 
 [[family]]
@@ -119,6 +132,7 @@ id = "ls-shaft"
 title = "LS Shaft"
 folder = "Motion/LS Shafts"
 name = "{length:.3f} LS Shaft"
+material = "Steel"
 size = 0.125
 length = { from = 0.5, to = 12.0, step = 0.5 }
 round = 0.01
@@ -131,6 +145,7 @@ id = "hs-shaft"
 title = "HS Shaft"
 folder = "Motion/HS Shafts"
 name = "{length:.3f} HS Shaft"
+material = "Steel"
 size = 0.25
 length = { from = 0.5, to = 24.0, step = 0.5 }
 turn = 0.3 # corners turned down to this circle
@@ -148,6 +163,7 @@ id = "pitch-shaft"
 title = "Pitch Shaft"
 folder = "Motion/LS Shafts"
 name = "{n}x Pitch Shaft"
+material = "Steel"
 size = 0.125
 n = { from = 2, to = 8 }
 short = 0.070
@@ -167,7 +183,8 @@ fixtures = [
 id = "standoff"
 title = "Standoff"
 folder = "Hardware/Standoffs"
-name = "{length:.3f} Standoff (8-32, Aluminum)"
+name = "{length:.3f} Standoff (8-32, {material})"
+material = "Aluminum"
 hex = 0.25 # vex standoff page
 # 0.375 and 0.875 are robosource
 length = [0.25, 0.375, 0.5, 0.75, 0.875, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0]
@@ -196,7 +213,8 @@ drive = "hex"
 base = "#8-32 x 1_2 Screw (275-1004)" # head and tip off this one, our shank between
 head = 0.087
 folder = "Hardware/Screws/8-32/Steel/Hex"
-name = "{length:.3f} Hex Screw (8-32, Steel)"
+name = "{length:.3f} Hex Screw (8-32, {material})"
+material = "Steel"
 length = [0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5]
 fixtures = [
   "#8-32 x 1_4 Screw (275-1002)",
@@ -218,7 +236,8 @@ drive = "star"
 base = "#8-32 x 1_2 Star Drive Screw (276-4992)"
 head = 0.087
 folder = "Hardware/Screws/8-32/Steel/Torx (Star)"
-name = "{length:.3f} Torx (Star) Screw (8-32, Steel)"
+name = "{length:.3f} Torx (Star) Screw (8-32, {material})"
+material = "Steel"
 # 0.290 is robosource
 length = [0.25, 0.29, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5]
 fixtures = [
@@ -244,7 +263,8 @@ drive = "star"
 base = "#8-32 x 1_2 Star Drive Screw (276-4992)"
 head = 0.087
 folder = "Hardware/Screws/8-32/Steel/Shoulder Screws/Robosource"
-name = "{length[0]:.3f}, {length[1]:.2f} Robosource Shoulder Screw (8-32, Steel)"
+name = "{length[0]:.3f}, {length[1]:.2f} Robosource Shoulder Screw (8-32, {material})"
+material = "Steel"
 # [screw length, shoulder length under head]
 length = [[0.29, 0.09], [0.375, 0.12], [0.5, 0.04], [0.5, 0.18], [1.0, 0.12], [1.5, 0.18], [2.0, 0.04]]
 shoulder = 0.176
@@ -253,7 +273,8 @@ shoulder = 0.176
 id = "thin-nylock"
 title = "Thin Nylock Nut"
 folder = "Hardware/Nuts/8-32 Nuts/Nylock Nuts"
-name = "Thin Nylock Nut (8-32, Steel)"
+name = "Thin Nylock Nut (8-32, {material})"
+material = "Steel"
 base = "#8-32 Nylock Nut (275-1027)"
 height = 0.171875 # robosource, 11/64 (shave off non-nylon side to make thiner)
 
@@ -269,7 +290,8 @@ material = ["Nylon", "Aluminum"]
 id = "extra-low-nut"
 title = "Extra-Low Profile Nut"
 folder = "Hardware/Nuts/8-32 Nuts"
-name = "Extra-Low Profile Nut (8-32, Steel)"
+name = "Extra-Low Profile Nut (8-32, {material})"
+material = "Steel"
 # robosource, really just a 3/32 tall standoff but steel
 hex = 0.25
 height = 0.09375 # 3/32
@@ -282,7 +304,8 @@ sink = 0.005
 id = "spacer"
 title = "Spacer"
 folder = "Motion/Spacers/{od} OD"
-name = "{od} OD Spacer, {length:.3f} (Nylon)"
+name = "{od} OD Spacer, {length:.3f} ({material})"
+material = "Nylon"
 od = [0.313, 0.375, 0.5]
 length = [0.125, 0.25, 0.375, 0.5, 0.875]
 bore = 0.194 # 275-1066 steps
@@ -298,7 +321,8 @@ fixtures = [
 id = "hs-spacer"
 title = "HS Spacer"
 folder = "Motion/Spacers/HS Spacers"
-name = "0.5 OD HS Spacer, {length:.4g} (Nylon)"
+name = "0.5 OD HS Spacer, {length:.4g} ({material})"
+material = "Nylon"
 across = 0.425 # not round, vex steps. fusion calls it 0.5 OD
 bore = 0.25 # square, todo clearance
 length = [0.0625, 0.125, 0.25, 0.375, 0.5]

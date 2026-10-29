@@ -66,5 +66,16 @@ w = library.place(doc, steps["Motion/Spacers/Washers/Steel/Steel Washer (275-102
 doc.recompute()
 assert Part.getShape(w).Volume > 0
 
+# weights and the parts list. the washer is a step part, no weight
+from freecad.vex_workbench import partslist  # noqa: E402
+
+grams = a.LinkedObject.VexMass.getValueAs("g").Value
+assert abs(grams - Part.getShape(a.LinkedObject).Volume * 7.85 / 1000) < 1e-6, grams
+assert not hasattr(w.LinkedObject, "VexMass")
+counts = partslist.count(doc)
+assert [n for n, _ in counts.values()] == [1, 1, 1, 1] and counts[w.Label][1] is None, counts
+sheet = partslist.fill(doc)
+assert sheet.get("A7").startswith("Total, 4 parts, 1 without"), sheet.get("A7")
+
 App.closeDocument(doc.Name)
 print("ok")
