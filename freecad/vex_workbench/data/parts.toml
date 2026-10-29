@@ -325,12 +325,12 @@ name = "0.5 OD HS Spacer, {length:.4g} ({material})"
 material = "Nylon"
 across = 0.425 # not round, vex steps. fusion calls it 0.5 OD
 bore = 0.25 # square, todo clearance
-length = [0.0625, 0.125, 0.25, 0.375, 0.5]
-fixtures = [
-  "1_16 High Strength Shaft Spacer (276-3441-001)",
-  "1_8 High Strength Shaft Spacer (276-3441-002)",
-  "1_4 High Strength Shaft Spacer (276-3441-003)",
-  "1_2 High Strength Shaft Spacer (276-3441-004)",
+# vex's own, molded with draft. fusion has a 3/8 too but theres no step for it
+sizes = [
+  { length = 0.0625, base = "1_16 High Strength Shaft Spacer (276-3441-001)" },
+  { length = 0.125, base = "1_8 High Strength Shaft Spacer (276-3441-002)" },
+  { length = 0.25, base = "1_4 High Strength Shaft Spacer (276-3441-003)" },
+  { length = 0.5, base = "1_2 High Strength Shaft Spacer (276-3441-004)" },
 ]
 
 [[family]]

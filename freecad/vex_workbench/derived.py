@@ -72,6 +72,7 @@ FAMILIES = {
     "thin-nylock": thin,
     "hex-nut": lambda s, p: upright(s)[0],  # same shape, other material
     "license-plate": lambda s, p: s,
+    "hs-spacer": lambda s, p: s,
 }
 
 
