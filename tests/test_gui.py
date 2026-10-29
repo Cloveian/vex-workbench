@@ -1,4 +1,4 @@
-# toolbar, colurs, the parts list, the dock and snapping on a link array inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+# toolbar, colurs, the parts list, the dock and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import os
 import sys
 import traceback
@@ -68,14 +68,32 @@ try:
     i, f = next((i, f) for i, f in enumerate(shape.Faces) if len(f.Wires) > 1)
     # first hole along x. without element 1's placement the click lands past the end and snaps to the last one
     loop = min((w for w in f.Wires if not w.isSame(f.OuterWire)), key=lambda w: w.BoundBox.Center.x)
-    on = arr.getSubObject("1.", retType=3).multVec(loop.Edges[0].valueAt(loop.Edges[0].FirstParameter))
+    click = loop.Edges[0].valueAt(loop.Edges[0].FirstParameter)  # part's own coords
+    on = arr.getSubObject("1.", retType=3).multVec(click)
     # by index, and by the element's own name
     for elem in ("1", arr.ElementList[1].Name):
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(doc.Name, arr.Name, f"{elem}.Face{i + 1}", on.x, on.y, on.z)
         (link, pt), = snap.picked()
+        assert (pt - click).Length < 1e-6, (elem, pt, click)
         frame = library.hole_frame(link, pt)
         assert (frame.Placement.Base - loop.BoundBox.Center).Length < 1e-6, (elem, frame.Placement.Base, loop.BoundBox.Center)
+
+    # same through a linked sub-assembly, moved 200 over and turned
+    side = doc.addObject("App::Part", "Side")
+    ch2 = library.place(doc, gen["1x2x1x5 Steel C-Channel"], side)
+    ch2.Placement = App.Placement(App.Vector(0, 0, 30), App.Rotation(45, 0, 0))  # inside Side too
+    copy = doc.addObject("App::Link", "SideCopy")
+    copy.LinkedObject = side
+    copy.Placement = App.Placement(App.Vector(0, 200, 0), App.Rotation(0, 0, 90))
+    doc.recompute()
+    on = copy.getSubObject(f"{ch2.Name}.", retType=3).multVec(click)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Name, copy.Name, f"{ch2.Name}.Face{i + 1}", on.x, on.y, on.z)
+    (link, pt), = snap.picked()
+    assert (pt - click).Length < 1e-6, (pt, click)
+    frame = library.hole_frame(link, pt)
+    assert link == ch2 and (frame.Placement.Base - loop.BoundBox.Center).Length < 1e-6, (link.Name, frame.Placement.Base)
     say("ok")
     failed = False
 except Exception:
