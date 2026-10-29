@@ -17,12 +17,13 @@ Click one or more holes, then **Frame on hole**. Each one gets a frame on its ex
 - shafts have no hole, so on a shaft (and standoffs, spacers, washers) the frame goes on the axis at whichever end you clicked closer to
 - screws: click the underside of the head, the shank is the hole there, so the frame lands where the head sits. nuts: the bore
 - frames live in the part's source, so every copy of that part has them, and clicking the same hole again just gives the same frame back
+- link arrays and linked sub-assemblies work too, click the hole on whichever copy you mean and it lands on that one
 
 Then over in the Assembly workbench, joint two frames together (Fixed for bolted stuff). The joint picks whether the two z axes point the same way or opposite from how the parts sit when you make it, so if they come out *inside* each other instead of face to face, hit **Reverse** in the joint panel. either way the centers land exactly on each other.
 
 ## Parts list
 
-**Parts list** counts every placed VEX part by name into a spreadsheet in the document ("VEX parts list"), with the weight of each and the total. vex's step parts and the license plates have no material, so they show a ? and get counted at the bottom.
+**Parts list** counts every placed VEX part by name into a spreadsheet in the document ("VEX parts list"), with the weight of each and the total. vex's step parts and the license plates have no material, so they show a ? and get counted at the bottom. it counts every element of a link array and every copy of a linked sub-assembly too.
 
 ## Not there yet
 
