@@ -25,7 +25,7 @@ this is the part that makes it *not* protobot. two holes jointed together have t
 
 **Sizes:**
 
-Vex's steps aren't always nominal. HS shafts measure long (the 2" is 2.039, the 24" is 24.079) and the aluminum c-channels flare out a bit (1x5x1x35 is 2.545 wide not 2.5). the steel ones are clean. so do parts match the files or the numbers on the product page?
+Vex's steps aren't always nominal. the 2, 3 and 4" HS shafts are 1 mm short (the 2" is 1.9606, the 24" isnt), and the aluminum c-channels flare out a bit (1x5x1x35 is 2.545 wide not 2.5). the steel ones are clean. so do parts match the files or the numbers on the product page?
 
 **When frames get made:**
 

@@ -8,6 +8,7 @@
 | `freecad/vex_workbench/init_gui.py` | registers the workbench, gui only                                    |
 | `freecad/vex_workbench/catalog.py` | `parts.toml` -> every part, no FreeCAD needed                         |
 | `freecad/vex_workbench/metal.py`   | channels, angles, plate, bar as Part shapes                           |
+| `freecad/vex_workbench/stock.py`   | shafts, standoffs, spacers, washers: a section with lathe ends and a bore |
 | `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s |
 | `freecad/vex_workbench/browser.py` | the VEX parts dock                                                    |
 | `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`           |

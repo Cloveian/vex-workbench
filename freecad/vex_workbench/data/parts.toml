@@ -121,6 +121,9 @@ folder = "Motion/LS Shafts"
 name = "{length:.3f} LS Shaft"
 size = 0.125
 length = { from = 0.5, to = 12.0, step = 0.5 }
+round = 0.01
+# turned ends, arc of radius r centered x out from the axis and z in from the end. this one only clips the corners
+end = { x = 0.0642, z = 0.025, r = 0.025 }
 fixtures = ["2 Shaft (276-2011-001)", "3 Shaft (276-2011-002)", "Drive Shaft 12 (276-1149)"]
 
 [[family]]
@@ -130,6 +133,9 @@ folder = "Motion/HS Shafts"
 name = "{length:.3f} HS Shaft"
 size = 0.25
 length = { from = 0.5, to = 24.0, step = 0.5 }
+turn = 0.3 # corners turned down to this circle
+round = 0.005
+end = { x = 0, z = 0.1575, r = 0.1969 } # a sphere, 4 and 5 mm
 fixtures = [
   "2 High Strength Shaft (276-3440)",
   "3 High Strength Shaft (276-3522)",
@@ -145,6 +151,8 @@ name = "{n}x Pitch Shaft"
 size = 0.125
 n = { from = 2, to = 8 }
 short = 0.070
+turn = 0.16
+end = { x = 0.049, z = 0.0837, r = 0.0837 }
 fixtures = [
   "2x Pitch Shaft (228-2500-117)",
   "3x Pitch Shaft (228-2500-119)",
@@ -163,6 +171,10 @@ name = "{length:.3f} Standoff (8-32, Aluminum)"
 hex = 0.25 # vex standoff page
 # 0.375 and 0.875 are robosource
 length = [0.25, 0.375, 0.5, 0.75, 0.875, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0]
+bore = 0.165 # 8-32 major, no threads
+sink = 0.005
+tap = 0.5 # deep from each end, past 1 long theyre blind
+end = { x = 0.1193, z = 0.065, r = 0.065 }
 fixtures = [
   "1_4 Standoff (275-1013)",
   "1_2 Standoff (275-1014)",
@@ -257,6 +269,8 @@ name = "Extra-Low Profile Nut (8-32, Steel)"
 # robosource, really just a 3/32 tall standoff but steel
 hex = 0.25
 height = 0.09375 # 3/32
+bore = 0.165
+sink = 0.005
 
 # todo: nylon flange nut, nylock flange nut, wing nut
 

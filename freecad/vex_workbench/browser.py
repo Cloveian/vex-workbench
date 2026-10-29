@@ -3,7 +3,7 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtCore, QtWidgets
 
-from . import library, metal
+from . import library
 
 KIND = QtCore.Qt.UserRole  # ("family", id) or ("step", folder/file) on each item
 _dock = None
@@ -36,7 +36,7 @@ class Browser(QtWidgets.QWidget):
         for fam in families.values():
             it = QtWidgets.QTreeWidgetItem(self.tree, [fam["title"]])
             it.setData(0, KIND, ("family", fam["id"]))
-            if fam["id"] not in metal.PROFILES:
+            if fam["id"] not in library.GENERATORS:
                 it.setDisabled(True)
                 it.setToolTip(0, "no generator yet")
         folders = {}
