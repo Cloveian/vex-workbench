@@ -1,4 +1,4 @@
-# toolbar, colurs, the parts list and the dock inside the gui, run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+# toolbar, colurs, the parts list and the dock inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import sys
 import traceback
 
