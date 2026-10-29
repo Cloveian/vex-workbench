@@ -22,6 +22,17 @@
 - the reliefs cost time, a 1x5x1x35 channel is 3.1 s to build now (was 2.1), the 3x3x35 angle 3.6 (was 3.1)
 - the 1x1 variants (2-wide, thick 5-wide, thin 5-wide) are only in the fusion library as f3d, and all i could get out of those is a 256 px thumbnail. so still no numbers
 
+later, the small stuff
+
+- `stock.py`, shafts, standoffs, spacers, washers and the extra-low nut. they're all one section pushed along z (a square with its corners turned and/or rounded, a hex, a circle), cut by a turned blank, minus a bore. every turned end vex drew is one arc in the radius / length profile, so `end = { x, z, r }` covers all of them: the LS shaft only clips its corners, the pitch shaft gets a bullet nose, the standoff a tiny round, and the HS shaft is an r5 mm sphere 4 mm in (a 3-4-5 triangle, metric under the hood lol). standoffs past 1" are blind, 0.5 deep each end. everything matched vex first run, LS shafts and spacers exact, standoffs and pitch shafts within 0.02%
+- the "HS shafts run long" from the 26th was the loose bounding box again. the 2, 3 and 4" are actually 1 mm *short*, the 24" is right. ours are nominal
+- `end` has to be a table, a list in the toml is an axis and it made 3 variants out of one shaft. caught it before it went in
+- `derived.py`, parts cut out of a vex step. screws are vex's 1/2 screw stood up, head + a stub of shank and its tip kept, the tip moved out to length, our shank between. all 23 hex and star screws match vex dead on, so the torx recess never had to be drawn by hand. shoulder screws are the same with the 0.176 shoulder under the head, the thin nylock is vex's nylock shaved on the plain side (the toroids on the nylon end are still there, checked). every one comes out with the face that touches the part at z = 0, for the fastener tool later
+- getting there: the bounding box (yes again) put the cuts in the wrong place, and the first cylinder on the star screw is a torx lobe, off the axis, so the shank came out crooked. the biggest cylinder is always on the axis
+- frame on hole picks by distance to the loop now, not its center. clicking right on a motor screw hole's edge went to a vent 11 times in 58 by center, 0 by loop
+- colors per material, `VexMass` from volume x density (a steel 1x2x1x10 is 48 g), and a Parts list button that fills a spreadsheet. step parts keep vex's own colors, but only through `ImportGui` with the gui up, `Import.insert` greys every face. so the motor is gold again
+- `tests/test_gui.py` runs inside freecad offscreen. it hung at the end on the save prompt for the unsaved doc till the docs got closed first
+
 ## 2026-10-27 - how its gonna work
 
 - went through how i want it to work and wrote it all down as [design choices](../design-choices/index.md): FreeCAD 1.1 only with the built in Assembly, generate what we can and ship steps for the rest, every part an `App::Part` with copies as `App::Link`s, nominal sizes, frames on exact hole centers with zero clearance, joints center, step parts get their holes found on import, the browser has common families at the root
