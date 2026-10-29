@@ -57,7 +57,8 @@ class Browser(QtWidgets.QWidget):
 
         def walk(it):
             kind = it.data(0, KIND)
-            hit = all(w in it.text(0).lower() for w in words) or bool(kind and kind[0] == "family" and self.first(kind[1]))
+            family = kind and kind[0] == "family"
+            hit = all(w in it.text(0).lower() for w in words) or (family and self.first(kind[1]) is not None)
             kids = [walk(it.child(i)) for i in range(it.childCount())]
             it.setHidden(not (hit or any(kids)))
             if words and any(kids):
@@ -82,8 +83,9 @@ class Browser(QtWidgets.QWidget):
             self.combos[prop] = box
         # searched "1x2x1x25 steel", start on that one
         part = self.first(kind[1]) if self.words else None
-        for prop, lb in (library.picks(self.family, part) if part else {}).items():
-            self.combos[prop].setCurrentText(lb)
+        if part:
+            for prop, lb in library.picks(self.family, part).items():
+                self.combos[prop].setCurrentText(lb)
 
     def first(self, family):
         # first variant of a family with every serached word in its name
