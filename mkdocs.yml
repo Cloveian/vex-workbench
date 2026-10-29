@@ -61,6 +61,7 @@ nav:
   - Home:
       - index.md
       - Goals & constraints: goals.md
+      - Using it: using.md
   - Design choices:
       - design-choices/index.md
       - Platform: design-choices/platform.md

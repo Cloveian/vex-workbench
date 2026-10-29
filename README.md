@@ -52,4 +52,4 @@ Run them one at a time, with a python that can `import freecad` (the system one,
 
 ## Docs
 
-The design notes, roadmap and dev log are in [`docs/`](docs/index.md), as an mkdocs site (`mkdocs serve`, with mkdocs-material).
+[How to use it](docs/using.md) covers placing parts, snapping and joints. The design notes, roadmap and dev log are in [`docs/`](docs/index.md), as an mkdocs site (`mkdocs serve`, with mkdocs-material).

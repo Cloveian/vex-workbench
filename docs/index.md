@@ -16,4 +16,4 @@ FreeCAD 1.1 already has an assembly workbench with joints built in, so the workb
 
 ---
 
-start at [goals](goals.md), the [design choices](design-choices/index.md) are in the order i made them. the [log](code/log.md) is where i'm at right now
+[using it](using.md) is how to build something with it. for how it got this way, start at [goals](goals.md), the [design choices](design-choices/index.md) are in the order i made them. the [log](code/log.md) is where i'm at right now
