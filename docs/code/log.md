@@ -32,6 +32,11 @@ later, the small stuff
 - frame on hole picks by distance to the loop now, not its center. clicking right on a motor screw hole's edge went to a vent 11 times in 58 by center, 0 by loop
 - colors per material, `VexMass` from volume x density (a steel 1x2x1x10 is 48 g), and a Parts list button that fills a spreadsheet. step parts keep vex's own colors, but only through `ImportGui` with the gui up, `Import.insert` greys every face. so the motor is gold again
 - `tests/test_gui.py` runs inside freecad offscreen. it hung at the end on the save prompt for the unsaved doc till the docs got closed first
+- frame on hole on a shaft puts the frame on the axis at the end you clicked, they have no loop to find. a 2" LS shaft fixed to a channel hole sits 2e-16 mm off the hole axis, so dead center
+- shoulder screw lengths showed up as python lists in the dock (`[0.29, 0.09]`), and `od` / `n` came out as Od / N. now "0.29, 0.09", OD and Holes
+- HS spacers are a family of vex's own four steps. the catalog had a 3/8 off the fusion folders, but vex has no step for it so its gone, 868 now
+- wait cursor while a part builds, a 35 long channel is a few seconds of frozen freecad otherwise
+- a README for github
 
 ## 2026-10-27 - how its gonna work
 
