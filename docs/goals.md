@@ -35,5 +35,6 @@ listed roughly from hardest constraints down to less necessary stuff:
 - [Part browser](design-choices/browser.md) - common families at the root, fusion folders under
 
 ## Building it
+- [Using it](using.md) - how to put a robot together with it, as it is now
 - [Code](code/index.md) - layout, testing, dated log
 - [Roadmap](roadmap.md) - build steps in order
