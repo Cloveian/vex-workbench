@@ -17,7 +17,7 @@
 | `freecad/vex_workbench/data/parts.toml` | the [catalog](../design-choices/catalog.md)                      |
 | `freecad/vex_workbench/resources/icons/` | the workbench and command icons                                 |
 | `package.xml`                      | addon manager metadata                                                |
-| `tests/`                           | `python tests/test_catalog.py` and so on                              |
+| `tests/`                           | `python tests/test_catalog.py` and so on, `test_gui.py` runs inside freecad (`env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py`) |
 | `tools/fetch_vex_cad.py`           | pulls every V5 step off vexrobotics.com, `uv run` it                  |
 | `tools/sort_vex_step.py`           | sorts the downloads into the fusion library folders, `--apply` moves them |
 | `vex-step/`                        | the 289 steps, gitignored                                             |

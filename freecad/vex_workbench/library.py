@@ -1,6 +1,7 @@
 # vex parts in a document. one hidden source per variant, every placed copy is a plain App::Link to it
 import functools
 
+import FreeCAD as App
 import Part
 from FreeCAD import Placement, Rotation, Vector
 
@@ -43,10 +44,33 @@ def options(family):
 
 def shape(part):
     if "file" in part:
-        return Part.read(str(catalog.step_path(part)))
+        path = str(catalog.step_path(part))
+        return colored(path) if App.GuiUp else (Part.read(path), None)
     if part["family"] in GENERATORS:
-        return GENERATORS[part["family"]](part, cat())
+        return GENERATORS[part["family"]](part, cat()), None
     raise ValueError(f"no generator for {part['family']} yet")
+
+
+def colored(path):
+    # vex's own colors only come through ImportGui (Import.insert greys every face), which splits the step into peices
+    import ImportGui
+    active = App.ActiveDocument
+    tmp = App.newDocument("VexImport", hidden=True)
+    try:
+        ImportGui.insert(path, tmp.Name)
+        shapes, colors = [], []
+        for o in tmp.Objects:
+            if o.TypeId == "Part::Feature":
+                s = o.Shape.copy()
+                s.Placement = o.getGlobalPlacement()
+                dc = o.ViewObject.DiffuseColor
+                colors += dc if len(dc) == len(s.Faces) else dc[:1] * len(s.Faces)
+                shapes.append(s)
+        return Part.makeCompound(shapes), colors
+    finally:
+        App.closeDocument(tmp.Name)
+        if active:
+            App.setActiveDocument(active.Name)
 
 
 def group(doc):
@@ -62,7 +86,7 @@ def source(doc, part):
     for o in group(doc).Group:
         if getattr(o, "VexName", None) == name:
             return o
-    s = shape(part)  # first, or no generator leaves an empty source behind
+    s, faces = shape(part)  # first, or no generator leaves an empty source behind
     src = doc.addObject("App::Part", "VexPart")
     src.Label = f"{name} source"  # the placed copies get the plain name
     src.addProperty("App::PropertyString", "VexName", "VEX")
@@ -74,8 +98,11 @@ def source(doc, part):
         src.addProperty("App::PropertyMass", "VexMass", "VEX")
         src.VexMass = f"{s.Volume * cat()['density'][p['material']] / 1000} g"  # mm3 * g/cm3
     color = cat()["colors"].get(p.get("color", p.get("material")))
-    if color and solid.ViewObject:  # none headless
-        solid.ViewObject.ShapeColor = tuple(color)
+    vo = solid.ViewObject  # none headless
+    if vo and faces:
+        vo.DiffuseColor = faces
+    elif vo and color:
+        vo.ShapeColor = tuple(color)
     src.addObject(solid)
     group(doc).addObject(src)
     src.Visibility = False
