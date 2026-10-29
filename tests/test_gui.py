@@ -63,7 +63,8 @@ try:
     from freecad.vex_workbench import browser
     Gui.runCommand("Vex_Browser")
     w = browser._dock.widget()
-    w.tree.setCurrentItem(w.tree.findItems("Shoulder Screw", QtCore.Qt.MatchExactly)[0])
+    shoulder = w.tree.findItems("Shoulder Screw", QtCore.Qt.MatchExactly)[0]
+    w.tree.setCurrentItem(shoulder)
     w.combos["Length"].setCurrentText("0.5, 0.18")
     w.place()
     assert QtWidgets.QApplication.overrideCursor() is None, "wait cursor stuck"
@@ -73,7 +74,7 @@ try:
     w.search.setText("motor smart")
     hit = w.tree.findItems("Smart Motor", QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive)[0]
     assert not hit.isHidden() and not hit.parent().isHidden(), hit.text(0)
-    assert w.tree.findItems("Shoulder Screw", QtCore.Qt.MatchExactly)[0].isHidden()
+    assert shoulder.isHidden()
     # a variant name finds its family, and picking it starts on that variant
     w.search.setText("1x2x1x25 steel")
     fam = w.tree.findItems("C-Channel", QtCore.Qt.MatchExactly)[0]
