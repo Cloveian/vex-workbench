@@ -43,7 +43,7 @@ for fam in cat["family"]:
     parts = [p for p in gen if p["family"] == fam["id"]]
     for fx in fam.get("fixtures", []):
         step = steps[fx]
-        theirs = Part.read(str(catalog.STEP_DIR / step["folder"] / step["file"]))
+        theirs = Part.read(str(catalog.step_path(step)))
         want, n = size(theirs), nominal(fx)
         # spacers come in 3 ODs at each length, take the one that fits
         tries = [make(p, cat) for p in parts if n in (p["params"].get("length"), p["params"].get("n"))]

@@ -73,8 +73,7 @@ for fam in cat["family"]:
         t0 = time.time()
         ours = metal.make(part, cat)
         ms = (time.time() - t0) * 1000
-        theirs = Part.Shape()
-        theirs.read(str(catalog.STEP_DIR / step["folder"] / step["file"]))
+        theirs = Part.read(str(catalog.step_path(step)))
         po, pt = points(ours), points(theirs)
         size = sorted(round(x, 3) for x in po[1])
         vol = ours.Volume / theirs.Volume - 1
