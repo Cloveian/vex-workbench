@@ -115,6 +115,12 @@ def source(doc, part):
     return src
 
 
+def picks(family, part):
+    # {property: label} that lands on part, the inverse of variant()
+    mine = part["params"].items()
+    return {prop: next(label(c) for c in choices if c.items() <= mine) for prop, choices in options(family)}
+
+
 def place(doc, part, parent=None):
     # parent = the active assembly or part, if theres one
     # plain App::Link, assembly checks TypeId == "App::Link" exactly
@@ -124,12 +130,11 @@ def place(doc, part, parent=None):
         link.VexStep = f"{part['folder']}/{part['file']}"
     else:
         family = index()[0][part["family"]]
+        now = picks(family, part)
         for prop, choices in options(family):
-            labels = [label(c) for c in choices]
             link.addProperty("App::PropertyEnumeration", prop, "VEX")
-            setattr(link, prop, labels)
-            now = next(lb for c, lb in zip(choices, labels) if c.items() <= part["params"].items())
-            setattr(link, prop, now)
+            setattr(link, prop, [label(c) for c in choices])
+            setattr(link, prop, now[prop])
         # last, the observer ignores links without it
         link.addProperty("App::PropertyString", "VexFamily", "VEX")
         link.VexFamily = part["family"]

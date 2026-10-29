@@ -14,6 +14,7 @@ class Browser(QtWidgets.QWidget):
         super().__init__()
         self.family = None
         self.combos = {}
+        self.words = []
 
         self.search = QtWidgets.QLineEdit(placeholderText="search")
         self.tree = QtWidgets.QTreeWidget(headerHidden=True)
@@ -51,11 +52,12 @@ class Browser(QtWidgets.QWidget):
             QtWidgets.QTreeWidgetItem(parent, [p["name"]]).setData(0, KIND, ("step", key))
 
     def filter(self, text):
-        # an item shows if it or anything under it has every word, any order
-        words = text.lower().split()
+        # an item shows if it or anything under it has every word, any order. a family shows if one of its variants does
+        words = self.words = text.lower().split()
 
         def walk(it):
-            hit = all(w in it.text(0).lower() for w in words)
+            kind = it.data(0, KIND)
+            hit = all(w in it.text(0).lower() for w in words) or bool(kind and kind[0] == "family" and self.first(kind[1]))
             kids = [walk(it.child(i)) for i in range(it.childCount())]
             it.setHidden(not (hit or any(kids)))
             if words and any(kids):
@@ -78,6 +80,17 @@ class Browser(QtWidgets.QWidget):
             box.addItems([library.label(c) for c in choices])
             self.form.addRow(prop, box)
             self.combos[prop] = box
+        # searched "1x2x1x25 steel", start on that one
+        part = self.first(kind[1]) if self.words else None
+        for prop, lb in (library.picks(self.family, part) if part else {}).items():
+            self.combos[prop].setCurrentText(lb)
+
+    def first(self, family):
+        # first variant of a family with every serached word in its name
+        for p in library.index()[1].values():
+            if p["family"] == family and all(w in p["name"].lower() for w in self.words):
+                return p
+        return None
 
     def place(self):
         it = self.tree.currentItem()

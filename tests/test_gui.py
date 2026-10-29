@@ -74,6 +74,13 @@ try:
     hit = w.tree.findItems("Smart Motor", QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive)[0]
     assert not hit.isHidden() and not hit.parent().isHidden(), hit.text(0)
     assert w.tree.findItems("Shoulder Screw", QtCore.Qt.MatchExactly)[0].isHidden()
+    # a variant name finds its family, and picking it starts on that variant
+    w.search.setText("1x2x1x25 steel")
+    fam = w.tree.findItems("C-Channel", QtCore.Qt.MatchExactly)[0]
+    assert not fam.isHidden()
+    w.tree.setCurrentItem(fam)
+    got = {p: b.currentText() for p, b in w.combos.items()}
+    assert got == {"Material": "Steel", "Size": "2", "Holes": "25"}, got
     w.search.setText("")
 
     # a click on the second element of a link array lands on that element's hole
