@@ -87,5 +87,18 @@ assert [n for n, _ in counts.values()] == [1, 1, 1, 1] and counts[w.Label][1] is
 sheet = partslist.fill(doc)
 assert sheet.get("A7").startswith("Total, 4 parts, 1 without"), sheet.get("A7")
 
+# a sub-assembly linked once and as an array of 2 counts 4 times with its original, a link array counts every element
+sub = doc.addObject("App::Part", "Side")
+library.place(doc, gen["1x2x1x20 Aluminum C-Channel"], sub)
+doc.addObject("App::Link", "SideCopy").LinkedObject = sub
+row = doc.addObject("App::Link", "SideRow")
+row.LinkedObject = sub
+row.ElementCount = 2
+arr = library.place(doc, gen["1.000 Standoff (8-32, Aluminum)"])
+arr.ElementCount = 3
+doc.recompute()
+counts = partslist.count(doc)
+assert counts["1x2x1x20 Aluminum C-Channel"][0] == 4 and counts["1.000 Standoff (8-32, Aluminum)"][0] == 3, counts
+
 App.closeDocument(doc.Name)
 print("ok")

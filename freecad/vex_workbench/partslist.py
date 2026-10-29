@@ -8,12 +8,24 @@ SHEET = "VexPartsList"
 def count(doc):
     # name -> [count, g each]. None without a material, step parts and the plates
     out = {}
+
+    def walk(o, n):
+        if o.TypeId == "App::Link":
+            n *= max(o.ElementCount, 1)  # link arrays
+            src = o.LinkedObject
+            if hasattr(src, "VexName"):
+                each = src.VexMass.getValueAs("g").Value if hasattr(src, "VexMass") else None
+                out.setdefault(src.VexName, [0, each])[0] += n
+                return
+            o = src  # a linked sub-assembly, its parts n more times
+        for child in getattr(o, "Group", []):
+            walk(child, n)
+
+    # from the top of the tree, RootObjects leaves out a sub-assembly once its linked
     for o in doc.Objects:
-        if o.TypeId != "App::Link" or not hasattr(o.LinkedObject, "VexName"):
-            continue
-        src = o.LinkedObject
-        each = src.VexMass.getValueAs("g").Value if hasattr(src, "VexMass") else None
-        out.setdefault(src.VexName, [0, each])[0] += 1
+        # link array elements look top level too, and pass Group through to what the array links
+        if o.TypeId != "App::LinkElement" and o.getParentGroup() is None and o.getParentGeoFeatureGroup() is None:
+            walk(o, 1)
     return out
 
 
