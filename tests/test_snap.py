@@ -135,5 +135,18 @@ got = moved([sc, nut])
 assert not got, got
 assert local(nut) == [1.25, 0.25, -0.2391, -0.046], local(nut)
 
+# stright through both flanges of one channel (a), head and nut on the same part. 1.0 + 0.193 -> the 1.25
+on_a = (asm, a.Name + ".")
+top = (a, App.Vector(0.76, 0.26, 1.0) * IN, a.Placement, on_a)  # top flange outside, the (0.75, 0.25) hole
+bot = (a, App.Vector(0.76, 0.24, 0) * IN, a.Placement, on_a)  # bottom flange outside
+had = len(joints.Group)
+sc, nut = screws.fasten(doc, top, bot, "star-screw", nylock, asm)
+assert sc.Label == "1.250 Torx (Star) Screw (8-32, Steel)", sc.Label
+assert (sc.Placement.Base - App.Vector(0.75, 0.25, 1.0) * IN).Length < 1e-6, sc.Placement.Base / IN
+refs = [(j.Reference1[0], j.Reference2[0]) for j in joints.Group[had:]]
+assert refs == [(a, sc), (a, nut)], refs
+got = moved([sc, nut])
+assert not got, got
+
 App.closeDocument(doc.Name)
-print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29 and 0.375")
+print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")
