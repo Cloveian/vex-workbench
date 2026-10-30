@@ -32,7 +32,7 @@ Vex's steps aren't always nominal. the 2, 3 and 4" HS shafts are 1 mm short (the
 - **A - every hole, up front**
 	a 1x5x1x35 c-channel is 245 holes, both faces = 490 frames = ~3,400 objects. 30 channels in a robot is ~100k objects, and FreeCAD gets *so* slow way before that
 - **B - on click**
-	click a hole (an edge or the face around it), a frame shows up at its exact center pointing out of the face, joint to it. the screw tool can make its own the same way later
+	click a hole (an edge or the face around it), a frame shows up at its exact center pointing out of the face, joint to it. the screw tool makes its own the same way
 
 **Gate cuts:**
 
