@@ -50,9 +50,9 @@ def joint(asm, s, f, part, pf):
     j.Proxy.setJointConnectors(j, [[comp, [sub, sub]], [part, [pf.Name + ".", pf.Name + "."]]])
 
 
-def seat(link):
+def seat(src):
     # plain face of the nut at z = 0 and its hieght. vex step nuts come in however they were drawn
-    shape = Part.getShape(link.LinkedObject)
+    shape = Part.getShape(src)
     s, h = derived.upright(shape.copy(), IN)
     return s.Placement.multiply(shape.Placement.inverse()), h
 
@@ -67,10 +67,11 @@ def fasten(doc, head, tail, family, nut, parent=None):
     if b.Rotation.multVec(Vector(0, 0, 1)).dot(z) > -1 + 1e-6 or d.cross(z).Length > OFF_AXIS or gap <= 0:
         raise ValueError("those holes don't line up, click the outside face on both ends")
     local = parent.getGlobalPlacement().inverse() if parent else App.Placement()
+    plc, h = seat(library.source(doc, nut))
+    screw = shortest(family, gap + h)  # before anything gets placed
     n = library.place(doc, nut, parent)
-    plc, h = seat(n)
     n.Placement = local.multiply(b).multiply(plc)
-    s = library.place(doc, shortest(family, gap + h), parent)
+    s = library.place(doc, screw, parent)
     s.Placement = local.multiply(a)  # under the head on the face, shank down -z
     if parent and parent.isDerivedFrom("Assembly::AssemblyObject"):
         # their frames sit right on the hole frames, the joints dont move anything
