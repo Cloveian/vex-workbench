@@ -197,15 +197,20 @@ def hole_frame(link, point):
         v = Part.Vertex(point)
         near = [h for h in found if (h[1] - point).Length < HOLE_MAX] or found
         _, center, n = min(near, key=lambda h: h[0].distToShape(v)[0])
-    for o in src.Group:
-        if o.TypeId == "App::LocalCoordinateSystem" and (o.Placement.Base - center).Length < 1e-6 \
-                and (o.Placement.Rotation.multVec(Vector(0, 0, 1)) - n).Length < 1e-6:
-            return o
     x = Vector(1, 0, 0) - n * n.x
     if x.Length < 1e-6:
         x = Vector(0, 1, 0) - n * n.y
-    lcs = link.Document.addObject("App::LocalCoordinateSystem", "Hole")
-    lcs.Placement = Placement(center, Rotation(x, n.cross(x), n, "ZXY"))
+    return frame(link, Placement(center, Rotation(x, n.cross(x), n, "ZXY")))
+
+
+def frame(link, plc, name="Hole"):
+    # LCS at plc (link coords) in the source, the one already there if theres one
+    src = link.LinkedObject
+    for o in src.Group:
+        if o.TypeId == "App::LocalCoordinateSystem" and o.Placement.isSame(plc, 1e-6):
+            return o
+    lcs = link.Document.addObject("App::LocalCoordinateSystem", name)
+    lcs.Placement = plc
     src.addObject(lcs)
     return lcs
 

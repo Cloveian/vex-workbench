@@ -16,7 +16,7 @@ in build order, each one is something i can open and poke at
 
 ## Later
 - [ ] Screw and nut tool. pick two lined up holes, it works out the stack and the screw
-	two clicks gives the screw + nut now. no washers or spacers in the stack, no joints yet
+	two clicks gives the screw + nut now, jointed to the holes in an assembly. no washers or spacers in the stack
 - [ ] Bending metal
 
 ## Still need numbers for

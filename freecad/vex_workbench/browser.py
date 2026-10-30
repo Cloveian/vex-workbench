@@ -104,7 +104,7 @@ class Browser(QtWidgets.QWidget):
         else:
             part = library.variant(self.family, {p: b.currentText() for p, b in self.combos.items()})
         doc = App.ActiveDocument or App.newDocument()
-        import UtilsAssembly  # Assembly workbench, only once theres a gui
+        import UtilsAssembly  # Assembly workbench
         link = ui.run("Place VEX part", lambda: library.place(doc, part, UtilsAssembly.activePartOrAssembly()))
         if link is None:
             return

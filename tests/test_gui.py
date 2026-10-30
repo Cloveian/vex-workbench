@@ -1,4 +1,4 @@
-# toolbar, colurs, the parts list, the dock and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+# toolbar, colurs, the parts list, the dock, the screw tool and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import os
 import sys
 import traceback
@@ -20,7 +20,7 @@ def snapped(obj, path, face, click, center):
     on = obj.getSubObject(path, retType=3).multVec(click)
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(obj.Document.Name, obj.Name, path + face, on.x, on.y, on.z)
-    (link, pt, _), = snap.picked()
+    (link, pt, *_), = snap.picked()
     assert (pt - click).Length < 1e-6, (path, pt, click)
     frame = library.hole_frame(link, pt)
     assert (frame.Placement.Base - center).Length < 1e-6, (path, frame.Placement.Base, center)
@@ -130,13 +130,22 @@ try:
     got = sorted(o.Label for o in set(doc.Objects) - before if o.TypeId == "App::Link")
     assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], got
     panel.reject()
+    # same in an assembly gets joints, with their view providers
+    asm = doc.addObject("Assembly::AssemblyObject", "Assembly")
+    asm.Type = "Assembly"
+    for p in (p1, p2):
+        asm.addObject(p)
+    doc.recompute()
+    head = snap.spot(asm, f"{p1.Name}.Face{top}", App.Vector(1.26, 0.25, 0.046) * 25.4)
+    tail = snap.spot(asm, f"{p2.Name}.Face{bottom}", App.Vector(1.25, 0.26, -0.046) * 25.4)
+    sc, nut = screws.fasten(doc, head, tail, "star-screw", screws.nuts()["#8-32 Nylock Nut"], asm)
+    js = [j for j in asm.OutListRecursive if hasattr(j, "JointType")]
+    assert sorted(j.Reference2[0].Name for j in js) == sorted([sc.Name, nut.Name]), js
+    assert all(j.ViewObject.Proxy for j in js)
     say("ok")
     failed = False
 except Exception:
     say(traceback.format_exc())
     failed = True
-for d in list(App.listDocuments()):
-    App.closeDocument(d)  # else the save prompt hangs offscreen
-if failed:
-    os._exit(1)  # closing the window always exits 0
-Gui.getMainWindow().close()
+# closing the window always exits 0, and hangs offscreen once an assembly joint has solved, plain one too
+os._exit(1 if failed else 0)

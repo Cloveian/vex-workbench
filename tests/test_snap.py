@@ -66,16 +66,30 @@ assert (s.Placement.Base - pa.Base).Length < 1e-9, s.Placement.Base
 from freecad.vex_workbench import screws  # noqa: E402
 
 m = App.Placement(App.Vector(5, -7, 11), App.Rotation(20, 30, 40))
-p1 = library.place(doc, gen["5x10 Steel Plate"])
-p2 = library.place(doc, gen["5x10 Steel Plate"])
+p1 = library.place(doc, gen["5x10 Steel Plate"], asm)
+p2 = library.place(doc, gen["5x10 Steel Plate"], asm)
 p1.Placement = m
 p2.Placement = m.multiply(App.Placement(App.Vector(-IN, 0, -0.046 * IN), App.Rotation()))
+for p in (p1, p2):
+    # the solver leaves alone anything not tied to ground
+    JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), p)
 doc.recompute()
-head = (p1, App.Vector(1.27, 0.24, 0.046) * IN, p1.Placement)  # top face, the (1.25, 0.25) hole
-tail = (p2, App.Vector(2.26, 0.26, 0) * IN, p2.Placement)  # bottom face, same hole
+# clicked inside the assembly, so the root is asm
+head = (p1, App.Vector(1.27, 0.24, 0.046) * IN, p1.Placement, (asm, p1.Name + "."))  # top face, the (1.25, 0.25) hole
+tail = (p2, App.Vector(2.26, 0.26, 0) * IN, p2.Placement, (asm, p2.Name + "."))  # bottom face, same hole
 nylock = screws.nuts()["#8-32 Nylock Nut"]
-sc, nut = screws.fasten(doc, head, tail, "star-screw", nylock)
+had = len(joints.Group)
+sc, nut = screws.fasten(doc, head, tail, "star-screw", nylock, asm)
 assert sc.Label == "0.290 Torx (Star) Screw (8-32, Steel)", sc.Label
+# a Fixed joint each, and solving moves nothing
+new = joints.Group[had:]
+assert [(j.JointType, j.Reference1[0], j.Reference2[0]) for j in new] == [("Fixed", p1, sc), ("Fixed", p2, nut)], new
+four = [p1, p2, sc, nut]
+was = [o.Placement for o in four]
+assert asm.solve() == 0
+doc.recompute()
+moved = [o.Label for o, p in zip(four, was) if not o.Placement.isSame(p, 1e-9)]
+assert not moved, moved
 
 
 def local(link):
@@ -92,7 +106,7 @@ assert got[:2] == [1.25, 0.25] and got[2] == round(0.046 - 0.29, 4) and got[3] =
 sc, _ = screws.fasten(doc, head, tail, "hex-screw", nylock)
 assert sc.Label == "0.375 Hex Screw (8-32, Steel)", sc.Label
 try:
-    screws.fasten(doc, head, (p2, App.Vector(2.26, 0.26, 0.046) * IN, p2.Placement), "star-screw", nylock)  # inside face
+    screws.fasten(doc, head, (p2, App.Vector(2.26, 0.26, 0.046) * IN, p2.Placement, tail[3]), "star-screw", nylock)  # inside face
     raise AssertionError("inside face went through")
 except ValueError:
     pass

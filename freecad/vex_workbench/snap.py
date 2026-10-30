@@ -7,7 +7,7 @@ from . import library, ui
 
 
 def spot(root, sub, pt):
-    # (link, point in its own coords, link placement in the world) for one click, None off VEX parts
+    # (link, point in its own coords, link placement in the world, (root, path down to the link)) for one click, None off VEX parts
     objs = root.getSubObjectList(sub)  # root first, then one per name in sub
     k = max((i for i, o in enumerate(objs) if hasattr(o, "VexFamily") or hasattr(o, "VexStep")), default=None)
     if k is None:
@@ -17,8 +17,9 @@ def spot(root, sub, pt):
     element = names[k].isdigit() or (k + 1 < len(objs) and objs[k + 1].isDerivedFrom("App::LinkElement"))
     n = k + 1 if element else k
     # placement of the link through the whole path, assembly and all. App::Link has no getGlobalPlacement in 1.1
-    plc = root.getSubObject(".".join(names[:n]) + ".", retType=3) if n else root.Placement
-    return objs[k], plc.inverse().multVec(pt), plc
+    path = "".join(name + "." for name in names[:n])
+    plc = root.getSubObject(path, retType=3) if n else root.Placement
+    return objs[k], plc.inverse().multVec(pt), plc, (root, path)
 
 
 def picked():
@@ -41,7 +42,7 @@ class HoleFrame:
         if not spots:
             QtWidgets.QMessageBox.information(Gui.getMainWindow(), "VEX", "Click a hole on a VEX part first")
             return
-        if ui.run("VEX hole frame", lambda: [library.hole_frame(link, pt) for link, pt, _ in spots]) is None:
+        if ui.run("VEX hole frame", lambda: [library.hole_frame(link, pt) for link, pt, *_ in spots]) is None:
             return
         App.ActiveDocument.recompute()
         Gui.Selection.clearSelection()

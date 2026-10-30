@@ -29,8 +29,25 @@ def shortest(family, need):
 
 
 def hole(s):
-    link, pt, plc = s
-    return plc.multiply(library.hole_frame(link, pt).Placement)
+    # the clicked hole's frame, and where it is in the world
+    link, pt, plc, _ = s
+    f = library.hole_frame(link, pt)
+    return f, plc.multiply(f.Placement)
+
+
+def joint(asm, s, f, part, pf):
+    # Fixed, hole frame f on the clicked part to pf on the new screw / nut. none for a part outside asm
+    import JointObject
+    import UtilsAssembly
+    root, path = s[3]
+    comp, sub = UtilsAssembly.getComponentReference(asm, root, path + f.Name + ".")
+    if comp is None:
+        return
+    j = UtilsAssembly.getJointGroup(asm).newObject("App::FeaturePython", "Joint")
+    JointObject.Joint(j, JointObject.JointTypes.index("Fixed"))
+    if j.ViewObject:
+        JointObject.ViewProviderJoint(j.ViewObject)
+    j.Proxy.setJointConnectors(j, [[comp, [sub, sub]], [part, [pf.Name + ".", pf.Name + "."]]])
 
 
 def seat(link):
@@ -42,7 +59,7 @@ def seat(link):
 
 def fasten(doc, head, tail, family, nut, parent=None):
     # head, tail = snap.spot()s, head side first. screw and nut links back
-    a, b = hole(head), hole(tail)
+    (fa, a), (fb, b) = hole(head), hole(tail)
     z = a.Rotation.multVec(Vector(0, 0, 1))
     d = a.Base - b.Base
     gap = d.dot(z)
@@ -55,6 +72,10 @@ def fasten(doc, head, tail, family, nut, parent=None):
     n.Placement = local.multiply(b).multiply(plc)
     s = library.place(doc, shortest(family, gap + h), parent)
     s.Placement = local.multiply(a)  # under the head on the face, shank down -z
+    if parent and parent.isDerivedFrom("Assembly::AssemblyObject"):
+        # their frames sit right on the hole frames, the joints dont move anything
+        joint(parent, head, fa, s, library.frame(s, App.Placement(), "Seat"))
+        joint(parent, tail, fb, n, library.frame(n, plc.inverse(), "Seat"))
     return s, n
 
 
