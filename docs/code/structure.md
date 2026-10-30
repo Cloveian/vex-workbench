@@ -13,6 +13,8 @@
 | `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s |
 | `freecad/vex_workbench/browser.py` | the VEX parts dock                                                    |
 | `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`           |
+| `freecad/vex_workbench/screws.py`  | Screw command, two hole clicks -> shortest screw + nut, jointed in an assembly |
+| `freecad/vex_workbench/ui.py`      | undo step, wait cursor and error box around building parts |
 | `freecad/vex_workbench/partslist.py` | Parts list command, links counted by name into a spreadsheet         |
 | `freecad/vex_workbench/data/parts.toml` | the [catalog](../design-choices/catalog.md)                      |
 | `freecad/vex_workbench/resources/icons/` | the workbench and command icons                                 |
