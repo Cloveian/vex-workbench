@@ -1,5 +1,11 @@
 # Log
 
+## 2026-10-29 - screws
+
+- screw tool. click the head side hole, then the nut side, shortest screw thats all the way through the nut + the nut. star or hex and which nut are in the panel, kept in prefs. vex's step nuts get stood up with derived.upright() same as ours. inside an assembly both get a Fixed joint to their hole, their frames sit right on the hole frames so solving moves nothing
+- offscreen freecad hangs on close once any assembly joint has solved, a plain one with none of my code too, so the gui test os._exit()s. idk if a real window does it
+- metal legs are flat faces now, holes as inner wires (no boolean), only edge stuff gets a 2D cut, then bends fused on. 1x5x1x35 3.05 -> 2.09 s, 3x3x35 angle 3.77 -> 2.17, 5x35 plate 1.24 -> 0.17, bar 0.53 -> 0.09. same volume to 6 decimels and same faces as before. the rest is the relief cuts in the bends and the fuse, so ~1 s isnt happening without something smarter
+
 ## 2026-10-28 - the metal is done
 
 - aluminum 2x2 angles and aluminum plates arent a thing, so theyre gone. 869 generated now

@@ -1,4 +1,4 @@
-# channels, angles, plate, bar: one bent section stretched along x, holes cut through each flat leg
+# channels, angles, plate, bar: flat legs with their holes cut in 2D, bends between, all along x
 import math
 
 import Part
@@ -20,40 +20,16 @@ def frames(pts):
     return d, [X.cross(e) * turn for e in d]
 
 
-def section(pts, d, n, t, r):
-    # pts = outside corners, r = inside bend radius
-    ro, edges = r + t, []
-
-    def line(a, b):
-        edges.append(Part.LineSegment(a, b).toShape())
-
-    def arc(a, m, b):
-        edges.append(Part.Arc(a, m, b).toShape())
-
-    cur = pts[0]
-    for k in range(1, len(pts) - 1):
-        q, din, dout = pts[k], d[k - 1], d[k]
-        c, mid = q - din * ro + dout * ro, (din - dout).normalize()
-        line(cur, q - din * ro)
-        arc(q - din * ro, c + mid * ro, q + dout * ro)
-        cur = q + dout * ro
-    line(cur, pts[-1])
-    cur = pts[-1] + n[-1] * t
-    line(pts[-1], cur)
-    for k in range(len(pts) - 2, 0, -1):
-        q, din, dout = pts[k], d[k - 1], d[k]
-        c, mid = q - din * ro + dout * ro, (din - dout).normalize()
-        line(cur, q + dout * ro + n[k] * t)
-        arc(q + dout * ro + n[k] * t, c + mid * r, q - din * ro + n[k - 1] * t)
-        cur = q - din * ro + n[k - 1] * t
-    line(cur, pts[0] + n[0] * t)
-    line(pts[0] + n[0] * t, pts[0])
-    return Part.Face(Part.Wire(edges))
-
-
-def prism(face, t):
-    # face in xy, pushed through t along z
-    return face.extrude(Vector(0, 0, t + 2 * EPS)).translated(Vector(0, 0, -EPS))
+def bend(pts, d, n, j, t, r):
+    # slice of the bend at outside corner pts[j], r = inside radius. the legs either side are flat pieces of their own
+    ro, q, din, dout = r + t, pts[j], d[j - 1], d[j]
+    c, mid = q - din * ro + dout * ro, (din - dout).normalize()
+    a, b = q - din * ro, q + dout * ro
+    return Part.Face(Part.Wire([
+        Part.Arc(a, c + mid * ro, b).toShape(),
+        Part.LineSegment(b, b + n[j] * t).toShape(),
+        Part.Arc(b + n[j] * t, c + mid * r, a + n[j - 1] * t).toShape(),
+        Part.LineSegment(a + n[j - 1] * t, a).toShape()]))
 
 
 def square(size, r):
@@ -76,36 +52,38 @@ def diamond(h, r=0):
 
 def place(tool, origin, d, n):
     # tool x -> along, y -> across the leg, z -> through it
+    # copy first, the fuse after is ~2x slower with the Placement set straight on the tool
     c = tool.copy()
-    # on top of tool.Placement, translated() keeps its shift there
     c.Placement = Placement(Matrix(1, d.x, n.x, origin.x, 0, d.y, n.y, origin.y, 0, d.z, n.z, origin.z, 0, 0, 0, 1)).multiply(tool.Placement)
     return c
 
 
-def reliefs(pts, d, n, t, r, xs, half, k):
+def reliefs(pts, d, t, r, xs, half, k):
     # flat pattern diamond (half diagonal `half`) wrapped round every bend at each x
+    # -> lofts per bend, and the triangles it leaves on the legs as (leg, 2D cutter)
     ro, rn = r + t, r + k * t
     edge = half - rn * math.pi / 4  # half width where bend meets leg, also how far it runs onto the leg
     reach = (ro + EPS) / math.cos(math.radians(7.5))  # chords cut short of the outside without the 1/cos
-    tri = Part.Face(Part.makePolygon([Vector(-edge, 0, 0), Vector(edge, 0, 0), Vector(0, -edge, 0), Vector(-edge, 0, 0)]))
-    back, on = prism(tri, t), prism(tri.mirror(Vector(0, 0, 0), Vector(0, 1, 0)), t)
-    out = []
+    back = Part.Face(Part.makePolygon([Vector(-edge, 0, 0), Vector(edge, 0, 0), Vector(0, -edge, 0), Vector(-edge, 0, 0)]))
+    on = back.mirror(Vector(0, 0, 0), Vector(0, 1, 0))
+    lofts, tris = [], []
     for j in range(1, len(pts) - 1):
         q, din, dout = pts[j], d[j - 1], d[j]
         c = q - din * ro + dout * ro
+        # ruled loft of radial rectangels every 15 deg, at x = 0
+        rings = []
+        for i in range(7):
+            s = i / 6  # 0 = incomming leg, 1 = outgoing
+            u = dout * -math.cos(s * math.pi / 2) + din * math.sin(s * math.pi / 2)
+            a = half - rn * abs(s - 0.5) * math.pi / 2
+            p = [c + u * (r - EPS) - X * a, c + u * reach - X * a, c + u * reach + X * a, c + u * (r - EPS) + X * a]
+            rings.append(Part.makePolygon(p + p[:1]))
+        loft = Part.makeLoft(rings, True, True)
+        lofts.append([loft.translated(X * x) for x in xs])
         for x in xs:
-            # ruled loft of radial rectangles every 15 deg
-            rings = []
-            for i in range(7):
-                s = i / 6  # 0 = incoming leg, 1 = outgoing
-                u = dout * -math.cos(s * math.pi / 2) + din * math.sin(s * math.pi / 2)
-                a = half - rn * abs(s - 0.5) * math.pi / 2
-                p = [c + u * (r - EPS) + X * (x - a), c + u * reach + X * (x - a), c + u * reach + X * (x + a), c + u * (r - EPS) + X * (x + a)]
-                rings.append(Part.makePolygon(p + p[:1]))
-            out.append(Part.makeLoft(rings, True, True))
-            out.append(place(back, q - din * ro + X * x, din, n[j - 1]))
-            out.append(place(on, q + dout * ro + X * x, dout, n[j]))
-    return out
+            tris.append((j - 1, back.translated(Vector(x, (q - pts[j - 1]).Length - ro, 0))))
+            tris.append((j, on.translated(Vector(x, ro, 0))))
+    return lofts, tris
 
 
 # --- profiles ---
@@ -174,30 +152,52 @@ def make(part, cat):
     pts, legs = PROFILES[part["family"]](p, g)
     d, n = frames(pts)
     length = p["holes"] * g["pitch"]
-    solid = section(pts, d, n, t, metal["bend"]).extrude(X * length)
-
-    hole = prism(square(g["hole"], p.get("round", g["round"])), t)
-    cutters = []
+    r, last = metal["bend"], len(legs) - 1
+    lens = [(b - a).Length for a, b in zip(pts, pts[1:])]
+    # every leg is cut flat in 2D, x along the length and y across from the leg start, then pushed through t
+    # 2.1 s for a 1x5x1x35, mostly the relief cuts in the bends and the fuse
+    cuts = [[] for _ in legs]
+    hole = square(g["hole"], p.get("round", g["round"]))
     for k, (main, between) in enumerate(legs):
         spots = [(a, g["end"] + g["pitch"] * i) for a in main for i in range(p["holes"])]
         spots += [(a, g["pitch"] * (i + 1)) for a in between for i in range(p["holes"] - 1)]
-        cutters += [place(hole, pts[k] + d[k] * a + X * x, d[k], n[k]) for a, x in spots]
+        cuts[k] += [hole.translated(Vector(x, a, 0)) for a, x in spots]
     if "diamond" in p:
         # every grid point, edges included. the corner chamfers at the ends stay sharp
         h = p["diamond"] / 2**0.5
-        sharp, dia = prism(diamond(h), t), prism(diamond(h, p.get("root", 0)), t)
-        width = round((pts[1] - pts[0]).Length / g["pitch"])
-        cutters += [place(dia if 0 < i < p["holes"] else sharp, pts[0] + d[0] * (g["pitch"] * j) + X * (g["pitch"] * i), d[0], n[0])
+        sharp, dia = diamond(h), diamond(h, p.get("root", 0))
+        width = round(lens[0] / g["pitch"])
+        cuts[0] += [(dia if 0 < i < p["holes"] else sharp).translated(Vector(g["pitch"] * i, g["pitch"] * j, 0))
                     for i in range(p["holes"] + 1) for j in range(width + 1)]
-    if len(pts) > 2:
+    bends = []
+    if last:
         # count marks + end chamfers on the free edges of the first and last leg
-        notch, cham = prism(diamond(metal["mark"]), t), prism(diamond(p["chamfer"]), t)
+        notch, cham = diamond(metal["mark"]), diamond(p["chamfer"])
         every = metal["marks"] * g["pitch"]
         xs = [every * i for i in range(1, int(length / every - 1e-6) + 1)]
-        for tip, k in [(pts[0], 0), (pts[-1], -1)]:
-            cutters += [place(notch, tip + X * x, d[k], n[k]) for x in xs]
-            cutters += [place(cham, tip + X * x, d[k], n[k]) for x in (0, length)]
-        cutters += reliefs(pts, d, n, t, metal["bend"], xs, metal["relief"], metal["k"])
-    solid = solid.cut(cutters)
+        for k, a in [(0, 0), (last, lens[-1])]:
+            cuts[k] += [notch.translated(Vector(x, a, 0)) for x in xs]
+            cuts[k] += [cham.translated(Vector(x, a, 0)) for x in (0, length)]
+        lofts, tris = reliefs(pts, d, t, r, xs, metal["relief"], metal["k"])
+        for k, f in tris:
+            cuts[k].append(f)
+        for j, mine in enumerate(lofts, 1):
+            bends.append(bend(pts, d, n, j, t, r).extrude(X * length).cut(mine))
+    pieces = []
+    for k, cut in enumerate(cuts):
+        # flat part of the leg only, the bends have the rest
+        a0, a1 = (r + t if k else 0), lens[k] - (r + t if k < last else 0)
+        f = Part.Face(Part.makePolygon([Vector(0, a0, 0), Vector(length, a0, 0), Vector(length, a1, 0), Vector(0, a1, 0), Vector(0, a0, 0)]))
+        # only what crosses an edge needs a boolean, the rest go in as plain inner wires
+        inside, edge = [], []
+        for c in cut:
+            b = c.BoundBox
+            (inside if b.XMin > 1e-6 and b.XMax < length - 1e-6 and b.YMin > a0 + 1e-6 and b.YMax < a1 - 1e-6 else edge).append(c)
+        if edge:
+            f = f.cut(edge).Faces[0]
+        f.cutHoles([c.OuterWire.reversed() for c in inside])
+        pieces.append(place(f.extrude(Vector(0, 0, t)), pts[k], d[k], n[k]))
+    # fuse splits the end faces at every seam, removeSplitter puts them back to one like vex
+    solid = pieces[0].fuse(pieces[1:] + bends).removeSplitter() if last else pieces[0]
     solid.scale(IN)
     return solid
