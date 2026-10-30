@@ -29,6 +29,7 @@ def snapped(obj, path, face, click, center):
 
 try:
     from freecad.vex_workbench import catalog, library
+    from freecad.vex_workbench.metal import IN
 
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
@@ -113,7 +114,7 @@ try:
     from freecad.vex_workbench import screws
     p1 = library.place(doc, gen["5x10 Steel Plate"])
     p2 = library.place(doc, gen["5x10 Steel Plate"])
-    p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * 25.4), App.Rotation())
+    p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * IN), App.Rotation())
     doc.recompute()
     faces = p1.LinkedObject.Group[0].Shape.Faces
     top = next(k for k, f in enumerate(faces) if f.Surface.TypeId == "Part::GeomPlane" and f.normalAt(0, 0).z > 0.5) + 1
@@ -124,8 +125,8 @@ try:
     panel.nut.setCurrentText("#8-32 Nylock Nut")
     before = set(doc.Objects)
     Gui.Selection.clearSelection()
-    Gui.Selection.addSelection(doc.Name, p1.Name, f"Face{top}", 1.26 * 25.4, 0.25 * 25.4, 0.046 * 25.4)
-    Gui.Selection.addSelection(doc.Name, p2.Name, f"Face{bottom}", 1.25 * 25.4, 0.26 * 25.4, -0.046 * 25.4)
+    Gui.Selection.addSelection(doc.Name, p1.Name, f"Face{top}", 1.26 * IN, 0.25 * IN, 0.046 * IN)
+    Gui.Selection.addSelection(doc.Name, p2.Name, f"Face{bottom}", 1.25 * IN, 0.26 * IN, -0.046 * IN)
     QtWidgets.QApplication.processEvents()
     got = sorted(o.Label for o in set(doc.Objects) - before if o.TypeId == "App::Link")
     assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], got
@@ -136,8 +137,8 @@ try:
     for p in (p1, p2):
         asm.addObject(p)
     doc.recompute()
-    head = snap.spot(asm, f"{p1.Name}.Face{top}", App.Vector(1.26, 0.25, 0.046) * 25.4)
-    tail = snap.spot(asm, f"{p2.Name}.Face{bottom}", App.Vector(1.25, 0.26, -0.046) * 25.4)
+    head = snap.spot(asm, f"{p1.Name}.Face{top}", App.Vector(1.26, 0.25, 0.046) * IN)
+    tail = snap.spot(asm, f"{p2.Name}.Face{bottom}", App.Vector(1.25, 0.26, -0.046) * IN)
     sc, nut = screws.fasten(doc, head, tail, "star-screw", screws.nuts()["#8-32 Nylock Nut"], asm)
     js = [j for j in asm.OutListRecursive if hasattr(j, "JointType")]
     assert sorted(j.Reference2[0].Name for j in js) == sorted([sc.Name, nut.Name]), js

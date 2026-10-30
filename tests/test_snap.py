@@ -1,4 +1,4 @@
-# hole frames + a Fixed joint, run with: python tests/test_snap.py (needs FreeCAD)
+# hole frames + Fixed joints, shaft ends, and the screw tool (plain, inside face, linked sub-assembly), run with: python tests/test_snap.py (needs FreeCAD)
 import sys
 from pathlib import Path
 
@@ -84,12 +84,18 @@ assert sc.Label == "0.290 Torx (Star) Screw (8-32, Steel)", sc.Label
 # a Fixed joint each, and solving moves nothing
 new = joints.Group[had:]
 assert [(j.JointType, j.Reference1[0], j.Reference2[0]) for j in new] == [("Fixed", p1, sc), ("Fixed", p2, nut)], new
-four = [p1, p2, sc, nut]
-was = [o.Placement for o in four]
-assert asm.solve() == 0
-doc.recompute()
-moved = [o.Label for o, p in zip(four, was) if not o.Placement.isSame(p, 1e-9)]
-assert not moved, moved
+
+
+def moved(objs):
+    # what asm.solve() moved, by label
+    was = [o.Placement for o in objs]
+    assert asm.solve() == 0
+    doc.recompute()
+    return [o.Label for o, p in zip(objs, was) if not o.Placement.isSame(p, 1e-9)]
+
+
+got = moved([p1, p2, sc, nut])
+assert not got, got
 
 
 def local(link):
@@ -123,12 +129,10 @@ doc.recompute()
 inner = (p3, tail[1], sub.Placement.multiply(p3.Placement), (asm, f"{sub.Name}.{p3.Name}."))
 had = len(joints.Group)
 sc, nut = screws.fasten(doc, head, inner, "star-screw", nylock, asm)
-j = joints.Group[had:]
-assert [x.Reference1[0] for x in j] == [p1, sub] and j[1].Reference1[1][0].startswith(p3.Name + "."), [x.Reference1 for x in j]
-was = [o.Placement for o in (sc, nut)]
-assert asm.solve() == 0
-doc.recompute()
-assert all(o.Placement.isSame(p, 1e-9) for o, p in zip((sc, nut), was))
+new = joints.Group[had:]
+assert [j.Reference1[0] for j in new] == [p1, sub] and new[1].Reference1[1][0].startswith(p3.Name + "."), [j.Reference1 for j in new]
+got = moved([sc, nut])
+assert not got, got
 assert local(nut) == [1.25, 0.25, -0.2391, -0.046], local(nut)
 
 App.closeDocument(doc.Name)
