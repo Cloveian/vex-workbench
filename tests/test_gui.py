@@ -130,6 +130,7 @@ try:
     QtWidgets.QApplication.processEvents()
     got = sorted(o.Label for o in set(doc.Objects) - before if o.TypeId == "App::Link")
     assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], got
+    assert panel.status.text().startswith("put in a 0.290 Torx (Star) Screw"), panel.status.text()
     panel.reject()
     # same in an assembly gets joints, with their view providers
     asm = doc.addObject("Assembly::AssemblyObject", "Assembly")

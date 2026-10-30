@@ -182,7 +182,8 @@ def make(part, cat):
         for k, f in tris:
             cuts[k].append(f)
         for j, mine in enumerate(lofts, 1):
-            bends.append(bend(pts, d, n, j, t, r).extrude(X * length).cut(mine))
+            b = bend(pts, d, n, j, t, r).extrude(X * length)
+            bends.append(b.cut(mine) if mine else b)  # 5 long or less has no marks, so no reliefs
     pieces = []
     for k, cut in enumerate(cuts):
         # flat part of the leg only, the bends have the rest

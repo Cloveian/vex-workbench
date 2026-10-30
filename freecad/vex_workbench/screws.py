@@ -100,8 +100,8 @@ class Panel:
         self.ask()
         Gui.Selection.addObserver(self)
 
-    def ask(self):
-        self.status.setText("click a hole on the head side" if self.first is None else "now the hole on the nut side")
+    def ask(self, said=""):
+        self.status.setText(said + ("click a hole on the head side" if self.first is None else "now the hole on the nut side"))
 
     def addSelection(self, doc, obj, sub, pnt):
         s = snap.spot(App.getDocument(doc).getObject(obj), sub, Vector(*pnt))
@@ -122,8 +122,11 @@ class Panel:
         doc = head[0].Document
         import UtilsAssembly
         family, nut = KINDS[self.kind.currentText()], nuts()[self.nut.currentText()]
-        if ui.run("Place VEX screw", lambda: fasten(doc, head, tail, family, nut, UtilsAssembly.activePartOrAssembly())):
+        put = ui.run("Place VEX screw", lambda: fasten(doc, head, tail, family, nut, UtilsAssembly.activePartOrAssembly()))
+        if put:
+            screw, _ = put
             doc.recompute()
+            self.ask(f"put in a {screw.Label}\n")
         Gui.Selection.clearSelection()
 
     def getStandardButtons(self):
