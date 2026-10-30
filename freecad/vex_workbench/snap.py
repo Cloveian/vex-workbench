@@ -3,25 +3,31 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtWidgets
 
-from . import library
+from . import library, ui
+
+
+def spot(root, sub, pt):
+    # (link, point in its own coords, link placement in the world) for one click, None off VEX parts
+    objs = root.getSubObjectList(sub)  # root first, then one per name in sub
+    k = max((i for i, o in enumerate(objs) if hasattr(o, "VexFamily") or hasattr(o, "VexStep")), default=None)
+    if k is None:
+        return None
+    names = sub.split(".")
+    # a link array element sits under the link, its placement counts too. a number in the path, or a LinkElement with ShowElement on
+    element = names[k].isdigit() or (k + 1 < len(objs) and objs[k + 1].isDerivedFrom("App::LinkElement"))
+    n = k + 1 if element else k
+    # placement of the link through the whole path, assembly and all. App::Link has no getGlobalPlacement in 1.1
+    plc = root.getSubObject(".".join(names[:n]) + ".", retType=3) if n else root.Placement
+    return objs[k], plc.inverse().multVec(pt), plc
 
 
 def picked():
-    # (link, point in its own coords) per clicked spot on a VEX part
     out = []
     for sel in Gui.Selection.getSelectionEx("", 0):
         for sub, pt in zip(sel.SubElementNames, sel.PickedPoints):
-            objs = sel.Object.getSubObjectList(sub)  # root first, then one per name in sub
-            k = max((i for i, o in enumerate(objs) if hasattr(o, "VexFamily") or hasattr(o, "VexStep")), default=None)
-            if k is None:
-                continue
-            names = sub.split(".")
-            # a link array element sits under the link, its placement counts too. a number in the path, or a LinkElement with ShowElement on
-            element = names[k].isdigit() or (k + 1 < len(objs) and objs[k + 1].isDerivedFrom("App::LinkElement"))
-            n = k + 1 if element else k
-            # placement of the link through the whole path, assembly and all. App::Link has no getGlobalPlacement in 1.1
-            plc = sel.Object.getSubObject(".".join(names[:n]) + ".", retType=3) if n else sel.Object.Placement
-            out.append((objs[k], plc.inverse().multVec(pt)))
+            s = spot(sel.Object, sub, pt)
+            if s:
+                out.append(s)
     return out
 
 
@@ -35,15 +41,8 @@ class HoleFrame:
         if not spots:
             QtWidgets.QMessageBox.information(Gui.getMainWindow(), "VEX", "Click a hole on a VEX part first")
             return
-        App.setActiveTransaction("VEX hole frame")
-        try:
-            for link, pt in spots:
-                library.hole_frame(link, pt)
-        except ValueError as e:
-            App.closeActiveTransaction(True)
-            QtWidgets.QMessageBox.warning(Gui.getMainWindow(), "VEX", str(e))
+        if ui.run("VEX hole frame", lambda: [library.hole_frame(link, pt) for link, pt, _ in spots]) is None:
             return
-        App.closeActiveTransaction()
         App.ActiveDocument.recompute()
         Gui.Selection.clearSelection()
 

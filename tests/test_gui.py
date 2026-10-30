@@ -20,7 +20,7 @@ def snapped(obj, path, face, click, center):
     on = obj.getSubObject(path, retType=3).multVec(click)
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(obj.Document.Name, obj.Name, path + face, on.x, on.y, on.z)
-    (link, pt), = snap.picked()
+    (link, pt, _), = snap.picked()
     assert (pt - click).Length < 1e-6, (path, pt, click)
     frame = library.hole_frame(link, pt)
     assert (frame.Placement.Base - center).Length < 1e-6, (path, frame.Placement.Base, center)
@@ -33,7 +33,7 @@ try:
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
-    assert tools == ["VEX parts", "Frame on hole", "Parts list"], tools
+    assert tools == ["VEX parts", "Frame on hole", "Screw", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
     _, gen, steps = library.index()
@@ -108,6 +108,28 @@ try:
     copy.Placement = App.Placement(App.Vector(0, 200, 0), App.Rotation(0, 0, 90))
     doc.recompute()
     assert snapped(copy, f"{ch2.Name}.", f"Face{i + 1}", click, loop.BoundBox.Center) == ch2
+
+    # screw tool, two clicks on two stacked plates
+    from freecad.vex_workbench import screws
+    p1 = library.place(doc, gen["5x10 Steel Plate"])
+    p2 = library.place(doc, gen["5x10 Steel Plate"])
+    p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * 25.4), App.Rotation())
+    doc.recompute()
+    faces = p1.LinkedObject.Group[0].Shape.Faces
+    top = next(k for k, f in enumerate(faces) if f.Surface.TypeId == "Part::GeomPlane" and f.normalAt(0, 0).z > 0.5) + 1
+    bottom = next(k for k, f in enumerate(faces) if f.Surface.TypeId == "Part::GeomPlane" and f.normalAt(0, 0).z < -0.5) + 1
+    panel = screws.Panel()
+    Gui.Control.showDialog(panel)
+    panel.kind.setCurrentText("Star")
+    panel.nut.setCurrentText("#8-32 Nylock Nut")
+    before = set(doc.Objects)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Name, p1.Name, f"Face{top}", 1.26 * 25.4, 0.25 * 25.4, 0.046 * 25.4)
+    Gui.Selection.addSelection(doc.Name, p2.Name, f"Face{bottom}", 1.25 * 25.4, 0.26 * 25.4, -0.046 * 25.4)
+    QtWidgets.QApplication.processEvents()
+    got = sorted(o.Label for o in set(doc.Objects) - before if o.TypeId == "App::Link")
+    assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], got
+    panel.reject()
     say("ok")
     failed = False
 except Exception:

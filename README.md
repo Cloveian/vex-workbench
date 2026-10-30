@@ -14,9 +14,10 @@ It makes the parts and puts frames on hole centers, and FreeCAD's built-in Assem
 - **VEX's own STEP files** for everything else (motors, wheels, gears, electronics), with their colors.
 - **Frame on hole**: click a hole (or the end of a shaft), and a frame goes on its exact center to joint to.
 - **Editable placed parts**: change Holes or Size on a placed part and only that one changes. The same part placed 40 times is one model and 40 links.
+- **Screw**: click a hole on the head side, then one on the nut side, and it puts in the shortest screw that makes it through the nut, plus the nut.
 - **Colors and weights** per material, and a **Parts list** button that counts everything into a spreadsheet.
 
-Still to come: a screw and nut tool that does the whole fastener stack for you, and bending metal.
+Still to come: washers and spacers in the screw tool, and bending metal.
 
 ## Running it
 

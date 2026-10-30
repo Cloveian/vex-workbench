@@ -8,6 +8,7 @@ sys.path.insert(0, str(ROOT))
 import freecad  # noqa: E402,F401
 import FreeCAD as App  # noqa: E402
 import JointObject  # noqa: E402  Assembly workbench, works headless
+import Part  # noqa: E402
 
 from freecad.vex_workbench import library  # noqa: E402
 
@@ -61,5 +62,40 @@ off = (s.Placement.multVec(App.Vector(0, 0, 25)) - pa.Base).cross(axis).Length
 assert off < 1e-9, off
 assert (s.Placement.Base - pa.Base).Length < 1e-9, s.Placement.Base
 
+# screw + nylock through two plates, the second one two holes over. 2 * 0.046 + the nylock 0.193 -> the 0.29 star
+from freecad.vex_workbench import screws  # noqa: E402
+
+m = App.Placement(App.Vector(5, -7, 11), App.Rotation(20, 30, 40))
+p1 = library.place(doc, gen["5x10 Steel Plate"])
+p2 = library.place(doc, gen["5x10 Steel Plate"])
+p1.Placement = m
+p2.Placement = m.multiply(App.Placement(App.Vector(-IN, 0, -0.046 * IN), App.Rotation()))
+doc.recompute()
+head = (p1, App.Vector(1.27, 0.24, 0.046) * IN, p1.Placement)  # top face, the (1.25, 0.25) hole
+tail = (p2, App.Vector(2.26, 0.26, 0) * IN, p2.Placement)  # bottom face, same hole
+nylock = screws.nuts()["#8-32 Nylock Nut"]
+sc, nut = screws.fasten(doc, head, tail, "star-screw", nylock)
+assert sc.Label == "0.290 Torx (Star) Screw (8-32, Steel)", sc.Label
+
+
+def local(link):
+    # bbox in the plate's own frame, inches
+    s = Part.getShape(link).copy()
+    s.Placement = m.inverse().multiply(s.Placement)
+    b = s.optimalBoundingBox()
+    return [round(v / IN, 4) for v in (b.Center.x, b.Center.y, b.ZMin, b.ZMax)]
+
+
+assert local(nut) == [1.25, 0.25, -0.2391, -0.046], local(nut)
+got = local(sc)
+assert got[:2] == [1.25, 0.25] and got[2] == round(0.046 - 0.29, 4) and got[3] == round(0.046 + 0.087, 4), got
+sc, _ = screws.fasten(doc, head, tail, "hex-screw", nylock)
+assert sc.Label == "0.375 Hex Screw (8-32, Steel)", sc.Label
+try:
+    screws.fasten(doc, head, (p2, App.Vector(2.26, 0.26, 0.046) * IN, p2.Placement), "star-screw", nylock)  # inside face
+    raise AssertionError("inside face went through")
+except ValueError:
+    pass
+
 App.closeDocument(doc.Name)
-print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis")
+print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29 and 0.375")

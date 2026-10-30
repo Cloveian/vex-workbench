@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="8" fill="#c8102e"/>
+  <!-- head, shank, two plates, nut -->
+  <rect x="18" y="10" width="28" height="8" rx="2" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5"/>
+  <rect x="27" y="18" width="10" height="34" fill="#b8bdc3" stroke="#7a8189" stroke-width="1.5"/>
+  <rect x="16" y="28" width="32" height="6" fill="#3a3f45"/>
+  <rect x="16" y="36" width="32" height="6" fill="#3a3f45"/>
+  <rect x="20" y="44" width="24" height="8" rx="1" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5"/>
+</svg>

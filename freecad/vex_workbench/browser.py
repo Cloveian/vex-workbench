@@ -3,7 +3,7 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtCore, QtWidgets
 
-from . import library
+from . import library, ui
 
 KIND = QtCore.Qt.UserRole  # ("family", id) or ("step", folder/file) on each item
 _dock = None
@@ -105,20 +105,9 @@ class Browser(QtWidgets.QWidget):
             part = library.variant(self.family, {p: b.currentText() for p, b in self.combos.items()})
         doc = App.ActiveDocument or App.newDocument()
         import UtilsAssembly  # Assembly workbench, only once theres a gui
-        App.setActiveTransaction("Place VEX part")
-        err = None
-        QtWidgets.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)  # a 35 long channel is a few s to build
-        try:
-            link = library.place(doc, part, UtilsAssembly.activePartOrAssembly())
-        except ValueError as e:
-            err = str(e)  # no generator / no dims for that one yet
-        finally:
-            QtWidgets.QApplication.restoreOverrideCursor()
-        if err is not None:
-            App.closeActiveTransaction(True)
-            QtWidgets.QMessageBox.warning(self, "VEX parts", err)
+        link = ui.run("Place VEX part", lambda: library.place(doc, part, UtilsAssembly.activePartOrAssembly()))
+        if link is None:
             return
-        App.closeActiveTransaction()
         doc.recompute()
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(link)

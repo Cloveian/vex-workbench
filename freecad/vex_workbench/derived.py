@@ -23,19 +23,22 @@ def base(p, cat):
     return read(str(catalog.step_path(step))).copy()
 
 
-def slab(z0, z1):
-    return Part.makeBox(2 * BIG, 2 * BIG, z1 - z0, Vector(-BIG, -BIG, z0))
+def slab(z0, z1, u=1.0):
+    big = BIG * u
+    return Part.makeBox(2 * big, 2 * big, z1 - z0, Vector(-big, -big, z0))
 
 
-def upright(s):
+def upright(s, u=1.0):
     # axis on z, big end (head, plain nut face) at z = 0, the rest up +z. the biggest round face is always on the axis, the torx lobes arent
+    # u = shape units per inch, IN for a nut straight out of a doc
     c = max((f.Surface for f in s.Faces if f.Surface.TypeId == "Part::GeomCylinder"), key=lambda c: c.Radius)
     s.translate(-c.Center)
     s.Placement = Placement(Vector(), Rotation(c.Axis, Vector(0, 0, 1))).multiply(s.Placement)
     b = s.optimalBoundingBox()  # plain BoundBox spills past the domed heads
     s.translate(Vector(0, 0, -b.ZMin))
     h = b.ZLength
-    if s.common(slab(0, 0.02)).Volume < s.common(slab(h - 0.02, h)).Volume:
+    band = 0.02 * u
+    if s.common(slab(0, band, u)).Volume < s.common(slab(h - band, h, u)).Volume:
         s.Placement = Placement(Vector(0, 0, h), FLIP).multiply(s.Placement)
     return s, h
 
