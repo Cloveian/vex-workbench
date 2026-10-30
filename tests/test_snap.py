@@ -202,6 +202,19 @@ motor = library.place(doc, steps["Electronics/V5 Smart Motor (5.5W) (276-4842).s
 doc.recompute()
 across, deep = screws.bore(motor, library.hole_frame(motor, App.Vector(0.01, -1.578, 0.124) * IN))
 assert screws.tapped(motor, across) and abs(deep / IN - 0.75) < 0.01, (across / IN, deep / IN)
+# hole points. just the front two on the 5.5W, and a frame on the point bores the same as a click on the face
+pts = sorted(library.screw_holes(motor), key=lambda c: c.z)
+assert [(round(c.y / IN, 3), round(c.z / IN, 3)) for c in pts] == [(-1.58, 0.124), (-1.58, 0.624)], pts
+assert screws.bore(motor, library.hole_frame(motor, pts[0])) == (across, deep)
+# 11W front two at z 1.768 + its 4 case screws, none of the loops facing into it
+big = library.place(doc, steps["Electronics/V5 Smart Motor (276-4840).step"])
+doc.recompute()
+pts = library.screw_holes(big)
+assert len(pts) == 6 and sorted(round(c.x / IN, 3) for c in pts if abs(c.z / IN - 1.768) < 1e-3) == [-0.5, 0], pts
+# both sides of both flanges on a channel, the inside ones are where boxed channel spacers go
+ch = library.place(doc, gen["1x2x1x25 Steel C-Channel"])
+doc.recompute()
+assert len(library.screw_holes(ch)) == len(library.holes(Part.getShape(ch.LinkedObject))) == 248
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")

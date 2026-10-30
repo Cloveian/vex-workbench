@@ -129,13 +129,13 @@ class Clicks:
         Gui.Selection.addObserver(self)
 
     def mark(self):
-        # a point on every hole and stock end, Vertex<i+1> is spots[i]
+        # a point on every screw hole and stock end, Vertex<i+1> is spots[i]
         self.spots = []
         found = {}  # per source, copies share it
         for link, (root, path) in placed(self.doc):
             src = link.LinkedObject.Name
             if src not in found:
-                found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.targets(link)
+                found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.screw_holes(link)
             plc = root.getSubObject(path, retType=3) if path else root.Placement
             self.spots += [(link, c, plc, (root, path)) for c in found[src]]
         self.marks.Shape = Part.Compound([Part.Vertex(plc.multVec(c)) for _, c, plc, _ in self.spots])

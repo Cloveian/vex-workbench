@@ -12,6 +12,11 @@ GROUP = "VexParts"
 GENERATORS = dict.fromkeys(metal.PROFILES, metal.make) | dict.fromkeys(stock.FAMILIES, stock.make) | dict.fromkeys(derived.FAMILIES, derived.make)
 # mm, outside these it isnt a hole you'd put a screw or shaft through. the 11W motor step has 0.008-0.07 bits inside its screw holes
 HOLE_MIN, HOLE_MAX = 0.1 * metal.IN, 0.5 * metal.IN
+# mm, what a screw goes in. 8-32 round from the 5.5W 0.132 thread up to clearance, square like the metal's 0.182
+ROUND = 0.125 * metal.IN, 0.2 * metal.IN
+SQUARE = 0.17 * metal.IN, 0.2 * metal.IN
+OUT = 0.001 * metal.IN  # mm, the open-to-outside ray starts this far off the face
+SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 
 
@@ -191,12 +196,54 @@ def ends(shape):
     return [(Vector(), Vector(0, 0, -1)), (Vector(0, 0, h), Vector(0, 0, 1))]
 
 
-def targets(link):
-    # centers of everything hole_frame can land on, link coords
-    shape = Part.getShape(link.LinkedObject)
+def hits(shape, start, d, far):
+    # distences along d from start where it crosses a face, sorted. works on step shells with no solid
+    e = Part.makeLine(start, start + d * far)
+    out = []
+    for f in shape.Faces:
+        if f.BoundBox.intersect(e.BoundBox):
+            out += [(v.Point - start).Length for v in f.section(e).Vertexes]
+    out.sort()
+    # an edge or seam crossing shows up once per face
+    return [t for i, t in enumerate(out) if i == 0 or t - out[i - 1] > 1e-6]
+
+
+def screwable(w):
+    # 8-32 sized round loop, or a square one. channel corners are rounded, plate ones arent
+    sides = [e.Length for e in w.Edges if e.Curve.TypeId == "Part::GeomLine"]
+    radii = [e.Curve.Radius for e in w.Edges if e.Curve.TypeId == "Part::GeomCircle"]
+    if len(sides) + len(radii) < len(w.Edges) or any(xs and max(xs) - min(xs) > 1e-3 for xs in (sides, radii)):
+        return False
+    if not sides:
+        return ROUND[0] <= 2 * radii[0] <= ROUND[1]
+    return len(sides) == 4 and len(radii) in (0, 4) and SQUARE[0] <= sides[0] + 2 * sum(radii[:1]) <= SQUARE[1]
+
+
+def screw_holes(link):
+    # centers of the holes a screw goes in from outside, link coords. shafts and standoffs by their ends
+    src = link.LinkedObject
     if getattr(link, "VexFamily", None) in stock.FAMILIES:
-        return [c for c, _ in ends(shape)]
-    return [c for _, c, _ in holes(shape)]
+        return [c for c, _ in ends(Part.getShape(src))]
+    # kept on the source, getShape alone is ~0.8 s on a 5x25 plate
+    if not hasattr(src, "VexScrewHoles"):
+        src.addProperty("App::PropertyVectorList", "VexScrewHoles", "VEX")
+        src.setPropertyStatus("VexScrewHoles", "Hidden")
+        src.VexScrewHoles = outermost(Part.getShape(src), hasattr(link, "VexStep"))
+    return list(src.VexScrewHoles)
+
+
+def outermost(shape, rays):
+    # one per hole and side. rays=True drops loops facing into the part, the 11W step has those. generated metal is all through holes
+    far = shape.BoundBox.DiagonalLength
+    kept = {}  # axis and side -> centers
+    for w, c, n in sorted(holes(shape), key=lambda h: -h[1].dot(h[2])):
+        if not screwable(w) or rays and hits(shape, c + n * OUT, n, far):
+            continue
+        key = tuple(round(v, 2) for v in (*n, *(c - n * c.dot(n))))
+        # the 5.5W has its thread at the face and a wider loop 0.042 under it. a channel's other flange is its own hole
+        if all(o.dot(n) - c.dot(n) > SAME_HOLE for o in kept.get(key, [])):
+            kept.setdefault(key, []).append(c)
+    return [c for cs in kept.values() for c in cs]
 
 
 def hole_frame(link, point):

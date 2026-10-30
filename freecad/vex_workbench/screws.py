@@ -47,18 +47,6 @@ def into(family, gap, deep):
     return good[0] if good else fit[-1]
 
 
-def hits(shape, start, d, far):
-    # distences along d from start where it crosses a face, sorted. works on step shells with no solid
-    e = Part.makeLine(start, start + d * far)
-    out = []
-    for f in shape.Faces:
-        if f.BoundBox.intersect(e.BoundBox):
-            out += [(v.Point - start).Length for v in f.section(e).Vertexes]
-    out.sort()
-    # an edge or seam crossing shows up once per face
-    return [t for i, t in enumerate(out) if i == 0 or t - out[i - 1] > 1e-6]
-
-
 def bore(link, f):
     # (across, deep) for the hole under frame f, mm. deep is None if it opens into nothing
     shape = Part.getShape(link.LinkedObject)
@@ -68,13 +56,13 @@ def bore(link, f):
     start = f.Placement.Base - z * LEAD
     # the loop it was found on, a ray across catches the thread bts in the 11W step. stock parts have none, theyre clean
     loops = [w.BoundBox for w, c, _ in library.holes(shape) if (c - f.Placement.Base).Length < 1e-6]
-    half = max(loops[0].XLength, loops[0].YLength, loops[0].ZLength) / 2 if loops else hits(shape, start, x, far)[0]
+    half = max(loops[0].XLength, loops[0].YLength, loops[0].ZLength) / 2 if loops else library.hits(shape, start, x, far)[0]
     # 5 rays down the hole, theyre all stopped by a bottom. the 11W step has bits of thread in there that stop some
-    ends = [hits(shape, start + v * half / 2, -z, far)[:1] for v in (Vector(), x, -x, y, -y)]
+    ends = [library.hits(shape, start + v * half / 2, -z, far)[:1] for v in (Vector(), x, -x, y, -y)]
     if all(ends):
         return 2 * half, max(t for t, in ends) + LEAD
     # through, how long the wall around it is
-    wall = hits(shape, start + x * half * 1.3, -z, far)
+    wall = library.hits(shape, start + x * half * 1.3, -z, far)
     return 2 * half, wall[0] + LEAD if wall else None
 
 
@@ -94,7 +82,7 @@ def gaps(head, tail, a, gap, across):
     for s in [head] if same else [head, tail]:
         shape = Part.getShape(s[0].LinkedObject).copy()
         shape.Placement = s[2].multiply(shape.Placement)
-        ts = [t - LEAD for t in hits(shape, start, -z, gap + 2 * LEAD)]
+        ts = [t - LEAD for t in library.hits(shape, start, -z, gap + 2 * LEAD)]
         # in, out, in, out... the last one runs into the thread
         runs += [(ts[i], ts[i + 1] if i + 1 < len(ts) else gap, s) for i in range(0, len(ts), 2)]
     out, end, last = [], 0, head

@@ -29,7 +29,7 @@ Pick No nut, or click a threaded hole second (standoffs, and anything under 0.16
 
 **Spacers** does just the filling: click holes on two faces across from each other, fewest spacers + washers within 1/64 under the gap, never over. spacer OD is a setting, 0.375 to start.
 
-While either panel is open every hole gets an orange point on both sides of the metal, plus the ends of shafts and standoffs. click a point and its exactly that hole, it goes green till the second click. screws, nuts, spacers and washers dont get points, and the points all go away on Close. clicking a face still works too (nearest hole), and parts placed while the panel is open only get points next time it opens.
+While either panel is open every hole gets an orange point on both sides of the metal, plus the ends of shafts and standoffs. on vex's step parts its only 8-32 sized holes a screw can get to from outside, so the motors get their screw holes and not the vents. click a point and its exactly that hole, it goes green till the second click. screws, nuts, spacers and washers dont get points, and the points all go away on Close. clicking a face still works too (nearest hole), and parts placed while the panel is open only get points next time it opens.
 
 ## Parts list
 
