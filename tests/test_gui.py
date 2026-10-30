@@ -132,7 +132,25 @@ try:
     got = sorted(o.Label for o in set(doc.Objects) - before if o.TypeId == "App::Link")
     assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], got
     assert panel.status.text().startswith("put in a 0.290 Torx (Star) Screw"), panel.status.text()
+    fasteners = {o.Name for o in set(doc.Objects) - before if o.TypeId == "App::Link"}
     panel.reject()
+    # same clicking the hole points, on a fresh hole. none on the screw and nut
+    panel = screws.Panel()
+    Gui.Control.showDialog(panel)
+    assert not fasteners & {s[0].Name for s in panel.spots}
+
+    def mark(at):
+        return next(f"Vertex{k + 1}" for k, v in enumerate(panel.marks.Shape.Vertexes) if (v.Point - at).Length < 1e-6)
+
+    before = set(doc.Objects)
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.25, 0.25, 0.046) * IN))
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.25, 0.25, -0.046) * IN))
+    QtWidgets.QApplication.processEvents()
+    got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
+    assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], (got, panel.status.text())
+    marks = panel.marks.Name
+    panel.reject()
+    assert doc.getObject(marks) is None
     # spacer panel, the plates 0.25 apart now
     from freecad.vex_workbench import spacers
     p2.Placement = App.Placement(App.Vector(0, 0, -0.296 * IN), App.Rotation())

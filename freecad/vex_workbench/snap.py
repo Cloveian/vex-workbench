@@ -1,6 +1,7 @@
 # snap to hole: click holes on VEX parts, get a frame on each exact center for Assembly joints. plus the joints and two-click panel screws and spacers use
 import FreeCAD as App
 import FreeCADGui as Gui
+import Part
 from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
 
@@ -8,6 +9,8 @@ from . import library, ui
 
 Z = Vector(0, 0, 1)
 OFF_AXIS = 0.01  # mm
+UNMARKED = ("Hardware/Screws", "Hardware/Nuts", "Motion/Spacers")  # what the tools put in
+MARK_SIZE = 9  # px
 
 
 def spot(root, sub, pt):
@@ -33,6 +36,25 @@ def picked():
             s = spot(sel.Object, sub, pt)
             if s:
                 out.append(s)
+    return out
+
+
+def placed(doc):
+    # (link, (root, path)) for every shown VEX link, one per link array element
+    out = []
+
+    def walk(root, obj, path):
+        if obj is None or not obj.Visibility:
+            return
+        if hasattr(obj, "VexFamily") or hasattr(obj, "VexStep"):
+            elements = [f"{i}." for i in range(obj.ElementCount)] or [""]
+            out.extend((obj, (root, path + e)) for e in elements)
+            return
+        for sub in obj.getSubObjects():
+            walk(root, obj.getSubObject(sub, retType=1), path + sub)
+
+    for root in doc.RootObjects:
+        walk(root, root, "")
     return out
 
 
@@ -94,14 +116,38 @@ class Clicks:
         self.status = QtWidgets.QLabel()
         lay.addRow(self.status)
         self.first = None
+        self.doc = App.ActiveDocument
+        self.marks = self.doc.addObject("Part::Feature", "VexHoles")
+        if self.marks.ViewObject:
+            vo = self.marks.ViewObject
+            vo.PointSize = MARK_SIZE
+            vo.PointColor = (1.0, 0.35, 0.1)
+            vo.ShowInTree = False
+            vo.OnTopWhenSelected = "Element"
+        self.mark()
         self.ask()
         Gui.Selection.addObserver(self)
+
+    def mark(self):
+        # a point on every hole and stock end, Vertex<i+1> is spots[i]
+        self.spots = []
+        found = {}  # per source, copies share it
+        for link, (root, path) in placed(self.doc):
+            src = link.LinkedObject.Name
+            if src not in found:
+                found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.targets(link)
+            plc = root.getSubObject(path, retType=3) if path else root.Placement
+            self.spots += [(link, c, plc, (root, path)) for c in found[src]]
+        self.marks.Shape = Part.Compound([Part.Vertex(plc.multVec(c)) for _, c, plc, _ in self.spots])
 
     def ask(self, said=""):
         self.status.setText(said + self.PROMPTS[self.first is not None])
 
     def addSelection(self, doc, obj, sub, pnt):
-        s = spot(App.getDocument(doc).getObject(obj), sub, Vector(*pnt))
+        if obj == self.marks.Name and sub.startswith("Vertex"):
+            s = self.spots[int(sub[6:]) - 1]
+        else:
+            s = spot(App.getDocument(doc).getObject(obj), sub, Vector(*pnt))
         if s is None:
             return
         if self.first is None:
@@ -123,6 +169,7 @@ class Clicks:
 
     def reject(self):
         Gui.Selection.removeObserver(self)
+        self.doc.removeObject(self.marks.Name)
         Gui.Control.closeDialog()
         return True
 

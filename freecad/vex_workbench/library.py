@@ -156,13 +156,17 @@ def variant(family, picked):
     return index()[1][family["name"].format(**params)]
 
 
-def retarget(link):
+def part_of(link):
+    # catalog entry a placed copy's VEX props point at
     families, _, steps = index()
     if hasattr(link, "VexStep"):
-        part = steps[link.VexStep]
-    else:
-        family = families[link.VexFamily]
-        part = variant(family, {prop: getattr(link, prop) for prop, _ in options(family)})
+        return steps[link.VexStep]
+    family = families[link.VexFamily]
+    return variant(family, {prop: getattr(link, prop) for prop, _ in options(family)})
+
+
+def retarget(link):
+    part = part_of(link)
     link.LinkedObject = source(link.Document, part)
     link.Label = part["name"]
 
@@ -181,23 +185,38 @@ def holes(shape):
     return out
 
 
+def ends(shape):
+    # stock parts run up z from 0 on the axis
+    h = shape.optimalBoundingBox().ZMax
+    return [(Vector(), Vector(0, 0, -1)), (Vector(0, 0, h), Vector(0, 0, 1))]
+
+
+def targets(link):
+    # centers of everything hole_frame can land on, link coords
+    shape = Part.getShape(link.LinkedObject)
+    if getattr(link, "VexFamily", None) in stock.FAMILIES:
+        return [c for c, _ in ends(shape)]
+    return [c for _, c, _ in holes(shape)]
+
+
 def hole_frame(link, point):
     # LCS on the exact center of the hole nearset point (link coords), z out of the face, x along the length if it can
     # it goes in the source so every copy has it
     src = link.LinkedObject
     shape = Part.getShape(src)
     if getattr(link, "VexFamily", None) in stock.FAMILIES:
-        # shafts have no loop to find. stock parts run up z from 0 on the axis, so the end nearer the click
-        h = shape.optimalBoundingBox().ZMax
-        center, n = (Vector(0, 0, h), Vector(0, 0, 1)) if point.z > h / 2 else (Vector(), Vector(0, 0, -1))
+        # shafts have no loop to find, the end nearer the click
+        center, n = min(ends(shape), key=lambda e: (e[0] - point).Length)
     else:
         found = holes(shape)
         if not found:
             raise ValueError(f"no holes on {link.Label}")
+        # a hole point is right on a center. coaxal loops a few thou deeper can be nearer than its own edge
+        exact = [h for h in found if (h[1] - point).Length < 1e-6]
         # nearest loop, the motor's vents sit closer to a screw hole's edge than its own center does
         v = Part.Vertex(point)
         near = [h for h in found if (h[1] - point).Length < HOLE_MAX] or found
-        _, center, n = min(near, key=lambda h: h[0].distToShape(v)[0])
+        _, center, n = exact[0] if exact else min(near, key=lambda h: h[0].distToShape(v)[0])
     x = Vector(1, 0, 0) - n * n.x
     if x.Length < 1e-6:
         x = Vector(0, 1, 0) - n * n.y
