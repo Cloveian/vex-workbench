@@ -11,12 +11,12 @@ in build order, each one is something i can open and poke at
 - [x] **Snap to hole**. click a hole, frame at its exact center. two channels jointed hole to hole should be 0 apart
 - [x] **The other generators**: shafts, standoffs, spacers, washers, nuts (thin nylock = vex nylock shaved to 11/64), torx button screws, shoulder screws. each checked against its step where there is one
 - [ ] **Hole finding on step parts**, the 0.182 square and 8-32 round holes, so motors and gears snap too
-	works on click already, any inner loop up to 0.5" on a flat face picked by distance to the loop (58 of 58 on the motor's screw hole edges). not done on import, and the only size filter is that 0.5" max, so a face click near a vent can still grab the vent
+	works on click already, any inner loop up to 0.5" on a flat face picked by distance to the loop (58 of 58 on the motor's screw hole edges). not done on import, and the size filter is just 0.1" to 0.5", so a face click near a vent can still grab the vent
 - [x] Extras like colors per material, weight, a parts list
 
 ## Later
 - [ ] Screw and nut tool. pick two lined up holes, it works out the stack and the screw
-	two clicks gives the screw + nut now, jointed to the holes in an assembly. no washers or spacers in the stack
+	two clicks gives the screw + nut now, jointed to the holes in an assembly. or into a thread with no nut, and spacers in the gaps
 - [ ] Bending metal
 
 ## Still need numbers for

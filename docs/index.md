@@ -12,7 +12,7 @@ FreeCAD 1.1 already has an assembly workbench with joints built in, so the workb
 - parts that are just numbers (metal, shafts, screws, nuts, spacers...) get generated from a toml catalog, at whatever size
 - everything else (motors, wheels, gears, electronics) is vex's own step files
 - snap frames at exact hole centers, then the built in Assembly joints do the rest
-- a screw tool, two clicks and there's a screw and nut in. later: washers and spacers in it, and bending metal
+- a screw tool, two clicks and there's a screw and nut in (or no nut into a thread), and a spacer tool for the gaps. later: bending metal
 
 ---
 

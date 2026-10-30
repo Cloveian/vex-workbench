@@ -23,7 +23,11 @@ Then over in the Assembly workbench, joint two frames together (Fixed for bolted
 
 ## Screws
 
-**Screw** opens a panel with the screw (Star or Hex) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Fixed joint to its hole. no washers or spacers in the stack yet.
+**Screw** opens a panel with the screw (Star or Hex) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Fixed joint to its hole.
+
+Pick No nut, or click a threaded hole second (standoffs, and anything under 0.164 across like the motors), and the second click is the face the screw goes *into*. it aims for 3/8 of thread, takes 1/4 if the hole is shallower, and never goes past the bottom. Spacers in gaps fills every gap between the two clicked parts.
+
+**Spacers** does just the filling: click holes on two faces across from each other, fewest spacers + washers within 1/64 under the gap, never over. spacer OD is a setting, 0.375 to start.
 
 ## Parts list
 
@@ -31,7 +35,7 @@ Then over in the Assembly workbench, joint two frames together (Fixed for bolted
 
 ## Not there yet
 
-washers / spacers in the screw tool, bending, the HS lockbar, drilled gears and the 1x1 angle variants (theres no numbers for those three yet).
+bending, the HS lockbar, drilled gears and the 1x1 angle variants (theres no numbers for those three yet).
 
 ---
 Back to [main index](index.md)
