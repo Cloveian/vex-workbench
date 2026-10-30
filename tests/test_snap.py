@@ -111,5 +111,25 @@ try:
 except ValueError:
     pass
 
+# nut side plate inside a linked sub-assembly, its joint goes on the link (the part that moves)
+side = doc.addObject("App::Part", "Side")
+p3 = library.place(doc, gen["5x10 Steel Plate"], side)
+p3.Placement = App.Placement(App.Vector(-IN, 0, -0.046 * IN), App.Rotation())
+sub = asm.newObject("App::Link", "SideLink")
+sub.LinkedObject = side
+sub.Placement = m
+JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), sub)
+doc.recompute()
+inner = (p3, tail[1], sub.Placement.multiply(p3.Placement), (asm, f"{sub.Name}.{p3.Name}."))
+had = len(joints.Group)
+sc, nut = screws.fasten(doc, head, inner, "star-screw", nylock, asm)
+j = joints.Group[had:]
+assert [x.Reference1[0] for x in j] == [p1, sub] and j[1].Reference1[1][0].startswith(p3.Name + "."), [x.Reference1 for x in j]
+was = [o.Placement for o in (sc, nut)]
+assert asm.solve() == 0
+doc.recompute()
+assert all(o.Placement.isSame(p, 1e-9) for o, p in zip((sc, nut), was))
+assert local(nut) == [1.25, 0.25, -0.2391, -0.046], local(nut)
+
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29 and 0.375")
