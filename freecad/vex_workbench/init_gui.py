@@ -15,8 +15,9 @@ class VexWorkbench(Gui.Workbench):
     Icon = os.path.join(ICONS, "vex.svg")
 
     def Initialize(self):
-        from . import browser, partslist, screws, snap
-        cmds = {"Vex_Browser": browser.ShowBrowser(), "Vex_HoleFrame": snap.HoleFrame(), "Vex_Screw": screws.Screw(), "Vex_PartsList": partslist.PartsList()}
+        from . import browser, partslist, screws, snap, spacers
+        cmds = {"Vex_Browser": browser.ShowBrowser(), "Vex_HoleFrame": snap.HoleFrame(), "Vex_Screw": screws.Screw(), "Vex_Spacers": spacers.Spacers(),
+                "Vex_PartsList": partslist.PartsList()}
         for name, cmd in cmds.items():
             Gui.addCommand(name, cmd)
         self.appendToolbar("VEX", list(cmds))

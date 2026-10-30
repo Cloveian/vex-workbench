@@ -34,7 +34,7 @@ try:
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
-    assert tools == ["VEX parts", "Frame on hole", "Screw", "Parts list"], tools
+    assert tools == ["VEX parts", "Frame on hole", "Screw", "Spacers", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
     _, gen, steps = library.index()
@@ -123,6 +123,7 @@ try:
     Gui.Control.showDialog(panel)
     panel.kind.setCurrentText("Star")
     panel.nut.setCurrentText("#8-32 Nylock Nut")
+    panel.fill.setChecked(False)
     before = set(doc.Objects)
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(doc.Name, p1.Name, f"Face{top}", 1.26 * IN, 0.25 * IN, 0.046 * IN)
@@ -132,6 +133,22 @@ try:
     assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], got
     assert panel.status.text().startswith("put in a 0.290 Torx (Star) Screw"), panel.status.text()
     panel.reject()
+    # spacer panel, the plates 0.25 apart now
+    from freecad.vex_workbench import spacers
+    p2.Placement = App.Placement(App.Vector(0, 0, -0.296 * IN), App.Rotation())
+    doc.recompute()
+    panel = spacers.Panel()
+    Gui.Control.showDialog(panel)
+    panel.od.setCurrentText("0.375")
+    before = set(doc.Objects)
+    Gui.Selection.addSelection(doc.Name, p1.Name, f"Face{bottom}", 2.26 * IN, 0.25 * IN, 0)
+    Gui.Selection.addSelection(doc.Name, p2.Name, f"Face{top}", 2.25 * IN, 0.26 * IN, -0.25 * IN)
+    QtWidgets.QApplication.processEvents()
+    got = [o.Label for o in set(doc.Objects) - before if o.TypeId == "App::Link"]
+    assert got == ["0.375 OD Spacer, 0.250 (Nylon)"], (got, panel.status.text())
+    panel.reject()
+    p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * IN), App.Rotation())
+    doc.recompute()
     # same in an assembly gets joints, with their view providers
     asm = doc.addObject("Assembly::AssemblyObject", "Assembly")
     asm.Type = "Assembly"
@@ -140,7 +157,7 @@ try:
     doc.recompute()
     head = snap.spot(asm, f"{p1.Name}.Face{top}", App.Vector(1.26, 0.25, 0.046) * IN)
     tail = snap.spot(asm, f"{p2.Name}.Face{bottom}", App.Vector(1.25, 0.26, -0.046) * IN)
-    sc, nut = screws.fasten(doc, head, tail, "star-screw", screws.nuts()["#8-32 Nylock Nut"], asm)
+    sc, nut, _ = screws.fasten(doc, head, tail, "star-screw", screws.nuts()["#8-32 Nylock Nut"], asm)
     js = [j for j in asm.OutListRecursive if hasattr(j, "JointType")]
     assert sorted(j.Reference2[0].Name for j in js) == sorted([sc.Name, nut.Name]), js
     assert all(j.ViewObject.Proxy for j in js)

@@ -10,7 +10,8 @@ from . import catalog, derived, metal, stock
 GROUP = "VexParts"
 # family id -> make(part, cat)
 GENERATORS = dict.fromkeys(metal.PROFILES, metal.make) | dict.fromkeys(stock.FAMILIES, stock.make) | dict.fromkeys(derived.FAMILIES, derived.make)
-HOLE_MAX = 0.5 * metal.IN  # mm, anything bigger isnt a hole you'd put a screw or shaft through
+# mm, outside these it isnt a hole you'd put a screw or shaft through. the 11W motor step has 0.008-0.07 bits inside its screw holes
+HOLE_MIN, HOLE_MAX = 0.1 * metal.IN, 0.5 * metal.IN
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 
 
@@ -175,7 +176,7 @@ def holes(shape):
         n = f.normalAt(0, 0)
         for w in f.Wires:
             b = w.BoundBox
-            if not w.isSame(f.OuterWire) and max(b.XLength, b.YLength, b.ZLength) <= HOLE_MAX:
+            if not w.isSame(f.OuterWire) and HOLE_MIN <= max(b.XLength, b.YLength, b.ZLength) <= HOLE_MAX:
                 out.append((w, b.Center, n))
     return out
 

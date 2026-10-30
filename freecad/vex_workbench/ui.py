@@ -3,6 +3,8 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtCore, QtWidgets
 
+PARAMS = "User parameter:BaseApp/Preferences/Mod/VexWorkbench"
+
 
 def run(title, fn):
     # a ValueError out of fn (no generator, no holes, holes off axis) gets undone and shown, None back

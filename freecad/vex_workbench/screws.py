@@ -1,17 +1,21 @@
-# screw tool. click a hole on the head side, then one on the nut side, it puts in the shortest screw that makes it through the nut
+# screw tool. click a hole on the head side, then one on the nut side, it puts in the shortest screw that makes it through the nut or into a thread
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
 from FreeCAD import Vector
-from PySide import QtCore, QtWidgets
+from PySide import QtWidgets
 
-from . import derived, library, snap, ui
+from . import derived, library, snap, spacers, stock, ui
 from .metal import IN
 
 KINDS = {"Star": "star-screw", "Hex": "hex-screw"}
 NUT_FOLDER = "Hardware/Nuts/8-32 Nuts"
-PARAMS = "User parameter:BaseApp/Preferences/Mod/VexWorkbench"
-OFF_AXIS = 0.01  # mm
+NO_NUT = "No nut"
+TAPPED = 0.164 * IN  # mm, 8-32 major. a screw doesnt go through anything smaller so its a thread. 5.5W motor 0.136, 11W 0.1596 lead in
+THREAD = 0.375 * IN, 0.25 * IN  # mm in the thread, what it aims for and the least it takes
+LEAD = 0.01 * IN  # mm, probes start this far in past the face
+X = Vector(1, 0, 0)
+Y = Vector(0, 1, 0)
 
 
 def nuts():
@@ -20,34 +24,87 @@ def nuts():
     return {p["name"]: p for p in [*steps.values(), *gen.values()] if p["folder"].startswith(NUT_FOLDER)}
 
 
+def sizes(family):
+    return sorted((p for p in library.index()[1].values() if p["family"] == family), key=lambda p: p["params"]["length"])
+
+
 def shortest(family, need):
     # need in mm
-    fits = [p for p in library.index()[1].values() if p["family"] == family and p["params"]["length"] * IN > need - 1e-6]
+    fits = [p for p in sizes(family) if p["params"]["length"] * IN > need - 1e-6]
     if not fits:
         raise ValueError(f"no {library.index()[0][family]['title']} is long enough, it needs {need / IN:.3f}\"")
-    return min(fits, key=lambda p: p["params"]["length"])
+    return fits[0]
 
 
-def hole(s):
-    # the clicked hole's frame, and where it is in the world
-    link, pt, plc, _ = s
-    f = library.hole_frame(link, pt)
-    return f, plc.multiply(f.Placement)
+def into(family, gap, deep):
+    # gap through the clicked parts, then deep of thread (None = no bottom). shortest that gets 3/8 in, else the longest that gets 1/4
+    room = gap + deep if deep is not None else float("inf")
+    fit = [p for p in sizes(family) if gap + THREAD[1] - 1e-6 < p["params"]["length"] * IN < room + 1e-6]
+    if not fit:
+        said = f", it's {deep / IN:.3f}\" deep" if deep is not None else ""
+        raise ValueError(f"no {library.index()[0][family]['title']} gets 1/4\" into that hole{said}")
+    good = [p for p in fit if p["params"]["length"] * IN > gap + THREAD[0] - 1e-6]
+    return good[0] if good else fit[-1]
 
 
-def joint(asm, s, f, part, pf):
-    # Fixed, hole frame f on the clicked part to pf on the new screw / nut. none for a part outside asm
-    import JointObject
-    import UtilsAssembly
-    root, path = s[3]
-    comp, sub = UtilsAssembly.getComponentReference(asm, root, path + f.Name + ".")
-    if comp is None:
-        return
-    j = UtilsAssembly.getJointGroup(asm).newObject("App::FeaturePython", "Joint")
-    JointObject.Joint(j, JointObject.JointTypes.index("Fixed"))
-    if j.ViewObject:
-        JointObject.ViewProviderJoint(j.ViewObject)
-    j.Proxy.setJointConnectors(j, [[comp, [sub, sub]], [part, [pf.Name + ".", pf.Name + "."]]])
+def hits(shape, start, d, far):
+    # distences along d from start where it crosses a face, sorted. works on step shells with no solid
+    e = Part.makeLine(start, start + d * far)
+    out = []
+    for f in shape.Faces:
+        if f.BoundBox.intersect(e.BoundBox):
+            out += [(v.Point - start).Length for v in f.section(e).Vertexes]
+    out.sort()
+    # an edge or seam crossing shows up once per face
+    return [t for i, t in enumerate(out) if i == 0 or t - out[i - 1] > 1e-6]
+
+
+def bore(link, f):
+    # (across, deep) for the hole under frame f, mm. deep is None if it opens into nothing
+    shape = Part.getShape(link.LinkedObject)
+    far = shape.BoundBox.DiagonalLength
+    r = f.Placement.Rotation
+    x, y, z = r.multVec(X), r.multVec(Y), r.multVec(snap.Z)
+    start = f.Placement.Base - z * LEAD
+    # the loop it was found on, a ray across catches the thread bts in the 11W step. stock parts have none, theyre clean
+    loops = [w.BoundBox for w, c, _ in library.holes(shape) if (c - f.Placement.Base).Length < 1e-6]
+    half = max(loops[0].XLength, loops[0].YLength, loops[0].ZLength) / 2 if loops else hits(shape, start, x, far)[0]
+    # 5 rays down the hole, theyre all stopped by a bottom. the 11W step has bits of thread in there that stop some
+    ends = [hits(shape, start + v * half / 2, -z, far)[:1] for v in (Vector(), x, -x, y, -y)]
+    if all(ends):
+        return 2 * half, max(t for t, in ends) + LEAD
+    # through, how long the wall around it is
+    wall = hits(shape, start + x * half * 1.3, -z, far)
+    return 2 * half, wall[0] + LEAD if wall else None
+
+
+def tapped(link, across):
+    fam = getattr(link, "VexFamily", None)
+    # a shaft end is small but no thread
+    return fam == "standoff" or (fam not in stock.FAMILIES and across < TAPPED)
+
+
+def gaps(head, tail, a, gap, across):
+    # empty stretches between the clicked parts down the screw from a, (spot on the face it starts from, length) each
+    z, x = a.Rotation.multVec(snap.Z), a.Rotation.multVec(X)
+    # in the metal next to the hole, the axis only ever sees the hole
+    start = a.Base + z * LEAD + x * across * 0.65
+    same = head[0] is tail[0] and head[2].isSame(tail[2], 1e-9)
+    runs = []
+    for s in [head] if same else [head, tail]:
+        shape = Part.getShape(s[0].LinkedObject).copy()
+        shape.Placement = s[2].multiply(shape.Placement)
+        ts = [t - LEAD for t in hits(shape, start, -z, gap + 2 * LEAD)]
+        # in, out, in, out... the last one runs into the thread
+        runs += [(ts[i], ts[i + 1] if i + 1 < len(ts) else gap, s) for i in range(0, len(ts), 2)]
+    out, end, last = [], 0, head
+    for t0, t1, s in sorted(runs, key=lambda r: r[0]):
+        if t0 - end > spacers.SLOP:
+            link, _, plc, path = last
+            out.append(((link, plc.inverse().multVec(a.Base - z * end), plc, path), t0 - end))
+        if t1 > end:
+            end, last = t1, s
+    return out
 
 
 def seat(src):
@@ -57,91 +114,82 @@ def seat(src):
     return s.Placement.multiply(shape.Placement.inverse()), h
 
 
-def fasten(doc, head, tail, family, nut, parent=None):
-    # head, tail = snap.spot()s, head side first. screw and nut links back
-    (fa, a), (fb, b) = hole(head), hole(tail)
-    z = a.Rotation.multVec(Vector(0, 0, 1))
-    d = a.Base - b.Base
-    gap = d.dot(z)
-    # facing each other (gap < 0) = the inside faces got clicked
-    if b.Rotation.multVec(Vector(0, 0, 1)).dot(z) > -1 + 1e-6 or d.cross(z).Length > OFF_AXIS or gap <= 0:
-        raise ValueError("those holes don't line up, click the outside face on both ends")
-    local = parent.getGlobalPlacement().inverse() if parent else App.Placement()
-    plc, h = seat(library.source(doc, nut))
-    screw = shortest(family, gap + h)  # before anything gets placed
-    n = library.place(doc, nut, parent)
-    n.Placement = local.multiply(b).multiply(plc)
+def fasten(doc, head, tail, family, nut, parent=None, od=None):
+    # head, tail = snap.spot()s, head side first. nut None = into a thread, od = spacers that size in the gaps
+    # screw, nut (None into a thread), spacers back
+    (fa, a), (fb, b) = snap.hole(head), snap.hole(tail)
+    across, deep = bore(tail[0], fb)
+    threaded = nut is None or tapped(tail[0], across)
+    got = snap.line(a, b)
+    gap = -got[0] if got else 0
+    # the nut side faces away from the head, a thread faces back at it
+    if got is None or abs(got[1] - (1 if threaded else -1)) > 1e-6 or gap < (-1e-6 if threaded else 1e-6):
+        last = "the face the screw goes into" if threaded else "the outside face on the nut side"
+        raise ValueError(f"those holes don't line up, click the outside face on the head side then {last}")
+    # all picked before anything gets placed
+    if threaded:
+        screw = into(family, gap, deep)
+    else:
+        plc, h = seat(library.source(doc, nut))
+        screw = shortest(family, gap + h)
+    fills = []
+    if od:
+        fills = [(s, spacers.pick(t, od)) for s, t in gaps(head, tail, a, gap, max(across, bore(head[0], fa)[0]))]
+    local, asm = snap.inside(parent)
     s = library.place(doc, screw, parent)
     s.Placement = local.multiply(a)  # under the head on the face, shank down -z
-    if parent and parent.isDerivedFrom("Assembly::AssemblyObject"):
-        # their frames sit right on the hole frames, the joints dont move anything
-        joint(parent, head, fa, s, library.frame(s, App.Placement(), "Seat"))
-        joint(parent, tail, fb, n, library.frame(n, plc.inverse(), "Seat"))
-    return s, n
+    # frames right on the hole frames, the joints dont move anything
+    if asm:
+        snap.fixed(asm, snap.ref(asm, head, fa), snap.on(s, library.frame(s, App.Placement(), "Seat")))
+    n = None
+    if not threaded:
+        n = library.place(doc, nut, parent)
+        n.Placement = local.multiply(b).multiply(plc)
+        if asm:
+            snap.fixed(asm, snap.ref(asm, tail, fb), snap.on(n, library.frame(n, plc.inverse(), "Seat")))
+    put = [o for at, parts in fills for o in spacers.stack(doc, at, parts, parent)]
+    return s, n, put
 
 
-class Panel:
+class Panel(snap.Clicks):
+    PROMPTS = ("click a hole on the head side", "now the hole on the nut side, or the one it screws into")
+
     def __init__(self):
-        self.form = QtWidgets.QWidget()
-        self.form.setWindowTitle("VEX screw")
-        p = App.ParamGet(PARAMS)
+        p = App.ParamGet(ui.PARAMS)
         self.kind = QtWidgets.QComboBox()
         self.kind.addItems(list(KINDS))
         self.kind.setCurrentText(p.GetString("Screw", "Star"))
         self.nut = QtWidgets.QComboBox()
-        self.nut.addItems(list(nuts()))
+        self.nut.addItems([*nuts(), NO_NUT])
         self.nut.setCurrentText(p.GetString("Nut", "#8-32 Nylock Nut"))
-        self.status = QtWidgets.QLabel()
-        lay = QtWidgets.QFormLayout(self.form)
-        lay.addRow("Screw", self.kind)
-        lay.addRow("Nut", self.nut)
-        lay.addRow(self.status)
-        self.first = None
-        self.ask()
-        Gui.Selection.addObserver(self)
+        self.fill = QtWidgets.QCheckBox("Spacers in gaps")
+        self.fill.setChecked(p.GetBool("Fill", False))
+        self.od = spacers.od_box()
+        super().__init__("VEX screw", [("Screw", self.kind), ("Nut", self.nut), (self.fill, self.od)])
 
-    def ask(self, said=""):
-        self.status.setText(said + ("click a hole on the head side" if self.first is None else "now the hole on the nut side"))
-
-    def addSelection(self, doc, obj, sub, pnt):
-        s = snap.spot(App.getDocument(doc).getObject(obj), sub, Vector(*pnt))
-        if s is None:
-            return
-        if self.first is None:
-            self.first = s
-        else:
-            head, self.first = self.first, None
-            # not inside the selection callback, it changes the doc
-            QtCore.QTimer.singleShot(0, lambda: self.place(head, s))
-        self.ask()
-
-    def place(self, head, tail):
-        p = App.ParamGet(PARAMS)
+    def act(self, head, tail):
+        import UtilsAssembly
+        p = App.ParamGet(ui.PARAMS)
         p.SetString("Screw", self.kind.currentText())
         p.SetString("Nut", self.nut.currentText())
+        p.SetBool("Fill", self.fill.isChecked())
+        family = KINDS[self.kind.currentText()]
+        nut = None if self.nut.currentText() == NO_NUT else nuts()[self.nut.currentText()]
+        od = spacers.od_from(self.od) if self.fill.isChecked() else None
         doc = head[0].Document
-        import UtilsAssembly
-        family, nut = KINDS[self.kind.currentText()], nuts()[self.nut.currentText()]
-        put = ui.run("Place VEX screw", lambda: fasten(doc, head, tail, family, nut, UtilsAssembly.activePartOrAssembly()))
-        if put:
-            screw, _ = put
-            doc.recompute()
-            self.ask(f"put in a {screw.Label}\n")
-        Gui.Selection.clearSelection()
-
-    def getStandardButtons(self):
-        return QtWidgets.QDialogButtonBox.Close
-
-    def reject(self):
-        Gui.Selection.removeObserver(self)
-        Gui.Control.closeDialog()
-        return True
+        put = ui.run("Place VEX screw", lambda: fasten(doc, head, tail, family, nut, UtilsAssembly.activePartOrAssembly(), od))
+        if not put:
+            return None
+        doc.recompute()
+        screw, _, extra = put
+        return f"put in a {screw.Label}" + (f" + {len(extra)} spacers and washers" if extra else "")
 
 
 class Screw:
     def GetResources(self):
         return {"Pixmap": "vex-screw.svg", "MenuText": "Screw",
-                "ToolTip": "Click a hole on the head side, then the one on the nut side. Puts in the shortest screw that makes it through the nut"}
+                "ToolTip": "Click a hole on the head side, then the one on the nut side. Puts in the shortest screw that makes it through the nut, "
+                "or gets 3/8\" into a threaded hole (1/4\" if that's all there is)"}
 
     def Activated(self):
         Gui.Control.showDialog(Panel())

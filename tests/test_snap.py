@@ -1,4 +1,4 @@
-# hole frames + Fixed joints, shaft ends, and the screw tool (plain, inside face, linked sub-assembly), run with: python tests/test_snap.py (needs FreeCAD)
+# hole frames + Fixed joints, shaft ends, the screw and spacer tools, run with: python tests/test_snap.py (needs FreeCAD + vex-step/)
 import sys
 from pathlib import Path
 
@@ -17,7 +17,7 @@ doc = App.newDocument("snaptest")
 asm = doc.addObject("Assembly::AssemblyObject", "Assembly")
 asm.Type = "Assembly"
 joints = asm.newObject("Assembly::JointGroup", "Joints")
-_, gen, _ = library.index()
+_, gen, steps = library.index()
 a = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
 b = library.place(doc, gen["1x5x1x10 Steel C-Channel"], asm)
 b.Placement = App.Placement(App.Vector(30, 40, 50), App.Rotation(10, 20, 30))
@@ -79,7 +79,7 @@ head = (p1, App.Vector(1.27, 0.24, 0.046) * IN, p1.Placement, (asm, p1.Name + ".
 tail = (p2, App.Vector(2.26, 0.26, 0) * IN, p2.Placement, (asm, p2.Name + "."))  # bottom face, same hole
 nylock = screws.nuts()["#8-32 Nylock Nut"]
 had = len(joints.Group)
-sc, nut = screws.fasten(doc, head, tail, "star-screw", nylock, asm)
+sc, nut, _ = screws.fasten(doc, head, tail, "star-screw", nylock, asm)
 assert sc.Label == "0.290 Torx (Star) Screw (8-32, Steel)", sc.Label
 # a Fixed joint each, and solving moves nothing
 new = joints.Group[had:]
@@ -109,7 +109,7 @@ def local(link):
 assert local(nut) == [1.25, 0.25, -0.2391, -0.046], local(nut)
 got = local(sc)
 assert got[:2] == [1.25, 0.25] and got[2] == round(0.046 - 0.29, 4) and got[3] == round(0.046 + 0.087, 4), got
-sc, _ = screws.fasten(doc, head, tail, "hex-screw", nylock)
+sc, *_ = screws.fasten(doc, head, tail, "hex-screw", nylock)
 assert sc.Label == "0.375 Hex Screw (8-32, Steel)", sc.Label
 try:
     screws.fasten(doc, head, (p2, App.Vector(2.26, 0.26, 0.046) * IN, p2.Placement, tail[3]), "star-screw", nylock)  # inside face
@@ -128,7 +128,7 @@ JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), sub)
 doc.recompute()
 inner = (p3, tail[1], sub.Placement.multiply(p3.Placement), (asm, f"{sub.Name}.{p3.Name}."))
 had = len(joints.Group)
-sc, nut = screws.fasten(doc, head, inner, "star-screw", nylock, asm)
+sc, nut, _ = screws.fasten(doc, head, inner, "star-screw", nylock, asm)
 new = joints.Group[had:]
 assert [j.Reference1[0] for j in new] == [p1, sub] and new[1].Reference1[1][0].startswith(p3.Name + "."), [j.Reference1 for j in new]
 got = moved([sc, nut])
@@ -140,13 +140,68 @@ on_a = (asm, a.Name + ".")
 top = (a, App.Vector(0.76, 0.26, 1.0) * IN, a.Placement, on_a)  # top flange outside, the (0.75, 0.25) hole
 bot = (a, App.Vector(0.76, 0.24, 0) * IN, a.Placement, on_a)  # bottom flange outside
 had = len(joints.Group)
-sc, nut = screws.fasten(doc, top, bot, "star-screw", nylock, asm)
+sc, nut, _ = screws.fasten(doc, top, bot, "star-screw", nylock, asm)
 assert sc.Label == "1.250 Torx (Star) Screw (8-32, Steel)", sc.Label
 assert (sc.Placement.Base - App.Vector(0.75, 0.25, 1.0) * IN).Length < 1e-6, sc.Placement.Base / IN
 refs = [(j.Reference1[0], j.Reference2[0]) for j in joints.Group[had:]]
 assert refs == [(a, sc), (a, nut)], refs
 got = moved([sc, nut])
 assert not got, got
+
+# same with the gap between the flanges filled, 1 - 2 * 0.046 = 0.908 -> 7/8 + a 1/32 washer
+def stacked(put):
+    # label without the 001 of a second copy, z in the asm
+    return [(o.Label.rstrip("0123456789"), round(o.Placement.Base.z / IN, 4)) for o in put]
+
+
+sc, nut, put = screws.fasten(doc, top, bot, "star-screw", nylock, asm, 0.375)
+labels = stacked(put)
+assert labels == [("0.375 OD Spacer, 0.875 (Nylon)", 0.954), ("Washer, 0.375 OD, 0.032 (Nylon)", 0.079)], labels
+got = moved([sc, nut, *put])
+assert not got, got
+
+# spacer tool between the inside faces, 0.5 OD, stacked up from the bottom flange
+from freecad.vex_workbench import spacers  # noqa: E402
+
+put = spacers.fill(doc, (a, App.Vector(0.76, 0.26, 0.046) * IN, a.Placement, on_a), (a, App.Vector(0.76, 0.24, 0.954) * IN, a.Placement, on_a), 0.5, asm)
+labels = stacked(put)
+assert labels == [("0.5 OD Spacer, 0.875 (Nylon)", 0.046), ("Washer, 0.375 OD, 0.032 (Nylon)", 0.921)], labels
+got = moved(put)
+assert not got, got
+
+# no nut, into a standoff under the (1.25, 0.25) hole in p1. the 0.5 is through, a 2 is tapped 0.5 from each end
+for size, want in [("0.500", "0.500"), ("2.000", "0.500"), ("0.375", "0.375")]:
+    so = library.place(doc, gen[f"{size} Standoff (8-32, Aluminum)"], asm)
+    h = float(size) * IN
+    so.Placement = m.multiply(App.Placement(App.Vector(1.25 * IN, 0.25 * IN, -h), App.Rotation()))
+    doc.recompute()
+    into = (so, App.Vector(0.01, 0, h), so.Placement, (asm, so.Name + "."))
+    had = len(joints.Group)
+    sc, nut, _ = screws.fasten(doc, head, into, "star-screw", nylock, asm)
+    # 0.046 of plate, then 3/8 in if the thread is that deep
+    assert sc.Label.rstrip("0123456789") == f"{want} Torx (Star) Screw (8-32, Steel)" and nut is None, (size, sc.Label)
+    assert [j.Reference2[0] for j in joints.Group[had:]] == [sc]
+    doc.removeObject(so.Name)
+so = library.place(doc, gen["0.250 Standoff (8-32, Aluminum)"], asm)
+so.Placement = m.multiply(App.Placement(App.Vector(1.25 * IN, 0.25 * IN, -0.25 * IN), App.Rotation()))
+doc.recompute()
+try:
+    screws.fasten(doc, head, (so, App.Vector(0.01, 0, 0.25 * IN), so.Placement, (asm, so.Name + ".")), "star-screw", nylock, asm)
+    raise AssertionError("got 1/4 into a 1/4 standoff through a plate")
+except ValueError:
+    pass
+# No nut picked, but the p2 hole is plain metal
+try:
+    screws.fasten(doc, head, (p2, App.Vector(2.26, 0.26, 0.046) * IN, p2.Placement, tail[3]), "star-screw", None)
+    raise AssertionError("screwed into plain metal")
+except ValueError:
+    pass
+
+# the 5.5W motor's front holes are threaded, 3/4 deep
+motor = library.place(doc, steps["Electronics/V5 Smart Motor (5.5W) (276-4842).step"])
+doc.recompute()
+across, deep = screws.bore(motor, library.hole_frame(motor, App.Vector(0.01, -1.578, 0.124) * IN))
+assert screws.tapped(motor, across) and abs(deep / IN - 0.75) < 0.01, (across / IN, deep / IN)
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")
