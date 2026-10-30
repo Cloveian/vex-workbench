@@ -13,8 +13,8 @@ sys.path.insert(0, str(ROOT / "freecad" / "vex_workbench"))
 
 import catalog  # noqa: E402
 import metal  # noqa: E402
+from metal import IN  # noqa: E402
 
-IN = 25.4
 cat = catalog.load()
 gen = {p["name"]: p for p in catalog.generated(cat)}
 steps = {Path(p["file"]).stem: p for p in catalog.step_parts(cat)}

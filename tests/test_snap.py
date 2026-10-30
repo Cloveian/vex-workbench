@@ -11,8 +11,8 @@ import JointObject  # noqa: E402  Assembly workbench, works headless
 import Part  # noqa: E402
 
 from freecad.vex_workbench import library  # noqa: E402
+from freecad.vex_workbench.metal import IN  # noqa: E402
 
-IN = 25.4
 doc = App.newDocument("snaptest")
 asm = doc.addObject("Assembly::AssemblyObject", "Assembly")
 asm.Type = "Assembly"

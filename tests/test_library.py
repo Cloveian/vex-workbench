@@ -10,8 +10,8 @@ import FreeCAD as App  # noqa: E402
 import Part  # noqa: E402
 
 from freecad.vex_workbench import library  # noqa: E402
+from freecad.vex_workbench.metal import IN  # noqa: E402
 
-IN = 25.4
 App.addDocumentObserver(library.Observer())
 doc = App.newDocument("vextest")
 _, gen, steps = library.index()

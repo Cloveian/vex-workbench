@@ -10,8 +10,8 @@ import freecad  # noqa: E402,F401
 import Part  # noqa: E402
 
 from freecad.vex_workbench import catalog, library, metal  # noqa: E402
+from freecad.vex_workbench.metal import IN  # noqa: E402
 
-IN = 25.4
 cat = catalog.load()
 gen = catalog.generated(cat)
 steps = {Path(p["file"]).stem: p for p in catalog.step_parts(cat)}
