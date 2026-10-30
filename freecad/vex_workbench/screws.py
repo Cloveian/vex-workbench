@@ -24,7 +24,7 @@ def shortest(family, need):
     # need in mm
     fits = [p for p in library.index()[1].values() if p["family"] == family and p["params"]["length"] * IN > need - 1e-6]
     if not fits:
-        raise ValueError(f"no {family} is {need / IN:.3f} long")
+        raise ValueError(f"no {library.index()[0][family]['title']} is long enough, it needs {need / IN:.3f}\"")
     return min(fits, key=lambda p: p["params"]["length"])
 
 
