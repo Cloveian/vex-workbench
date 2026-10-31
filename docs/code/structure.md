@@ -10,9 +10,9 @@
 | `freecad/vex_workbench/metal.py`   | channels, angles, plate, bar as Part shapes                           |
 | `freecad/vex_workbench/stock.py`   | shafts, standoffs, spacers, washers: a section with lathe ends and a bore |
 | `freecad/vex_workbench/derived.py` | parts cut out of a vex step: screws at any length, the thin nylock, other materials |
-| `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s |
+| `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s. hole finding too (`holes`, `hole_at`, `screw_holes` kept on the source, `cached` per source) |
 | `freecad/vex_workbench/browser.py` | the VEX parts dock                                                    |
-| `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`. plus the Fixed joint bits and the two-click panel screws and spacers build on |
+| `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`. plus the Fixed joint bits and the two-click panel (orange hole points, green picked ones) screws and spacers build on |
 | `freecad/vex_workbench/screws.py`  | Screw command, two hole clicks -> shortest screw + nut (or into a thread), jointed in an assembly |
 | `freecad/vex_workbench/spacers.py` | Spacers command, fills a gap between two holes with spacers + washers |
 | `freecad/vex_workbench/ui.py`      | undo step, wait cursor and error box around building parts |
