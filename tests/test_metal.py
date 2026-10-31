@@ -80,8 +80,9 @@ for fam in cat["family"]:
         vol = ours.Volume / theirs.Volume - 1
         m = best(po, pt)
         holes = "no orientation fits" if m is None else f"holes off {m[1]} missing / {m[2]} extra"
-        # vex's reliefs are all a bit *dih*frent from ours (+0.13% on the 2x steel channel)
-        ok = m is not None and m[0] == 0 and abs(vol) < 0.002 and ours.isValid()
+        # vex's reliefs are all a bit *dih*frent from ours, c-channels most (+0.13% on the 2x steel one). the rest come in under 0.03%, so a lost notch shows
+        tol = 0.002 if "C-Channel" in fx else 0.0005
+        ok = m is not None and m[0] == 0 and abs(vol) < tol and ours.isValid()
         note = ""
         if not ok and fx in OFF:
             note, ok = f" (known: {OFF[fx]})", True
