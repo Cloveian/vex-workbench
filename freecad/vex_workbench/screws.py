@@ -179,8 +179,11 @@ class Panel(snap.Clicks):
         self.size.clear()
         self.size.addItems([s["name"] for s in sizes(family)])
         hand = family in BY_HAND
-        if hand:
+        if hand and self.mine.isEnabled():
+            self.before = self.mine.isChecked()  # back to that on a kind it can pick again
             self.mine.setChecked(True)
+        elif not hand and not self.mine.isEnabled():
+            self.mine.setChecked(self.before)
         self.mine.setEnabled(not hand)
         self.modes()
 

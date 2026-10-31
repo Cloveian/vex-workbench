@@ -260,6 +260,12 @@ try:
         QtWidgets.QApplication.processEvents()
         got = [library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link"]
         assert got == [name], (got, panel.status.text())
+    # back off shoulder the box goes back to how it was
+    panel.kind.setCurrentText("Star")
+    panel.mine.setChecked(False)
+    panel.kind.setCurrentText("Shoulder")
+    panel.kind.setCurrentText("Star")
+    assert panel.mine.isEnabled() and not panel.mine.isChecked()
     panel.reject()
     # spacer panel, the plates 0.25 apart now
     from freecad.vex_workbench import spacers
