@@ -124,6 +124,10 @@ def offset(gap, spin):
     return App.Placement(Vector(0, 0, gap), App.Rotation(Z, -spin))
 
 
+def spin(j):
+    return -j.Offset2.Rotation.toEuler()[0]
+
+
 class Clicks:
     # task panel, click a hole then another and act() gets both spots, what it hands back goes on the status line. PROMPTS for before the first and second click
     def __init__(self, title, rows):

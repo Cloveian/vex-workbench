@@ -287,10 +287,17 @@ doc.recompute()
 was = g1.Placement, g2.Placement
 inner = where(g1, first, grp.Name + ".")
 target = where(p1, App.Vector(4.25, 0.25, 0.046) * IN)
-align.align(inner, target, 0, asm, whole=True)
+s = align.align(inner, target, 0, asm, whole=True)
 doc.recompute()
 (_, at), (_, got) = snap.hole(target), snap.hole(where(g1, first, grp.Name + "."))
 assert (got.Base - at.Base).Length < 1e-9 and g1.Placement.isSame(was[0], 1e-9) and g2.Placement.isSame(was[1], 1e-9), got.Base
+# turned through its joint the whole group swings, still nothing moves inside it
+s["spin"] += 90
+align.turn(s, 0)
+doc.recompute()
+(_, at), (_, got) = snap.hole(target), snap.hole(where(g1, first, grp.Name + "."))
+assert (got.Base - at.Base).Length < 1e-9 and (x(got) - turned(s["spin"])).Length < 1e-9, x(got)
+assert g1.Placement.isSame(was[0], 1e-9) and g2.Placement.isSame(was[1], 1e-9)
 # and a part in that same group cant be what it lines up on
 try:
     align.align(inner, where(g2, App.Vector(0.25, 0.25, 0.046) * IN, grp.Name + "."), 0, asm, True)

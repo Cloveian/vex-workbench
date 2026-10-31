@@ -130,6 +130,8 @@ class Panel(snap.Clicks):
             return
         if way:
             App.ParamGet(ui.PARAMS).SetFloat("AlignAngle", self.angle.value())
+        if s["joint"] and s["joint"] in self.doc.Objects:
+            s["spin"] = snap.spin(s["joint"])  # someone may have turned it in the joint panel since
         s["spin"] -= way * self.angle.value()  # + is counterclockwise looking at the face it went against, same as the joint's rotation box
         gap = self.gap.value() * IN
         ui.run("Turn VEX part", lambda: turn(s, gap))

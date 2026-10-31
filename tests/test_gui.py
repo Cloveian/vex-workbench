@@ -323,6 +323,12 @@ try:
     yaw = swing.Placement.Rotation.toEuler()[0]
     panel.turn(1)
     assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 90) < 1e-6, (yaw, swing.Placement)
+    # turned another 45 in the joint panel, the next Rotate + goes on from there
+    j = panel.last["joint"]
+    j.Offset2 = App.Placement(j.Offset2.Base, App.Rotation(j.Offset2.Rotation.toEuler()[0] + 45, 0, 0))
+    doc.recompute()
+    panel.turn(1)
+    assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 225) < 1e-6, (yaw, swing.Placement)
     panel.reject()
     say("ok")
     failed = False

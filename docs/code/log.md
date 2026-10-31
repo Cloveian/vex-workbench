@@ -5,6 +5,7 @@
 - screws, nuts and spacers sit on Revolute joints now, not Fixed, so they can spin. snap.revolute() puts any gap in Offset2, cuz thats what the joint panel's offset box edits (Offset1 just showed as 0 there)
 - Align tool. hole on the part to move, then the hole it goes against, faces land flat. it keeps the turn the part already had, rounded to the angle box (atan2 of the old x against the target's x and y, after the face to face flip), then Rotate -/+ and a gap box. gap under 0 pushes it in, so a shaft end goes through a hole
 - a link array moves whole from any element's hole, and "Move its whole group" moves the top Part under the active assembly instead, all the same math: frame = world(thing that moves)^-1 * the hole's world frame
+- Revolute is one of the joints FreeCAD presolves: when its made, and every time Offset1/2 change, matchJCS snaps the part so the frames match exactly, turn and all. so Rotate in an assembly did nothing, it got snapped right back. the turn lives in the joint now, Offset2 = (0, 0, gap) turned by -spin, which also makes it show in the joint panel's rotation box. the panel reads it back off the joint before turning, in case it got turned there by hand
 - aligning something again swaps out its old align joint (tagged VexAlign), the old one just dragged it back on the next solve
 - nuts lost the "#8-32" and "(8-32, Steel)", hex screws are out of the screw tool, shoulder screws next once i know how the shoulder should fit
 
