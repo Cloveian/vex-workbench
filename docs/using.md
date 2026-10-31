@@ -7,7 +7,7 @@ Pick the VEX workbench and hit **VEX parts** to open the dock. The families are 
 
 - the first time a variant gets placed it has to be built, a 35 long channel takes a few seconds (theres a wait cursor). after that its instant, every copy in that file links to the same source
 - a placed part has its options in its properties, under VEX. change Holes or Size or whatever and *just that one* swaps to the other variant, the rest stay put
-- vex's step parts keep vex's colors, generated ones get a color per material (the license plates by their color). star screws get the head color vex's color coded pack has for that length, 0.290 yellow up to 2.500 brown (no 0.25 in the pack, so thats plain steel)
+- vex's step parts keep vex's colors, generated ones get a color per material (the license plates by their color). star screws get the head color vex's color coded pack has for that length, 0.290 yellow up to 2.500 brown (no 0.25 in the pack, so thats plain steel). round generated stuff (screws, standoffs, spacers, washers, extra low nuts, HS and pitch shafts) shows without edge lines, so no seam line down the side
 
 ## Snapping
 

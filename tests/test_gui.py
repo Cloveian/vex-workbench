@@ -51,6 +51,9 @@ try:
     assert tops == {(0.96, 0.0, 0.01)} and rest == {steel}, (tops, rest)
     got = plain.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
     assert all(abs(a - b) < 1e-6 for a, b in zip(got, steel)), got
+    # round stuff has no seam line, metal keeps its edges
+    modes = sc.ViewObject.DisplayMode, ch.LinkedObject.Group[0].ViewObject.DisplayMode
+    assert modes == ("Shaded", "Flat Lines"), modes
     for o in (red, plain):
         doc.removeObject(o.Name)
 

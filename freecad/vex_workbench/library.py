@@ -120,6 +120,9 @@ def source(doc, part):
         vo.DiffuseColor = faces
     elif vo and color:
         vo.ShapeColor = tuple(color)
+    if vo and "file" not in part and any(e.isSeam(f) for f in s.Faces for e in f.Edges):
+        # no edges on round stuff, a full cylinder always has a seam line down its side
+        vo.DisplayMode = "Shaded"
     src.addObject(solid)
     group(doc).addObject(src)
     src.Visibility = False
