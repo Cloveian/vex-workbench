@@ -47,18 +47,21 @@ def placed(doc):
     out = []
 
     def walk(root, obj, path):
-        if obj is None or not obj.Visibility:
-            return
         if hasattr(obj, "VexFamily") or hasattr(obj, "VexStep"):
-            elements = [f"{i}." for i in range(obj.ElementCount)] or [""]
+            n = obj.ElementCount
+            elements = [f"{i}." for i in range(n) if obj.isElementVisible(str(i))] if n else [""]
             out.extend((obj, (root, path + e)) for e in elements)
             return
         for sub in obj.getSubObjects():
-            walk(root, obj.getSubObject(sub, retType=1), path + sub)
+            child = obj.getSubObject(sub, retType=1)
+            # 1 or 0 from a link array, -1 when its up to the child. array elements say Visibility False in the gui either way
+            shown = obj.isElementVisible(sub[:-1])
+            if child is not None and (shown > 0 or shown < 0 and child.Visibility):
+                walk(root, child, path + sub)
 
-    # a sub-assembly that something links to isnt in RootObjects
-    for root in doc.RootObjectsIgnoreLinks:
-        walk(root, root, "")
+    for root in library.roots(doc):
+        if root.Visibility:
+            walk(root, root, "")
     return out
 
 

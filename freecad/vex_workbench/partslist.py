@@ -2,6 +2,8 @@
 import FreeCAD as App
 import FreeCADGui as Gui
 
+from . import library
+
 SHEET = "VexPartsList"
 
 
@@ -21,11 +23,8 @@ def count(doc):
         for child in getattr(o, "Group", []):
             walk(child, n)
 
-    # from the top of the tree, RootObjects leaves out a sub-assembly once its linked
-    for o in doc.Objects:
-        # link array elements look top level too, and pass Group through to what the array links
-        if o.TypeId != "App::LinkElement" and o.getParentGroup() is None and o.getParentGeoFeatureGroup() is None:
-            walk(o, 1)
+    for o in library.roots(doc):
+        walk(o, 1)
     return out
 
 

@@ -169,6 +169,12 @@ def variant(family, picked):
     return index()[1][family["name"].format(**params)]
 
 
+def roots(doc):
+    # top of the tree. RootObjects drops a sub-assembly once something links to it, RootObjectsIgnoreLinks too once a link array's elements do
+    # the elements look top level, and pass their array's Group through so theyd count twice
+    return [o for o in doc.Objects if o.TypeId != "App::LinkElement" and o.getParentGroup() is None and o.getParentGeoFeatureGroup() is None]
+
+
 def part_of(link):
     # catalog entry a placed copy's VEX props point at
     families, _, steps = index()

@@ -125,10 +125,24 @@ try:
     copy.Placement = App.Placement(App.Vector(0, 200, 0), App.Rotation(0, 0, 90))
     doc.recompute()
     assert snapped(copy, f"{ch2.Name}.", f"Face{i + 1}", click, loop.BoundBox.Center) == ch2
-    # hole points find them all, each array element and the channel in Side and in its copy
-    paths = {(root.Name, path): link for link, (root, path) in snap.placed(doc)}
-    want = {(arr.Name, "0."): arr, (arr.Name, "1."): arr, (side.Name, f"{ch2.Name}."): ch2, (copy.Name, f"{ch2.Name}."): ch2}
+    # hole points find them all, each array element and the channel in Side, its copy and an array of it. each once
+    sides = doc.addObject("App::Link", "SideArray")
+    sides.LinkedObject = side
+    sides.ElementCount = 2
+    doc.recompute()
+    got = [(root.Name, path, link) for link, (root, path) in snap.placed(doc)]
+    paths = {(r, p): link for r, p, link in got}
+    assert len(paths) == len(got), sorted(paths)
+    want = {(arr.Name, "0."): arr, (arr.Name, "1."): arr, (side.Name, f"{ch2.Name}."): ch2, (copy.Name, f"{ch2.Name}."): ch2,
+            (sides.Name, f"0.{ch2.Name}."): ch2, (sides.Name, f"1.{ch2.Name}."): ch2}
     assert all(paths.get(k) == v for k, v in want.items()), sorted(paths)
+    # hidden array elements get none
+    sides.setElementVisible("1", False)
+    arr.setElementVisible("0", False)
+    paths = {(root.Name, path) for link, (root, path) in snap.placed(doc)}
+    assert (sides.Name, f"1.{ch2.Name}.") not in paths and (arr.Name, "0.") not in paths and (arr.Name, "1.") in paths, sorted(paths)
+    sides.setElementVisible("1", True)
+    arr.setElementVisible("0", True)
 
     # screw tool, two clicks on two stacked plates
     from freecad.vex_workbench import screws
