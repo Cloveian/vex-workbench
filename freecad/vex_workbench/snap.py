@@ -12,6 +12,8 @@ OFF_AXIS = 0.01  # mm
 UNMARKED = ("Hardware/Screws", "Hardware/Nuts", "Motion/Spacers")  # what the tools put in
 MARK_SIZE = 9  # px
 PICK_SIZE = 14  # px, drawn over the orange one
+REFRESH = 100  # ms after the last change, the points get worked out again
+MOVES = ("Placement", "Visibility", "ElementCount", "LinkedObject")  # changes that move, hide or swap a part's holes
 
 
 def spot(root, sub, pt):
@@ -119,15 +121,22 @@ class Clicks:
         self.first = None
         self.picked = []  # world points lit green
         self.doc = App.ActiveDocument
+        self.later = QtCore.QTimer()  # one refresh once a burst of changes settles
+        self.later.setSingleShot(True)
+        self.later.setInterval(REFRESH)
+        self.later.timeout.connect(self.refresh)
         self.mark()
         self.draw()
         self.ask()
         Gui.Selection.addObserver(self)
         App.addDocumentObserver(self)
 
+    def orange(self):
+        return Part.Compound([Part.Vertex(plc.multVec(c)) for _, c, plc, _ in self.spots])
+
     def draw(self):
         self.marks = self.dots("VexHoles", MARK_SIZE, (1.0, 0.35, 0.1))
-        self.marks.Shape = Part.Compound([Part.Vertex(plc.multVec(c)) for _, c, plc, _ in self.spots])
+        self.marks.Shape = self.orange()
         # the select highlight on these goes when the mouse leaves
         self.lit = self.dots("VexPicked", PICK_SIZE, (0.1, 0.9, 0.2))
         self.lit.Shape = Part.Compound([Part.Vertex(p) for p in self.picked])
@@ -142,6 +151,12 @@ class Clicks:
     def redraw(self):
         if self.marks is None and self.doc is not None:
             self.draw()
+
+    def refresh(self):
+        # parts placed, moved, hidden or deleted with the panel open
+        if self.marks is not None and self.doc is not None:
+            self.mark()
+            self.marks.Shape = self.orange()
 
     def dots(self, name, size, color):
         o = self.doc.addObject("Part::Feature", name)
@@ -208,9 +223,24 @@ class Clicks:
         return True
 
     def close(self):
+        self.later.stop()
         Gui.Selection.removeObserver(self)
         App.removeDocumentObserver(self)
         Gui.Control.closeDialog()
+
+    def slotCreatedObject(self, obj):
+        self.soon(obj)
+
+    def slotDeletedObject(self, obj):
+        self.soon(obj)
+
+    def slotChangedObject(self, obj, prop):
+        if prop in MOVES:
+            self.soon(obj)
+
+    def soon(self, obj):
+        if obj.Document == self.doc:
+            self.later.start()
 
     # the points arent part of the robot, they stay out of the file
     def slotStartSaveDocument(self, doc, path):

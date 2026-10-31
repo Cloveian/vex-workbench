@@ -1,6 +1,7 @@
 # toolbar, colurs, the parts list, the dock, the screw tool and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import os
 import sys
+import time
 import traceback
 import zipfile
 
@@ -192,6 +193,21 @@ try:
     got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
     assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], (got, panel.status.text())
     assert not panel.lit.Shape.Vertexes
+
+    # parts placed or deleted with it open get their points sorted out
+    def settle():
+        end = time.time() + 5
+        while panel.later.isActive() and time.time() < end:
+            QtWidgets.QApplication.processEvents()
+
+    extra = library.place(doc, gen["5x10 Steel Plate"])
+    extra.Placement.Base = App.Vector(10, 0, 0) * IN
+    settle()
+    assert len(panel.marks.Shape.Vertexes) == n + len(library.screw_holes(extra)), len(panel.marks.Shape.Vertexes)
+    assert any((v.Point - App.Vector(10.25, 0.25, 0.046) * IN).Length < 1e-6 for v in panel.marks.Shape.Vertexes)
+    doc.removeObject(extra.Name)
+    settle()
+    assert len(panel.marks.Shape.Vertexes) == n
     dots = [panel.marks.Name, panel.lit.Name]
     panel.reject()
     assert not any(doc.getObject(n) for n in dots)
