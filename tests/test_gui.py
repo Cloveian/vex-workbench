@@ -42,6 +42,17 @@ try:
     steel = tuple(library.cat()["colors"]["Steel"])
     got = ch.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
     assert all(abs(a - b) < 1e-6 for a, b in zip(got, steel)), got
+    # 1/2 star screw has a red head on a steel shank, the 1/4 has no color in the pack
+    red, plain = (library.place(doc, gen[f"{n} Torx (Star) Screw (8-32, Steel)"]) for n in ("0.500", "0.250"))
+    sc = red.LinkedObject.Group[0]
+    tops, rest = set(), set()
+    for c, f in zip(sc.ViewObject.DiffuseColor, sc.Shape.Faces):
+        (tops if f.BoundBox.ZMin > -1e-6 else rest).add(tuple(round(v, 2) for v in c[:3]))
+    assert tops == {(0.96, 0.0, 0.01)} and rest == {steel}, (tops, rest)
+    got = plain.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
+    assert all(abs(a - b) < 1e-6 for a, b in zip(got, steel)), got
+    for o in (red, plain):
+        doc.removeObject(o.Name)
 
     # vex's own colors on a step part, one per face, and the same solid Part.read gives
     motor = steps["Electronics/V5 Smart Motor (276-4840).step"]
