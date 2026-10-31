@@ -137,6 +137,11 @@ class Clicks:
     def undraw(self):
         for o in (self.marks, self.lit):
             self.doc.removeObject(o.Name)
+        self.marks = self.lit = None
+
+    def redraw(self):
+        if self.marks is None and self.doc is not None:
+            self.draw()
 
     def dots(self, name, size, color):
         o = self.doc.addObject("Part::Feature", name)
@@ -198,27 +203,31 @@ class Clicks:
         return QtWidgets.QDialogButtonBox.Close
 
     def reject(self):
+        self.undraw()
+        self.close()
+        return True
+
+    def close(self):
         Gui.Selection.removeObserver(self)
         App.removeDocumentObserver(self)
-        self.undraw()
         Gui.Control.closeDialog()
-        return True
 
     # the points arent part of the robot, they stay out of the file
     def slotStartSaveDocument(self, doc, path):
         if doc == self.doc:
             self.undraw()
+            # a failed save never sends the finish
+            QtCore.QTimer.singleShot(0, self.redraw)
 
     def slotFinishSaveDocument(self, doc, path):
         if doc == self.doc:
-            self.draw()
+            self.redraw()
 
     def slotDeletedDocument(self, doc):
         # closed with the panel still open, the points go with it
         if doc == self.doc:
-            Gui.Selection.removeObserver(self)
-            App.removeDocumentObserver(self)
-            Gui.Control.closeDialog()
+            self.doc = None
+            self.close()
 
 
 class HoleFrame:

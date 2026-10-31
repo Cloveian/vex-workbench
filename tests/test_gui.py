@@ -174,6 +174,19 @@ try:
         assert "VexHoles" not in xml and "VexPicked" not in xml and 'name="VexPart"' in xml
     finally:
         os.remove(saved)
+    # a failed save gets them back too
+    ro = os.path.join(os.path.dirname(__file__), "_readonly")
+    os.makedirs(ro, exist_ok=True)
+    os.chmod(ro, 0o500)
+    try:
+        doc.saveAs(os.path.join(ro, "x.FCStd"))
+    except OSError:
+        pass
+    finally:
+        os.chmod(ro, 0o700)
+        os.rmdir(ro)
+    QtWidgets.QApplication.processEvents()
+    assert panel.marks and len(panel.marks.Shape.Vertexes) == n and len(panel.lit.Shape.Vertexes) == 1
     Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.25, 0.25, -0.046) * IN))
     QtWidgets.QApplication.processEvents()
     got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
