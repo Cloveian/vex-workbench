@@ -226,6 +226,13 @@ try:
     doc.removeObject(extra.Name)
     settle()
     assert len(panel.marks.Shape.Vertexes) == n
+    # and hiding one element of an array
+    arr.setElementVisible("0", False)
+    assert panel.later.isActive()
+    settle()
+    assert len(panel.marks.Shape.Vertexes) == n - len(library.screw_holes(arr)), len(panel.marks.Shape.Vertexes)
+    arr.setElementVisible("0", True)
+    settle()
     dots = [panel.marks.Name, panel.lit.Name]
     panel.reject()
     assert not any(doc.getObject(n) for n in dots)

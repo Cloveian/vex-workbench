@@ -13,7 +13,7 @@ UNMARKED = ("Hardware/Screws", "Hardware/Nuts", "Motion/Spacers")  # what the to
 MARK_SIZE = 9  # px
 PICK_SIZE = 14  # px, drawn over the orange one
 REFRESH = 100  # ms after the last change, the points get worked out again
-MOVES = ("Placement", "Visibility", "ElementCount", "LinkedObject", "Group")  # changes that move, hide or swap a part's holes. Group for one dragged into another sub-assembly
+MOVES = ("Placement", "Visibility", "VisibilityList", "ElementCount", "LinkedObject", "Group")  # changes that move, hide or swap a part's holes. Group for one draged into another sub-assembly
 
 
 def spot(root, sub, pt):
