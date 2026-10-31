@@ -212,10 +212,15 @@ def holes(shape):
         n = f.normalAt(0, 0)
         outer = f.OuterWire  # once, its worked out again on every call
         for w in f.Wires:
-            b = w.BoundBox
-            if not w.isSame(outer) and HOLE_MIN <= max(b.XLength, b.YLength, b.ZLength) <= HOLE_MAX:
-                out.append((w, b.Center, n))
+            if not w.isSame(outer) and HOLE_MIN <= across(w) <= HOLE_MAX:
+                out.append((w, w.BoundBox.Center, n))
     return out
+
+
+def across(w):
+    # widest a loop is, mm
+    b = w.BoundBox
+    return max(b.XLength, b.YLength, b.ZLength)
 
 
 def ends(shape):
@@ -291,7 +296,7 @@ def outermost(shape, rays):
             continue
         if rays:
             # most of the rays down it stopping short means somethings in it, the 11W's case screw heads are 0.05 down
-            half = max(w.BoundBox.XLength, w.BoundBox.YLength, w.BoundBox.ZLength) / 2
+            half = across(w) / 2
             short = [t for t in down(faces, c - n * OUT, n, half / 2, far) if t is not None and t < MIN_THREAD]
             if len(short) >= 3:
                 continue

@@ -55,8 +55,8 @@ def bore(link, f):
     x, z = r.multVec(X), r.multVec(snap.Z)
     start = f.Placement.Base - z * LEAD
     # the loop it was found on, a ray across catches the thread bts in the 11W step. stock parts have none, theyre clean
-    loops = [w.BoundBox for w, c, _ in library.cached(src, library.holes) if (c - f.Placement.Base).Length < 1e-6]
-    half = max(loops[0].XLength, loops[0].YLength, loops[0].ZLength) / 2 if loops else library.hits(faces, start, x, far)[0]
+    loops = [w for w, c, _ in library.cached(src, library.holes) if (c - f.Placement.Base).Length < 1e-6]
+    half = library.across(loops[0]) / 2 if loops else library.hits(faces, start, x, far)[0]
     # 5 rays down the hole, theyre all stopped by a bottom. the 11W step has bits of thread in there that stop some
     ends = library.down(faces, start, z, half / 2, far)
     if None not in ends:
