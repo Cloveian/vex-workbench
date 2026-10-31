@@ -2,7 +2,7 @@
 import math
 
 import Part
-from FreeCAD import Matrix, Placement, Vector
+from FreeCAD import Matrix, Placement, Rotation, Vector
 
 IN = 25.4
 X = Vector(1, 0, 0)
@@ -211,3 +211,43 @@ def make(part, cat):
     solid = pieces[0].fuse(pieces[1:] + bends).removeSplitter() if last else pieces[0]
     solid.scale(IN)
     return solid
+
+
+# --- bending a made part ---
+BIG = 1e4  # mm, a box this big is a half space
+
+
+def half(at, u, n, lo):
+    # everything at least lo mm past at along u
+    v = n.cross(u)
+    box = Part.makeBox(BIG, BIG, BIG)
+    box.Placement = Placement(at + u * lo - v * BIG / 2 - n * BIG / 2, Rotation(u, v, n, "ZXY"))
+    return box
+
+
+def fold(shape, b):
+    # shape folded once by a bend dict, mm in its own coords
+    if abs(b["angle"]) < 1e-6:
+        return shape
+    p, d, n = (Vector(*b[key]) for key in ("p", "d", "n"))  # line through p along d, on the face out along n
+    u = n.cross(d) * b["side"]  # into the side that turns
+    a = math.radians(abs(b["angle"]))
+    w = (b["r"] + b["k"] * b["t"]) * a  # flat length the bend eats, on the netural line. r inside radius, t wall
+    keep = shape.cut(half(p, u, n, 0))
+    turns = shape.common(half(p, u, n, 0))
+    rest = turns.common(half(p, u, n, w))
+    # cross section on the line, swept round. a hole the line goes through leaves a gap in it, so it stays open round the bend
+    section = [f for f in turns.Faces if f.Surface.TypeId == "Part::GeomPlane" and abs(abs(f.normalAt(0, 0).dot(u)) - 1) < 1e-6
+               and abs(u.dot(f.CenterOfMass - p)) < 1e-6]
+    if not section or not keep.Solids:
+        raise ValueError("nothing to bend there, the line has to go across the metal with some on both sides")
+    up = 1 if b["angle"] > 0 else -1
+    # inside radius off the clicked face folding toward it, off the far face folding away
+    at = p + n * b["r"] if up > 0 else p - n * (b["t"] + b["r"])
+    axis, deg = u.cross(n), math.degrees(a) * up
+    pieces = [Part.makeCompound(section).revolve(at, axis, deg)]
+    if rest.Solids:
+        rest.translate(-u * w)
+        rest.rotate(at, axis, deg)
+        pieces.append(rest)
+    return keep.fuse(pieces).removeSplitter()

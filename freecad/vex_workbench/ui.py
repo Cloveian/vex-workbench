@@ -1,4 +1,4 @@
-# undo step, wait cursor and the error box around anything that builds parts
+# undo step, wait cursor and the error box around anything that builds parts. and the panels number boxes
 import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtCore, QtWidgets
@@ -23,3 +23,13 @@ def run(title, fn):
         return None
     App.closeActiveTransaction()
     return out
+
+
+def number(lo, hi, suffix, value=0.0, step=1.0, decimals=2):
+    box = QtWidgets.QDoubleSpinBox()
+    box.setRange(lo, hi)
+    box.setDecimals(decimals)
+    box.setSingleStep(step)
+    box.setSuffix(suffix)
+    box.setValue(value)
+    return box

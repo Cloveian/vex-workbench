@@ -1,4 +1,4 @@
-# hole frames + Fixed joints, shaft ends, the screw, spacer and align tools, run with: python tests/test_snap.py (needs FreeCAD + vex-step/)
+# hole frames + Fixed joints, shaft ends, the screw, spacer, align and bend tools, run with: python tests/test_snap.py (needs FreeCAD + vex-step/)
 import math
 import sys
 from pathlib import Path
@@ -304,6 +304,25 @@ try:
     raise AssertionError("lined a group up on itself")
 except ValueError:
     pass
+
+# bending, a plate folded 90 up across its 2.25 hole row. the short side turns, and the bent leg lands where the hand worked numbers say
+from freecad.vex_workbench import bend  # noqa: E402
+
+sheet = library.place(doc, gen["5x10 Steel Plate"])
+flat = library.place(doc, gen["5x10 Steel Plate"])
+doc.recompute()
+b = bend.first(sheet, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)
+assert b["side"] == 1 and abs(b["t"] - 0.046 * IN) < 1e-9, b
+library.rebend(sheet, [b])
+s = Part.getShape(sheet.LinkedObject)
+t, r = 0.046 * IN, 0.032 * IN
+w = (r + 0.44 * t) * math.pi / 2  # flat it eats, on the neutral line
+bb = s.BoundBox
+# inside of the bend r off the top face, so the leg stands at 2.25 - r and goes up 2.25 - w past it
+assert abs(bb.ZMax - (t + r + 2.25 * IN - w)) < 1e-6 and abs(bb.XMin - (2.25 * IN - r - t)) < 1e-6, bb
+assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.LinkedObject).Volume - 1) < 0.002, s.Volume
+# just that copy, and it still counts as a 5x10 plate
+assert sheet.LinkedObject != flat.LinkedObject and sheet.LinkedObject.VexName == flat.LinkedObject.VexName == "5x10 Steel Plate"
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")

@@ -85,10 +85,7 @@ class Panel(snap.Clicks):
 
     def __init__(self):
         p = App.ParamGet(ui.PARAMS)
-        self.angle = QtWidgets.QDoubleSpinBox()
-        self.angle.setRange(-360, 360)
-        self.angle.setSuffix(" deg")
-        self.angle.setValue(p.GetFloat("AlignAngle", 90))
+        self.angle = ui.number(-360, 360, " deg", p.GetFloat("AlignAngle", 90))
         back, ahead = QtWidgets.QPushButton("Rotate -"), QtWidgets.QPushButton("Rotate +")
         back.clicked.connect(lambda: self.turn(-1))
         ahead.clicked.connect(lambda: self.turn(1))
@@ -97,11 +94,7 @@ class Panel(snap.Clicks):
         row.setContentsMargins(0, 0, 0, 0)
         for w in (self.angle, back, ahead):
             row.addWidget(w)
-        self.gap = QtWidgets.QDoubleSpinBox()
-        self.gap.setRange(-36, 36)  # under 0 pushes it in, a shaft end through a hole. a 35 long channel is 17.5
-        self.gap.setDecimals(3)
-        self.gap.setSingleStep(0.125)
-        self.gap.setSuffix(" in")
+        self.gap = ui.number(-36, 36, " in", step=0.125, decimals=3)  # under 0 pushes it in, a shaft end through a hole. a 35 long channel is 17.5
         self.gap.setKeyboardTracking(False)  # one move per typed gap
         self.gap.valueChanged.connect(lambda: self.turn(0))
         self.whole = QtWidgets.QCheckBox("Move its whole group")

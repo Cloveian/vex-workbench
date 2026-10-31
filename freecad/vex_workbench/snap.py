@@ -1,4 +1,4 @@
-# snap to hole: click holes on VEX parts, get a frame on each exact center for Assembly joints. plus the joints and two-click panel screws, spacers and align use
+# snap to hole: click holes on VEX parts, get a frame on each exact center for Assembly joints. plus the joints and the click panel the other tools use
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part

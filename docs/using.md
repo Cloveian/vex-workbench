@@ -37,13 +37,19 @@ Tick **Pick the screw myself** and pick one from the list next to it, then its o
 
 While either panel is open every hole gets an orange point on both sides of the metal, plus the ends of shafts and standoffs. on vex's step parts its only 8-32 sized holes a screw can get to from outside, so the motors get their screw holes and not the vents. click a point and its exactly that hole, a bigger green dot stays on it till the screw or spacers are in (face clicks get one on the hole they picked too). screws, nuts, spacers and washers dont get points, and the points all go away on Close. clicking a face still works too (nearest hole). parts placed, moved or deleted while its open get their points sorted out a moment after.
 
+## Bending
+
+**Bend** folds any VEX metal part on a line through a hole: click the hole (same dots), and it bends there by the **Angle** (90 to start, + folds toward the face you clicked, - away from it). **Line** picks across the length or along it, **Off the hole** slides the line over (0.25 puts it between two rows), and **Other side turns** swaps which side moves, the shorter one moves to start. all of those redo the last bend till you click the next hole. inside radius 0.032 like vex's own bends, so a 90 eats about 0.08" of flat.
+
+Only that one copy bends, the rest stay straight, and it still counts as the straight part in the parts list (thats what you buy). change Holes on it and it keeps its bends. bend before screwing stuff onto it tho, joints on its old holes dont carry over. channels bend too, flanges and all, which real metal wont do without cutting them first, so thats on you :P
+
 ## Parts list
 
 **Parts list** counts every placed VEX part by name into a spreadsheet in the document ("VEX parts list"), with the weight of each and the total. vex's step parts and the license plates have no material, so they show a ? and get counted at the bottom. it counts every element of a link array and every copy of a linked sub-assembly too.
 
 ## Not there yet
 
-bending, the HS lockbar and drilled gears (theres no numbers for those two yet).
+the HS lockbar and drilled gears (theres no numbers for them yet).
 
 ---
 Back to [main index](index.md)

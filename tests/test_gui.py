@@ -1,4 +1,4 @@
-# toolbar, colurs, the parts list, the dock, the screw and align tools and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+# toolbar, colurs, the parts list, the dock, the screw, align and bend tools and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import math
 import os
 import sys
@@ -37,7 +37,7 @@ try:
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
-    assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Parts list"], tools
+    assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Bend", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
     _, gen, steps = library.index()
@@ -313,6 +313,25 @@ try:
     assert (got.Base - at.Base).Length < 1e-9 and abs(got.Rotation.multVec(App.Vector(0, 0, 1)).z + 1) < 1e-9, (got, at)
     p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * IN), App.Rotation())
     doc.recompute()
+    # bend panel, one click on a dot folds a plate there, the angle box redoes that bend and the button turns the other side
+    from freecad.vex_workbench import bend
+    sheet = library.place(doc, gen["5x10 Steel Plate"])
+    sheet.Placement.Base = App.Vector(0, 300, 0)
+    doc.recompute()
+    panel = bend.Panel()
+    Gui.Control.showDialog(panel)
+    panel.across.setCurrentText("Across")
+    panel.off.setValue(0)
+    panel.angle.setValue(90)
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(2.25 * IN, 300 + 0.25 * IN, 0.046 * IN)))
+    QtWidgets.QApplication.processEvents()
+    assert panel.last == sheet and len(library.bends(sheet)) == 1, panel.status.text()
+    up = Part.getShape(sheet.LinkedObject).BoundBox.ZMax
+    panel.angle.setValue(45)
+    assert len(library.bends(sheet)) == 1 and Part.getShape(sheet.LinkedObject).BoundBox.ZMax < up - 1
+    next(w for w in panel.form.findChildren(QtWidgets.QPushButton) if w.text() == "Other side turns").click()
+    assert library.bends(sheet)[0]["side"] == -1 and library.bends(sheet)[0]["angle"] == 45, library.bends(sheet)
+    panel.reject()
     # same in an assembly gets joints, with their view providers
     asm = doc.addObject("Assembly::AssemblyObject", "Assembly")
     asm.Type = "Assembly"

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="8" fill="#c8102e"/>
+  <!-- a bar folded up at a hole, the corner rounded -->
+  <path d="M8 50 L36 50 Q44 50 44 42 L44 10 L54 10 L54 42 Q54 60 36 60 L8 60 Z" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5"/>
+  <rect x="14" y="52" width="6" height="6" rx="1" fill="#3a3f45"/>
+  <rect x="25" y="52" width="6" height="6" rx="1" fill="#3a3f45"/>
+  <rect x="46" y="16" width="6" height="6" rx="1" fill="#3a3f45"/>
+  <rect x="46" y="27" width="6" height="6" rx="1" fill="#3a3f45"/>
+  <path d="M30 40 Q36 34 38 24" fill="none" stroke="#f2c230" stroke-width="3"/>
+  <path d="M33 25 L38 22 L41 28" fill="none" stroke="#f2c230" stroke-width="3"/>
+</svg>

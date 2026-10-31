@@ -1,5 +1,6 @@
 # vex parts in a document. one hidden source per variant, every placed copy is a plain App::Link to it
 import functools
+import json
 
 import FreeCAD as App
 import Part
@@ -95,16 +96,22 @@ def group(doc):
     return g
 
 
-def source(doc, part):
-    name = part["name"]
+def source(doc, part, bends=()):
+    # one per variant and set of bends. a bent one keeps the straight one's VexName, thats what gets bought
+    name, key = part["name"], json.dumps(list(bends)) if bends else ""
     for o in group(doc).Group:
-        if getattr(o, "VexName", None) == name:
+        if getattr(o, "VexName", None) == name and getattr(o, "VexBends", "") == key:
             return o
     s, faces = shape(part)  # first, or no generator leaves an empty source behind
+    for b in bends:
+        s, faces = metal.fold(s, b), None  # vex's face colors dont line up anymore
     src = doc.addObject("App::Part", "VexPart")
-    src.Label = f"{name} source"  # the placed copies get the plain name
+    src.Label = f"{name} source" + (", bent" if bends else "")  # the placed copies get the plain name
     src.addProperty("App::PropertyString", "VexName", "VEX")
     src.VexName = name
+    if key:
+        src.addProperty("App::PropertyString", "VexBends", "VEX")
+        src.VexBends = key
     solid = doc.addObject("Part::Feature", "Solid")
     solid.Shape = s
     p = part.get("params", {})
@@ -191,8 +198,22 @@ def part_of(link):
 
 def retarget(link):
     part = part_of(link)
-    link.LinkedObject = source(link.Document, part)
+    link.LinkedObject = source(link.Document, part, bends(link))
     link.Label = part["name"]
+
+
+def bends(link):
+    # the bends on one placed copy, metal.fold() dicts in order
+    return json.loads(getattr(link, "VexBends", "") or "[]")
+
+
+def rebend(link, done):
+    # just this copy gets its own bent source, the straight one stays for the rest
+    if not hasattr(link, "VexBends"):
+        link.addProperty("App::PropertyString", "VexBends", "VEX")
+        link.setPropertyStatus("VexBends", "Hidden")
+    link.VexBends = json.dumps(done)
+    retarget(link)
 
 
 def cached(src, what):
