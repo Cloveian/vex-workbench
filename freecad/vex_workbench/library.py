@@ -102,9 +102,13 @@ def source(doc, part, bends=()):
     for o in group(doc).Group:
         if getattr(o, "VexName", None) == name and getattr(o, "VexBends", "") == key:
             return o
-    s, faces = shape(part)  # first, or no generator leaves an empty source behind
-    for b in bends:
-        s, faces = metal.fold(s, b), None  # vex's face colors dont line up anymore
+    if bends:
+        # off the straight one, building a 35 long channel from scratch is 1.6 s. vex's face colors dont survive a fold
+        s, faces = Part.getShape(source(doc, part)), None
+        for b in bends:
+            s = metal.fold(s, b)
+    else:
+        s, faces = shape(part)  # first, or no generator leaves an empty source behind
     src = doc.addObject("App::Part", "VexPart")
     src.Label = f"{name} source" + (", bent" if bends else "")  # the placed copies get the plain name
     src.addProperty("App::PropertyString", "VexName", "VEX")
