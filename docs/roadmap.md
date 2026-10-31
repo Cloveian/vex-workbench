@@ -17,6 +17,8 @@ in build order, each one is something i can open and poke at
 ## Later
 - [x] Screw and nut tool. pick two lined up holes, it works out the stack and the screw
 	two clicks gives the screw + nut now, jointed to the holes in an assembly. or into a thread with no nut, and spacers in the gaps
+- [x] Align tool. hole on the part to move, then the hole it goes against
+	faces land flat, keeps its turn to the nearest step, Rotate / Gap after. moves a link array whole, or the group its in. Revolute joint in an assembly, swapped out if its aligned again
 - [ ] Bending metal
 
 ## Still need numbers for
