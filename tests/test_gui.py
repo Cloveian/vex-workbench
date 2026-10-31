@@ -323,12 +323,13 @@ try:
     yaw = swing.Placement.Rotation.toEuler()[0]
     panel.turn(1)
     assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 90) < 1e-6, (yaw, swing.Placement)
-    # turned another 45 in the joint panel, the next Rotate + goes on from there
+    # turned another 45 and gapped 0.125 in the joint panel, the next Rotate + goes on from there and keeps the gap
     j = panel.last["joint"]
-    j.Offset2 = App.Placement(j.Offset2.Base, App.Rotation(j.Offset2.Rotation.toEuler()[0] + 45, 0, 0))
+    j.Offset2 = App.Placement(App.Vector(0, 0, 0.125 * IN), App.Rotation(j.Offset2.Rotation.toEuler()[0] + 45, 0, 0))
     doc.recompute()
     panel.turn(1)
     assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 225) < 1e-6, (yaw, swing.Placement)
+    assert abs(panel.gap.value() - 0.125) < 1e-9 and abs(j.Offset2.Base.z - 0.125 * IN) < 1e-9, (panel.gap.value(), j.Offset2)
     panel.reject()
     say("ok")
     failed = False
