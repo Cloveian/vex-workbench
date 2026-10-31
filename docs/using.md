@@ -41,7 +41,7 @@ While either panel is open every hole gets an orange point on both sides of the 
 
 **Bend** folds any VEX metal part on a line through a hole: click the hole (same dots), and it bends there by the **Angle** (90 to start, + folds toward the face you clicked, - away from it). **Line** picks across the length or along it, **Off the hole** slides the line over (0.25 puts it between two rows), and **Other side turns** swaps which side moves, the shorter one moves to start. all of those redo the last bend till you click the next hole. inside radius 0.032 like vex's own bends, so a 90 eats about 0.08" of flat.
 
-Only that one copy bends, the rest stay straight, and it still counts as the straight part in the parts list (thats what you buy). change Holes on it and it keeps its bends. bend before screwing stuff onto it tho, joints on its old holes dont carry over. channels bend too, flanges and all, which real metal wont do without cutting them first, so thats on you :P
+Only that one copy bends, the rest stay straight, and it still counts as the straight part in the parts list (thats what you buy). change Holes on it and it keeps its bends. bend before screwing stuff onto it tho, joints on its old holes dont carry over. channels bend too, flanges and all, which real metal wont do without cutting them first, so thats on you :P. only away from the flanges tho, folding the web into its own flanges gets refused (angles the same with their other leg)
 
 ## Parts list
 

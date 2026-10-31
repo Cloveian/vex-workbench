@@ -244,10 +244,18 @@ def fold(shape, b):
     up = 1 if b["angle"] > 0 else -1
     # inside radius off the clicked face folding toward it, off the far face folding away
     at = p + n * b["r"] if up > 0 else p - n * (b["t"] + b["r"])
+    # a channel's flanges reach past the axis folding the web toward them, the sweep turns inside out
+    reach = [up * n.dot(v.Point - at) for f in section for v in f.Vertexes]
+    if max(reach) > 1e-6:
+        raise ValueError("that would fold it through itself, a flange or another wall is in the way. try the other way, or cut it off first")
     axis, deg = u.cross(n), math.degrees(a) * up
     pieces = [Part.makeCompound(section).revolve(at, axis, deg)]
     if rest.Solids:
         rest.translate(-u * w)
         rest.rotate(at, axis, deg)
         pieces.append(rest)
-    return keep.fuse(pieces).removeSplitter()
+    out = keep.fuse(pieces).removeSplitter()
+    # anything else that collapes comes back as nothing or a sliver, still isValid
+    if len(out.Solids) != 1 or not 0.8 < out.Volume / shape.Volume < 1.5:
+        raise ValueError("that bend came out broken, try it a little different")
+    return out

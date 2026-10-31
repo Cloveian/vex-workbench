@@ -306,7 +306,7 @@ except ValueError:
     pass
 
 # bending, a plate folded 90 up across its 2.25 hole row. the short side turns, and the bent leg lands where the hand worked numbers say
-from freecad.vex_workbench import bend, partslist  # noqa: E402
+from freecad.vex_workbench import bend, metal, partslist  # noqa: E402
 
 sheet = library.place(doc, gen["5x10 Steel Plate"])
 flat = library.place(doc, gen["5x10 Steel Plate"])
@@ -332,6 +332,17 @@ assert abs(App.Vector(*b2["d"]).z) < 1e-9 and abs(abs(App.Vector(*b2["d"]).y) - 
 library.rebend(sheet, [b, b2])
 s = Part.getShape(sheet.LinkedObject)
 assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.LinkedObject).Volume - 1) < 0.004, s.Volume
+# a channel bends away from its flanges, folding the web into them gets refused
+ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
+doc.recompute()
+web = next(c for c in library.screw_holes(ch) if abs(c.z) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
+out = metal.fold(Part.getShape(ch.LinkedObject), bend.first(ch, web, True, 0, 90))
+assert len(out.Solids) == 1, out
+try:
+    metal.fold(Part.getShape(ch.LinkedObject), bend.first(ch, web, True, 0, -90))
+    raise AssertionError("folded a channel into its own flanges")
+except ValueError:
+    pass
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")
