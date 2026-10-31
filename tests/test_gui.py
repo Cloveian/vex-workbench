@@ -282,6 +282,16 @@ try:
     assert abs(got.Base.z - at.Base.z - 0.25 * IN) < 1e-9, got.Base
     assert abs(got.Rotation.multVec(App.Vector(1, 0, 0)).dot(x0) - math.cos(math.radians(45))) < 1e-9
     panel.reject()
+    # a link array moves whole, so the hole on element 1 (100 over in the array) lands
+    hole = library.screw_holes(arr)[0]
+
+    def elem():
+        return (arr, hole, arr.getSubObject("1.", retType=3), (arr, "1."))
+
+    align.align(elem(), (p1, up, p1.Placement, (p1, "")), 0)
+    doc.recompute()
+    at, got = snap.hole((p1, up, p1.Placement, (p1, "")))[1], snap.hole(elem())[1]
+    assert (got.Base - at.Base).Length < 1e-9 and abs(got.Rotation.multVec(App.Vector(0, 0, 1)).z + 1) < 1e-9, (got, at)
     p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * IN), App.Rotation())
     doc.recompute()
     # same in an assembly gets joints, with their view providers
