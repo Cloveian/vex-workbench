@@ -323,6 +323,13 @@ assert abs(bb.ZMax - (t + r + 2.25 * IN - w)) < 1e-6 and abs(bb.XMin - (2.25 * I
 assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.LinkedObject).Volume - 1) < 0.002, s.Volume
 # just that copy, and it still counts as a 5x10 plate
 assert sheet.LinkedObject != flat.LinkedObject and sheet.LinkedObject.VexName == flat.LinkedObject.VexName == "5x10 Steel Plate"
+# a second bend on the leg that now stands square to x, its length is the first bend's face normal. across it is still across
+up = max(library.screw_holes(sheet), key=lambda c: c.z)
+b2 = bend.first(sheet, up, True, 0, 90)
+assert abs(App.Vector(*b2["d"]).z) < 1e-9 and abs(abs(App.Vector(*b2["d"]).y) - 1) < 1e-9, b2["d"]
+library.rebend(sheet, [b, b2])
+s = Part.getShape(sheet.LinkedObject)
+assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.LinkedObject).Volume - 1) < 0.004, s.Volume
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")

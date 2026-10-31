@@ -325,12 +325,15 @@ try:
     panel.angle.setValue(90)
     Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(2.25 * IN, 300 + 0.25 * IN, 0.046 * IN)))
     QtWidgets.QApplication.processEvents()
-    assert panel.last == sheet and len(library.bends(sheet)) == 1, panel.status.text()
+    assert panel.last == (sheet, 1) and len(library.bends(sheet)) == 1, panel.status.text()
     up = Part.getShape(sheet.LinkedObject).BoundBox.ZMax
     panel.angle.setValue(45)
     assert len(library.bends(sheet)) == 1 and Part.getShape(sheet.LinkedObject).BoundBox.ZMax < up - 1
     next(w for w in panel.form.findChildren(QtWidgets.QPushButton) if w.text() == "Other side turns").click()
     assert library.bends(sheet)[0]["side"] == -1 and library.bends(sheet)[0]["angle"] == 45, library.bends(sheet)
+    # the redos dont leave old bent sources lying around
+    bent = [o for o in library.group(doc).Group if getattr(o, "VexBends", "")]
+    assert bent == [sheet.LinkedObject], [o.Label for o in bent]
     panel.reject()
     # same in an assembly gets joints, with their view providers
     asm = doc.addObject("Assembly::AssemblyObject", "Assembly")

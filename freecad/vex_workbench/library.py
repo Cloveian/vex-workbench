@@ -212,13 +212,19 @@ def rebend(link, done):
     if not hasattr(link, "VexBends"):
         link.addProperty("App::PropertyString", "VexBends", "VEX")
         link.setPropertyStatus("VexBends", "Hidden")
+    was = link.LinkedObject
     link.VexBends = json.dumps(done)
     retarget(link)
+    # a bent source nothing links anymore, every redo of a bend would leave one
+    if was != link.LinkedObject and getattr(was, "VexBends", "") and not [o for o in was.InList if o.isDerivedFrom("App::Link")]:
+        for o in was.Group:
+            link.Document.removeObject(o.Name)
+        link.Document.removeObject(was.Name)
 
 
 def cached(src, what):
-    # what(shape) for a source, worked out once. a source never changes, a reused object name comes with another VexName
-    key = (src.Document.Uid, src.Name, src.VexName, what)
+    # what(shape) for a source, worked out once. a source never changes, a reused object name comes with another VexName or VexBends
+    key = (src.Document.Uid, src.Name, src.VexName, getattr(src, "VexBends", ""), what)
     if key not in CACHE:
         CACHE[key] = what(Part.getShape(src))
     return CACHE[key]
