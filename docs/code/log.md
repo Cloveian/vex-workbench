@@ -1,5 +1,22 @@
 # Log
 
+## 2026-10-31 - align
+
+- screws, nuts and spacers sit on Revolute joints now, not Fixed, so they can spin. snap.revolute() puts any gap in Offset2, cuz thats what the joint panel's offset box edits (Offset1 just showed as 0 there)
+- Align tool. hole on the part to move, then the hole it goes against, faces land flat. it keeps the turn the part already had, rounded to the angle box (atan2 of the old x against the target's x and y, after the face to face flip), then Rotate -/+ and a gap box. gap under 0 pushes it in, so a shaft end goes through a hole
+- a link array moves whole from any element's hole, and "Move its whole group" moves the top Part under the active assembly instead, all the same math: frame = world(thing that moves)^-1 * the hole's world frame
+- aligning something again swaps out its old align joint (tagged VexAlign), the old one just dragged it back on the next solve
+- nuts lost the "#8-32" and "(8-32, Steel)", hex screws are out of the screw tool, shoulder screws next once i know how the shoulder should fit
+
+## 2026-10-30 - dots
+
+- screws go into threads with no nut (standoffs, motors), and a spacer tool for boxed channel, both earlier that day
+- the screw and spacer panels put orange dots on every screw hole, both sides of the metal, and a green one stays on what you picked. FreeCAD's own select highlight on a point was gone the second the mouse left it. dots refresh 100 ms after anything moves, gets placed or deleted, and stay out of the file on save (a save that fails too, no finish signal for that)
+- screw holes = 8-32 round or ~0.182 square, open to the outside (a ray out of it), one per hole and side, and not when most of 5 rays down it stop in under 1/4 (the 11W case screws have heads 0.05 in). worked out once and kept on the source. 11W and 5.5W both get just their 2 front holes. the 11W takes ~3.4 s the first time, its 4773 faces
+- screw placing 4.1 -> 0.4 s on 5x25 plates. f.OuterWire gets worked out again on *every* call, and holes() asked for it once per wire, so 250 holes on a face was 250 of them. 0.8 s -> 0.09 for holes() alone, plus hole loops and face boxes cached per source
+- RootObjects leaves out a sub-assembly once something links to it, and RootObjectsIgnoreLinks does too once a link array's elements do. the parts list and the dots share library.roots() now, the old parts list filter. link array elements say Visibility False in the gui, the array's isElementVisible() is what counts
+- star screw heads get vex's color code, 0.290 yellow to 2.500 brown, sampled off the pack picture. seam lines on round stuff get drawn in the face color instead of going Shaded, Shaded lost the spacer ends too and you couldnt tell where one stopped
+
 ## 2026-10-29 - screws
 
 - screw tool. click the head side hole, then the nut side, shortest screw thats all the way through the nut + the nut. star or hex and which nut are in the panel, kept in prefs. vex's step nuts get stood up with derived.upright() same as ours. inside an assembly both get a Fixed joint to their hole, their frames sit right on the hole frames so solving moves nothing
