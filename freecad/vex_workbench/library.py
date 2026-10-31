@@ -16,6 +16,7 @@ HOLE_MIN, HOLE_MAX = 0.1 * metal.IN, 0.5 * metal.IN
 ROUND = 0.125 * metal.IN, 0.2 * metal.IN
 SQUARE = 0.17 * metal.IN, 0.2 * metal.IN
 OUT = 0.001 * metal.IN  # mm, the open-to-outside ray starts this far off the face
+MIN_THREAD = 0.25 * metal.IN  # mm, least a screw takes in a thread
 SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 CACHE = {}
@@ -237,6 +238,21 @@ def hits(faces, start, d, far):
     return [t for i, t in enumerate(out) if i == 0 or t - out[i - 1] > 1e-6]
 
 
+def square_to(n):
+    # x and y square to n, x along the length if it can
+    x = Vector(1, 0, 0) - n * n.x
+    if x.Length < 1e-6:
+        x = Vector(0, 1, 0) - n * n.y
+    x.normalize()
+    return x, n.cross(x)
+
+
+def down(faces, start, z, r, far):
+    # first hit of 5 rays down -z from start, one on the axis and 4 at r off it. None where it opens into nothing
+    x, y = square_to(z)
+    return [next(iter(hits(faces, start + v * r, -z, far)), None) for v in (Vector(), x, -x, y, -y)]
+
+
 def screwable(w):
     # 8-32 sized round loop, or a square one. channel corners are rounded, plate ones arent
     sides = [e.Length for e in w.Edges if e.Curve.TypeId == "Part::GeomLine"]
@@ -269,6 +285,12 @@ def outermost(shape, rays):
     for w, c, n in sorted(holes(shape), key=lambda h: -h[1].dot(h[2])):
         if not screwable(w) or rays and hits(faces, c + n * OUT, n, far):
             continue
+        if rays:
+            # most of the rays down it stopping short means somethings in it, the 11W's case screw heads are 0.05 down
+            half = max(w.BoundBox.XLength, w.BoundBox.YLength, w.BoundBox.ZLength) / 2
+            short = [t for t in down(faces, c - n * OUT, n, half / 2, far) if t is not None and t < MIN_THREAD]
+            if len(short) >= 3:
+                continue
         key = tuple(round(v, 2) for v in (*n, *(c - n * c.dot(n))))
         # the 5.5W has its thread at the face and a wider loop 0.042 under it. a channel's other flange is its own hole
         if all(o.dot(n) - c.dot(n) > SAME_HOLE for o in kept.get(key, [])):
@@ -280,10 +302,8 @@ def hole_frame(link, point):
     # LCS on the hole from hole_at, z out of the face, x along the length if it can
     # it goes in the source so every copy has it
     center, n = hole_at(link, point)
-    x = Vector(1, 0, 0) - n * n.x
-    if x.Length < 1e-6:
-        x = Vector(0, 1, 0) - n * n.y
-    return frame(link, Placement(center, Rotation(x, n.cross(x), n, "ZXY")))
+    x, y = square_to(n)
+    return frame(link, Placement(center, Rotation(x, y, n, "ZXY")))
 
 
 def hole_at(link, point):

@@ -12,10 +12,9 @@ KINDS = {"Star": "star-screw", "Hex": "hex-screw"}
 NUT_FOLDER = "Hardware/Nuts/8-32 Nuts"
 NO_NUT = "No nut"
 TAPPED = 0.164 * IN  # mm, 8-32 major. a screw doesnt go through anything smaller so its a thread. 5.5W motor 0.136, 11W 0.1596 lead in
-THREAD = 0.375 * IN, 0.25 * IN  # mm in the thread, what it aims for and the least it takes
+THREAD = 0.375 * IN, library.MIN_THREAD  # mm in the thread, what it aims for and the least it takes
 LEAD = 0.01 * IN  # mm, probes start this far in past the face
 X = Vector(1, 0, 0)
-Y = Vector(0, 1, 0)
 
 
 def nuts():
@@ -53,15 +52,15 @@ def bore(link, f):
     far = Part.getShape(src).BoundBox.DiagonalLength
     faces = library.cached(src, library.boxed)
     r = f.Placement.Rotation
-    x, y, z = r.multVec(X), r.multVec(Y), r.multVec(snap.Z)
+    x, z = r.multVec(X), r.multVec(snap.Z)
     start = f.Placement.Base - z * LEAD
     # the loop it was found on, a ray across catches the thread bts in the 11W step. stock parts have none, theyre clean
     loops = [w.BoundBox for w, c, _ in library.cached(src, library.holes) if (c - f.Placement.Base).Length < 1e-6]
     half = max(loops[0].XLength, loops[0].YLength, loops[0].ZLength) / 2 if loops else library.hits(faces, start, x, far)[0]
     # 5 rays down the hole, theyre all stopped by a bottom. the 11W step has bits of thread in there that stop some
-    ends = [library.hits(faces, start + v * half / 2, -z, far)[:1] for v in (Vector(), x, -x, y, -y)]
-    if all(ends):
-        return 2 * half, max(t for t, in ends) + LEAD
+    ends = library.down(faces, start, z, half / 2, far)
+    if None not in ends:
+        return 2 * half, max(ends) + LEAD
     # through, how long the wall around it is
     wall = library.hits(faces, start + x * half * 1.3, -z, far)
     return 2 * half, wall[0] + LEAD if wall else None

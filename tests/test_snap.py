@@ -206,11 +206,11 @@ assert screws.tapped(motor, across) and abs(deep / IN - 0.75) < 0.01, (across / 
 pts = sorted(library.screw_holes(motor), key=lambda c: c.z)
 assert [(round(c.y / IN, 3), round(c.z / IN, 3)) for c in pts] == [(-1.58, 0.124), (-1.58, 0.624)], pts
 assert screws.bore(motor, library.hole_frame(motor, pts[0])) == (across, deep)
-# 11W front two at z 1.768 + its 4 case screws, none of the loops facing into it
+# 11W just its front two at z 1.768. none of the loops facing into it, none on the case screw holes with a head 0.05 down
 big = library.place(doc, steps["Electronics/V5 Smart Motor (276-4840).step"])
 doc.recompute()
 pts = library.screw_holes(big)
-assert len(pts) == 6 and sorted(round(c.x / IN, 3) for c in pts if abs(c.z / IN - 1.768) < 1e-3) == [-0.5, 0], pts
+assert sorted((round(c.x / IN, 3), round(c.z / IN, 3)) for c in pts) == [(-0.5, 1.768), (0, 1.768)], pts
 # both sides of both flanges on a channel, the inside ones are where boxed channel spacers go
 ch = library.place(doc, gen["1x2x1x25 Steel C-Channel"])
 doc.recompute()

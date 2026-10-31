@@ -11,7 +11,7 @@ in build order, each one is something i can open and poke at
 - [x] **Snap to hole**. click a hole, frame at its exact center. two channels jointed hole to hole should be 0 apart
 - [x] **The other generators**: shafts, standoffs, spacers, washers, nuts (thin nylock = vex nylock shaved to 11/64), torx button screws, shoulder screws. each checked against its step where there is one
 - [ ] **Hole finding on step parts**, the 0.182 square and 8-32 round holes, so motors and gears snap too
-	works on click already, any inner loop up to 0.5" on a flat face picked by distance to the loop (58 of 58 on the motor's screw hole edges). the screw and spacer panels put points on just the screw holes (8-32 round or ~0.182 square, open to the outside, one per hole and side), worked out the first time a part needs them and kept on its source. 11W gets 6, 5.5W 2. a face click near a vent can still grab the vent
+	works on click already, any inner loop up to 0.5" on a flat face picked by distance to the loop (58 of 58 on the motor's screw hole edges). the screw and spacer panels put points on just the screw holes (8-32 round or ~0.182 square, open to the outside, one per hole and side), worked out the first time a part needs them and kept on its source. 11W and 5.5W get their 2 front ones (the 11W's case screw holes have heads in them 0.05 down, so no). a face click near a vent can still grab the vent
 - [x] Extras like colors per material, weight, a parts list
 
 ## Later
