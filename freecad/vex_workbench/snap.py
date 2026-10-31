@@ -11,6 +11,7 @@ Z = Vector(0, 0, 1)
 OFF_AXIS = 0.01  # mm
 UNMARKED = ("Hardware/Screws", "Hardware/Nuts", "Motion/Spacers")  # what the tools put in
 MARK_SIZE = 9  # px
+PICK_SIZE = 14  # px, drawn over the orange one
 
 
 def spot(root, sub, pt):
@@ -117,16 +118,32 @@ class Clicks:
         lay.addRow(self.status)
         self.first = None
         self.doc = App.ActiveDocument
-        self.marks = self.doc.addObject("Part::Feature", "VexHoles")
-        if self.marks.ViewObject:
-            vo = self.marks.ViewObject
-            vo.PointSize = MARK_SIZE
-            vo.PointColor = (1.0, 0.35, 0.1)
-            vo.ShowInTree = False
-            vo.OnTopWhenSelected = "Element"
+        self.marks = self.dots("VexHoles", MARK_SIZE, (1.0, 0.35, 0.1))
+        # the select highlight on these goes when the mouse leaves
+        self.lit = self.dots("VexPicked", PICK_SIZE, (0.1, 0.9, 0.2))
+        if self.lit.ViewObject:
+            self.lit.ViewObject.Selectable = False  # clicks go through to the orange ones
         self.mark()
         self.ask()
         Gui.Selection.addObserver(self)
+
+    def dots(self, name, size, color):
+        o = self.doc.addObject("Part::Feature", name)
+        if o.ViewObject:
+            o.ViewObject.PointSize = size
+            o.ViewObject.PointColor = color
+            o.ViewObject.ShowInTree = False
+        return o
+
+    def light(self, spots):
+        # picked holes in green till the screw or spacers are in
+        pts = []
+        for link, pt, plc, _ in spots:
+            try:
+                pts.append(plc.multVec(library.hole_at(link, pt)[0]))
+            except ValueError:
+                pass  # part with no holes, act() says so
+        self.lit.Shape = Part.Compound([Part.Vertex(p) for p in pts])
 
     def mark(self):
         # a point on every screw hole and stock end, Vertex<i+1> is spots[i]
@@ -152,8 +169,10 @@ class Clicks:
             return
         if self.first is None:
             self.first = s
+            self.light([s])
         else:
             a, self.first = self.first, None
+            self.light([a, s])
             # not inside the selection callback, it changes the doc
             QtCore.QTimer.singleShot(0, lambda: self.done(a, s))
         self.ask()
@@ -163,13 +182,15 @@ class Clicks:
         if said:
             self.ask(said + "\n")
         Gui.Selection.clearSelection()
+        self.light([])
 
     def getStandardButtons(self):
         return QtWidgets.QDialogButtonBox.Close
 
     def reject(self):
         Gui.Selection.removeObserver(self)
-        self.doc.removeObject(self.marks.Name)
+        for o in (self.marks, self.lit):
+            self.doc.removeObject(o.Name)
         Gui.Control.closeDialog()
         return True
 

@@ -268,8 +268,17 @@ def outermost(shape, rays):
 
 
 def hole_frame(link, point):
-    # LCS on the exact center of the hole nearset point (link coords), z out of the face, x along the length if it can
+    # LCS on the hole from hole_at, z out of the face, x along the length if it can
     # it goes in the source so every copy has it
+    center, n = hole_at(link, point)
+    x = Vector(1, 0, 0) - n * n.x
+    if x.Length < 1e-6:
+        x = Vector(0, 1, 0) - n * n.y
+    return frame(link, Placement(center, Rotation(x, n.cross(x), n, "ZXY")))
+
+
+def hole_at(link, point):
+    # (center, outward normal) of the hole nearest point, link coords
     src = link.LinkedObject
     if getattr(link, "VexFamily", None) in stock.FAMILIES:
         # shafts have no loop to find, the end nearer the click
@@ -284,10 +293,7 @@ def hole_frame(link, point):
         v = Part.Vertex(point)
         near = [h for h in found if (h[1] - point).Length < HOLE_MAX] or found
         _, center, n = exact[0] if exact else min(near, key=lambda h: h[0].distToShape(v)[0])
-    x = Vector(1, 0, 0) - n * n.x
-    if x.Length < 1e-6:
-        x = Vector(0, 1, 0) - n * n.y
-    return frame(link, Placement(center, Rotation(x, n.cross(x), n, "ZXY")))
+    return center, n
 
 
 def frame(link, plc, name="Hole"):

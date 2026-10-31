@@ -154,14 +154,18 @@ try:
         return next(f"Vertex{k + 1}" for k, v in enumerate(panel.marks.Shape.Vertexes) if (v.Point - at).Length < 1e-6)
 
     before = set(doc.Objects)
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.25, 0.25, 0.046) * IN))
+    first = App.Vector(3.25, 0.25, 0.046) * IN
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(first))
+    # the picked one stays green, and goes once the screw is in
+    assert [(v.Point - first).Length < 1e-6 for v in panel.lit.Shape.Vertexes] == [True], panel.lit.Shape.Vertexes
     Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.25, 0.25, -0.046) * IN))
     QtWidgets.QApplication.processEvents()
     got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
     assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], (got, panel.status.text())
-    marks = panel.marks.Name
+    assert not panel.lit.Shape.Vertexes
+    dots = [panel.marks.Name, panel.lit.Name]
     panel.reject()
-    assert doc.getObject(marks) is None
+    assert not any(doc.getObject(n) for n in dots)
     # spacer panel, the plates 0.25 apart now
     from freecad.vex_workbench import spacers
     p2.Placement = App.Placement(App.Vector(0, 0, -0.296 * IN), App.Rotation())
