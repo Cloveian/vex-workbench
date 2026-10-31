@@ -104,8 +104,8 @@ def inside(parent):
     return local, parent if parent and parent.isDerivedFrom("Assembly::AssemblyObject") else None
 
 
-def revolute(asm, r1, r2, gap=0):
-    # spins on the hole axis, r2 frame held gap mm back from r1. gap goes in Offset2, what the joint panel's offset box shows
+def revolute(asm, r1, r2, gap=0, spin=0):
+    # spins on the hole axis, r2 frame held gap mm back from r1 and turned spin deg
     import JointObject
     import UtilsAssembly
     if r1 is None or r2 is None:
@@ -114,9 +114,14 @@ def revolute(asm, r1, r2, gap=0):
     JointObject.Joint(j, JointObject.JointTypes.index("Revolute"))
     if j.ViewObject:
         JointObject.ViewProviderJoint(j.ViewObject)
-    j.Offset2 = App.Placement(Vector(0, 0, gap), App.Rotation())
+    j.Offset2 = offset(gap, spin)
     j.Proxy.setJointConnectors(j, [r1, r2])
     return j
+
+
+def offset(gap, spin):
+    # Offset2 for a revolute, what the joint panel's offset and rotation boxes show
+    return App.Placement(Vector(0, 0, gap), App.Rotation(Z, -spin))
 
 
 class Clicks:

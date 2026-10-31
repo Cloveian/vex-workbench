@@ -306,6 +306,24 @@ try:
     js = [j for j in asm.OutListRecursive if hasattr(j, "JointType")]
     assert sorted(j.Reference2[0].Name for j in js) == sorted([sc.Name, nut.Name]), js
     assert all(j.ViewObject.Proxy for j in js)
+    # align panel with the assembly active, Rotate + has to get through the joint's presolve
+    import JointObject
+    import UtilsAssembly
+    JointObject.GroundedJoint(UtilsAssembly.getJointGroup(asm).newObject("App::FeaturePython", "Ground"), p1)
+    swing = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
+    doc.recompute()
+    Gui.ActiveDocument.ActiveView.setActiveObject("part", asm)
+    panel = align.Panel()
+    Gui.Control.showDialog(panel)
+    panel.angle.setValue(90)
+    panel.gap.setValue(0)
+    hole = library.screw_holes(swing)[0]
+    panel.act((swing, hole, asm.getSubObject(swing.Name + ".", retType=3), (asm, swing.Name + ".")),
+              (p1, App.Vector(3.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
+    yaw = swing.Placement.Rotation.toEuler()[0]
+    panel.turn(1)
+    assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 90) < 1e-6, (yaw, swing.Placement)
+    panel.reject()
     say("ok")
     failed = False
 except Exception:

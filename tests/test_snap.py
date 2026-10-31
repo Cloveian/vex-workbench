@@ -234,13 +234,26 @@ def where(link, pt, up=""):
 had = len(joints.Group)
 target = where(p1, App.Vector(3.25, 0.25, 0.046) * IN)
 s = align.align(where(bar, first), target, 0.25 * IN, asm)
-align.put(s["moved"], s["frame"], s["parent"], s["at"], 0.25 * IN, 30)
+doc.recompute()
+z, x = (lambda p: p.Rotation.multVec(App.Vector(0, 0, 1))), (lambda p: p.Rotation.multVec(App.Vector(1, 0, 0)))
+
+
+def turned(spin):
+    # hole x on the bar at that spin, after the face to face flip
+    a = math.radians(spin)
+    return x(at) * math.cos(a) - at.Rotation.multVec(App.Vector(0, 1, 0)) * math.sin(a)
+
+
+# the joint's presolve keeps the turn it came with, then a turn to 30 goes through the joint too
+(_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
+assert (x(got) - turned(s["spin"])).Length < 1e-9, (s["spin"], x(got))
+s["spin"] = 30
+align.turn(s, 0.25 * IN)
 doc.recompute()
 (_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
-z, x = (lambda p: p.Rotation.multVec(App.Vector(0, 0, 1))), (lambda p: p.Rotation.multVec(App.Vector(1, 0, 0)))
 d = got.Base - at.Base
 assert abs(d.dot(z(at)) - 0.25 * IN) < 1e-9 and d.cross(z(at)).Length < 1e-9, d
-assert abs(z(got).dot(z(at)) + 1) < 1e-9 and abs(x(got).dot(x(at)) - math.cos(math.radians(30))) < 1e-9, (z(got), x(got))
+assert abs(z(got).dot(z(at)) + 1) < 1e-9 and (x(got) - turned(30)).Length < 1e-9, (z(got), x(got))
 new = joints.Group[had:]
 assert [j.JointType for j in new] == ["Revolute"] and abs(new[0].Offset2.Base.z - 0.25 * IN) < 1e-9, new
 got = moved([p1, p2, bar])

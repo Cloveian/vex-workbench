@@ -53,18 +53,27 @@ def align(mover, target, gap, active=None, whole=False, step=0):
     parent = world.multiply(obj.Placement.inverse())
     spin = spun(hole, at, step)
     put(obj, frame, parent, at, gap, spin)
-    joint = asm and rejoint(asm, snap.ref(asm, target, ft), snap.ref(asm, mover, fm), gap)
+    joint = asm and rejoint(asm, snap.ref(asm, target, ft), snap.ref(asm, mover, fm), gap, spin)
     return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": spin, "joint": joint}
 
 
-def rejoint(asm, r1, r2, gap):
+def turn(s, gap):
+    # s from align() put at its spin and gap. the joint's presolve undoes a plain move
+    j = s["joint"]
+    if j and j in s["moved"].Document.Objects:
+        j.Offset2 = snap.offset(gap, s["spin"])
+    else:
+        put(s["moved"], s["frame"], s["parent"], s["at"], gap, s["spin"])
+
+
+def rejoint(asm, r1, r2, gap, spin):
     # one align joint per moving piece, an older one would drag it back
     import UtilsAssembly
     if r2:
         for j in UtilsAssembly.getJointGroup(asm).Group:
             if getattr(j, "VexAlign", False) and j.Reference2 and j.Reference2[0] == r2[0]:
                 asm.Document.removeObject(j.Name)
-    j = snap.revolute(asm, r1, r2, gap)
+    j = snap.revolute(asm, r1, r2, gap, spin)
     if j:
         j.addProperty("App::PropertyBool", "VexAlign", "VEX")
         j.VexAlign = True
@@ -121,14 +130,9 @@ class Panel(snap.Clicks):
             return
         if way:
             App.ParamGet(ui.PARAMS).SetFloat("AlignAngle", self.angle.value())
-        s["spin"] += way * self.angle.value()
+        s["spin"] -= way * self.angle.value()  # + is counterclockwise looking at the face it went against, same as the joint's rotation box
         gap = self.gap.value() * IN
-
-        def move():
-            put(s["moved"], s["frame"], s["parent"], s["at"], gap, s["spin"])
-            if s["joint"] in self.doc.Objects:
-                s["joint"].Offset2 = Placement(Vector(0, 0, gap), Rotation())
-        ui.run("Turn VEX part", move)
+        ui.run("Turn VEX part", lambda: turn(s, gap))
         s["moved"].Document.recompute()
 
 
