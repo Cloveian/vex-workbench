@@ -10,23 +10,23 @@ in build order, each one is something i can open and poke at
 - [x] **Part browser + insert** - common families at the root, fusion folders under. step parts imported once and linked after
 - [x] **Snap to hole**. click a hole, frame at its exact center. two channels jointed hole to hole should be 0 apart
 - [x] **The other generators**: shafts, standoffs, spacers, washers, nuts (thin nylock = vex nylock shaved to 11/64), torx button screws, shoulder screws. each checked against its step where there is one
-- [ ] **Hole finding on step parts**, the 0.182 square and 8-32 round holes, so motors and gears snap too
+- [x] **Hole finding on step parts**, the 0.182 square and 8-32 round holes, so motors and gears snap too
 	works on click already, any inner loop up to 0.5" on a flat face picked by distance to the loop (58 of 58 on the motor's screw hole edges). the screw and spacer panels put points on just the screw holes (8-32 round or ~0.182 square, open to the outside, one per hole and side), worked out the first time a part needs them and kept on its source. 11W and 5.5W get their 2 front ones (the 11W's case screw holes have heads in them 0.05 down, so no). a face click near a vent can still grab the vent
 - [x] Extras like colors per material, weight, a parts list
 
 ## Later
-- [ ] Screw and nut tool. pick two lined up holes, it works out the stack and the screw
+- [x] Screw and nut tool. pick two lined up holes, it works out the stack and the screw
 	two clicks gives the screw + nut now, jointed to the holes in an assembly. or into a thread with no nut, and spacers in the gaps
 - [ ] Bending metal
 
 ## Still need numbers for
 - [x] bend radius
-- [ ] 1x1 angle variants (Regular 2-Wide, Thick 5-Wide, Thin 5-Wide). only fusion has them, as f3d
+- [x] 1x1 angle variants: the official one, plus a 3x c-channel cut down the middle, along the middle hole's edge or between holes. ~~Regular 2-Wide, Thick 5-Wide, Thin 5-Wide, only fusion has them, as f3d~~ (still to make)
 - [ ] is aluminum c-channel really the steel shape? vex's al steps arent
 - [ ] which metal comes in which material (al bar? steel U-channel? steel 1x1? steel 3x c-channel?)
 - [ ] flange nuts (nylon, nylock), wing nut
 - [ ] HS spacer bore clearance
-- [ ] which spacer OD / length combos actually exist
+- [x] which spacer OD / length combos actually exist: whatever robosource sells is fine
 - [ ] drilled gear hole pattern
 - [ ] HS lockbar
 - [ ] are the nylon / aluminum hex nuts just the steel shape

@@ -7,7 +7,7 @@ Pick the VEX workbench and hit **VEX parts** to open the dock. The families are 
 
 - the first time a variant gets placed it has to be built, a 35 long channel takes a few seconds (theres a wait cursor). after that its instant, every copy in that file links to the same source
 - a placed part has its options in its properties, under VEX. change Holes or Size or whatever and *just that one* swaps to the other variant, the rest stay put
-- vex's step parts keep vex's colors, generated ones get a color per material (the license plates by their color). star screws get the head color vex's color coded pack has for that length, 0.290 yellow up to 2.500 brown (no 0.25 in the pack, so thats plain steel). round generated stuff (screws, standoffs, spacers, washers, extra low nuts, HS and pitch shafts) shows without edge lines, so no seam line down the side
+- vex's step parts keep vex's colors, generated ones get a color per material (the license plates by their color). star screws get the head color vex's color coded pack has for that length, 0.290 yellow up to 2.500 brown (no 0.25 in the pack, so thats plain steel). the seam line down round generated stuff (screws, standoffs, spacers, washers, extra low nuts, HS and pitch shafts) is drawn in the part's own color so it doesnt show, the ends keep their lines so you can see where one spacer stops and the next starts
 
 ## Snapping
 
@@ -23,7 +23,7 @@ Then over in the Assembly workbench, joint two frames together (Fixed for bolted
 
 ## Screws
 
-**Screw** opens a panel with the screw (Star or Hex) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Fixed joint to its hole.
+**Screw** opens a panel with the screw (Star for now) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Fixed joint to its hole.
 
 Pick No nut, or click a threaded hole second (standoffs, and anything under 0.164 across like the motors), and the second click is the face the screw goes *into*. it aims for 3/8 of thread, takes 1/4 if the hole is shallower, and never goes past the bottom. Spacers in gaps fills every gap between the two clicked parts.
 

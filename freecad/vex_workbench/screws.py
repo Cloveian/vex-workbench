@@ -8,7 +8,7 @@ from PySide import QtWidgets
 from . import derived, library, snap, spacers, stock, ui
 from .metal import IN
 
-KINDS = {"Star": "star-screw", "Hex": "hex-screw"}
+KINDS = {"Star": "star-screw"}
 NUT_FOLDER = "Hardware/Nuts/8-32 Nuts"
 NO_NUT = "No nut"
 TAPPED = 0.164 * IN  # mm, 8-32 major. a screw doesnt go through anything smaller so its a thread. 5.5W motor 0.136, 11W 0.1596 lead in
@@ -150,7 +150,8 @@ class Panel(snap.Clicks):
         self.kind.setCurrentText(p.GetString("Screw", "Star"))
         self.nut = QtWidgets.QComboBox()
         self.nut.addItems([*nuts(), NO_NUT])
-        self.nut.setCurrentText(p.GetString("Nut", "#8-32 Nylock Nut"))
+        saved = p.GetString("Nut")
+        self.nut.setCurrentText(saved if self.nut.findText(saved) >= 0 else "Nylock Nut")  # none saved, or one thats been renamed since
         self.fill = QtWidgets.QCheckBox("Spacers in gaps")
         self.fill.setChecked(p.GetBool("Fill", False))
         self.od = spacers.od_box()

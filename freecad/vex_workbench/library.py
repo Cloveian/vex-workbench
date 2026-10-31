@@ -121,9 +121,13 @@ def source(doc, part):
         vo.DiffuseColor = faces
     elif vo and color:
         vo.ShapeColor = tuple(color)
-    if vo and "file" not in part and any(e.isSeam(f) for f in s.Faces for e in f.Edges):
-        # no edges on round stuff, a full cylinder always has a seam line down its side
-        vo.DisplayMode = "Shaded"
+    if vo and "file" not in part:
+        # the seam line down every full cylender drawn in its face's color so it doesnt show. Shaded would lose the spacer ends too
+        seams = {}
+        for f, c in zip(s.Faces, faces or [vo.ShapeColor] * len(s.Faces)):
+            seams.update((e.hashCode(), c) for e in f.Edges if e.isSeam(f))
+        if seams:
+            vo.LineColorArray = [seams.get(e.hashCode(), vo.LineColor) for e in s.Edges]
     src.addObject(solid)
     group(doc).addObject(src)
     src.Visibility = False

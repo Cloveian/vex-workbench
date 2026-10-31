@@ -53,10 +53,15 @@ try:
     assert tops == {(0.96, 0.0, 0.01)} and rest == {steel}, (tops, rest)
     got = plain.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
     assert all(abs(a - b) < 1e-6 for a, b in zip(got, steel)), got
-    # round stuff has no seam line, metal keeps its edges
-    modes = sc.ViewObject.DisplayMode, ch.LinkedObject.Group[0].ViewObject.DisplayMode
-    assert modes == ("Shaded", "Flat Lines"), modes
-    for o in (red, plain):
+    # a spacer's seam lines are nylon colored so they dont show, its end circles keep their lines
+    sp = library.place(doc, gen["0.375 OD Spacer, 0.250 (Nylon)"])
+    s, vo = sp.LinkedObject.Group[0].Shape, sp.LinkedObject.Group[0].ViewObject
+    seam = {e.hashCode() for f in s.Faces for e in f.Edges if e.isSeam(f)}
+    nylon = tuple(library.cat()["colors"]["Nylon"])
+    got = {(e.hashCode() in seam, tuple(round(v, 2) for v in c[:3])) for e, c in zip(s.Edges, vo.LineColorArray)}
+    want = {(True, nylon), (False, tuple(round(v, 2) for v in vo.LineColor[:3]))}
+    assert vo.DisplayMode == "Flat Lines" and seam and got == want, (got, want)
+    for o in (red, plain, sp):
         doc.removeObject(o.Name)
 
     # vex's own colors on a step part, one per face, and the same solid Part.read gives
@@ -156,7 +161,7 @@ try:
     panel = screws.Panel()
     Gui.Control.showDialog(panel)
     panel.kind.setCurrentText("Star")
-    panel.nut.setCurrentText("#8-32 Nylock Nut")
+    panel.nut.setCurrentText("Nylock Nut")
     panel.fill.setChecked(False)
     before = set(doc.Objects)
     Gui.Selection.clearSelection()
@@ -164,7 +169,7 @@ try:
     Gui.Selection.addSelection(doc.Name, p2.Name, f"Face{bottom}", 1.25 * IN, 0.26 * IN, -0.046 * IN)
     QtWidgets.QApplication.processEvents()
     got = sorted(o.Label for o in set(doc.Objects) - before if o.TypeId == "App::Link")
-    assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], got
+    assert got == ["0.290 Torx (Star) Screw (8-32, Steel)", "Nylock Nut"], got
     assert panel.status.text().startswith("put in a 0.290 Torx (Star) Screw"), panel.status.text()
     fasteners = {o.Name for o in set(doc.Objects) - before if o.TypeId == "App::Link"}
     panel.reject()
@@ -209,7 +214,7 @@ try:
     Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.25, 0.25, -0.046) * IN))
     QtWidgets.QApplication.processEvents()
     got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
-    assert got == ["#8-32 Nylock Nut", "0.290 Torx (Star) Screw (8-32, Steel)"], (got, panel.status.text())
+    assert got == ["0.290 Torx (Star) Screw (8-32, Steel)", "Nylock Nut"], (got, panel.status.text())
     assert not panel.lit.Shape.Vertexes
 
     # parts placed or deleted with it open get their points sorted out
@@ -260,7 +265,7 @@ try:
     doc.recompute()
     head = snap.spot(asm, f"{p1.Name}.Face{top}", App.Vector(1.26, 0.25, 0.046) * IN)
     tail = snap.spot(asm, f"{p2.Name}.Face{bottom}", App.Vector(1.25, 0.26, -0.046) * IN)
-    sc, nut, _ = screws.fasten(doc, head, tail, "star-screw", screws.nuts()["#8-32 Nylock Nut"], asm)
+    sc, nut, _ = screws.fasten(doc, head, tail, "star-screw", screws.nuts()["Nylock Nut"], asm)
     js = [j for j in asm.OutListRecursive if hasattr(j, "JointType")]
     assert sorted(j.Reference2[0].Name for j in js) == sorted([sc.Name, nut.Name]), js
     assert all(j.ViewObject.Proxy for j in js)

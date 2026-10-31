@@ -288,7 +288,7 @@ shoulder = 0.176
 id = "thin-nylock"
 title = "Thin Nylock Nut"
 folder = "Hardware/Nuts/8-32 Nuts/Nylock Nuts"
-name = "Thin Nylock Nut (8-32, {material})"
+name = "Thin Nylock Nut"
 material = "Steel"
 base = "#8-32 Nylock Nut (275-1027)"
 height = 0.171875 # robosource, 11/64 (shave off non-nylon side to make thiner)
@@ -297,7 +297,7 @@ height = 0.171875 # robosource, 11/64 (shave off non-nylon side to make thiner)
 id = "hex-nut"
 title = "Hex Nut"
 folder = "Hardware/Nuts/8-32 Nuts/Hex Nuts"
-name = "Hex Nut (8-32, {material})"
+name = "{material} Hex Nut"
 base = "#8-32 Hex Nut (275-1028)"
 material = ["Nylon", "Aluminum"]
 
@@ -305,7 +305,7 @@ material = ["Nylon", "Aluminum"]
 id = "extra-low-nut"
 title = "Extra-Low Profile Nut"
 folder = "Hardware/Nuts/8-32 Nuts"
-name = "Extra-Low Profile Nut (8-32, {material})"
+name = "Extra-Low Profile Nut"
 material = "Steel"
 # robosource, really just a 3/32 tall standoff but steel
 hex = 0.25
@@ -468,20 +468,20 @@ parts = [
 [[group]]
 folder = "Hardware/Nuts/8-32 Nuts"
 parts = [
-  { sku = "275-1026", name = "#8-32 Keps Nut", file = "#8-32 Keps Nut (275-1026).step" },
-  { sku = "276-7767", name = "#8-32 Low Profile Nut", file = "#8-32 Low Profile Nut (276-7767).step" },
+  { sku = "275-1026", name = "Keps Nut", file = "#8-32 Keps Nut (275-1026).step" },
+  { sku = "276-7767", name = "Low Profile Nut", file = "#8-32 Low Profile Nut (276-7767).step" },
 ]
 
 [[group]]
 folder = "Hardware/Nuts/8-32 Nuts/Hex Nuts"
 parts = [
-  { sku = "275-1028", name = "#8-32 Hex Nut", file = "#8-32 Hex Nut (275-1028).step" },
+  { sku = "275-1028", name = "Hex Nut", file = "#8-32 Hex Nut (275-1028).step" },
 ]
 
 [[group]]
 folder = "Hardware/Nuts/8-32 Nuts/Nylock Nuts"
 parts = [
-  { sku = "275-1027", name = "#8-32 Nylock Nut", file = "#8-32 Nylock Nut (275-1027).step" },
+  { sku = "275-1027", name = "Nylock Nut", file = "#8-32 Nylock Nut (275-1027).step" },
 ]
 
 [[group]]

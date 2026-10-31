@@ -29,7 +29,7 @@ dup = [k for k, n in Counter(p["name"] for p in gen).items() if n > 1]
 assert not dup, dup
 names = {p["name"] for p in gen}
 for n in ["1x2x1x35 Aluminum C-Channel", "1x5x1x1 Steel C-Channel", "5x Pitch Shaft", "LS 84T Gear (Drilled)",
-          "Washer, 0.438 OD, 0.042 (Steel)", "2.000, 0.04 Robosource Shoulder Screw (8-32, Steel)", "Thin Nylock Nut (8-32, Steel)"]:
+          "Washer, 0.438 OD, 0.042 (Steel)", "2.000, 0.04 Robosource Shoulder Screw (8-32, Steel)", "Thin Nylock Nut", "Nylon Hex Nut"]:
     assert n in names, n
 
 # ranges and rows expand right

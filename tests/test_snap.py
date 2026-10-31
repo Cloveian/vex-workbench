@@ -77,7 +77,7 @@ doc.recompute()
 # clicked inside the assembly, so the root is asm
 head = (p1, App.Vector(1.27, 0.24, 0.046) * IN, p1.Placement, (asm, p1.Name + "."))  # top face, the (1.25, 0.25) hole
 tail = (p2, App.Vector(2.26, 0.26, 0) * IN, p2.Placement, (asm, p2.Name + "."))  # bottom face, same hole
-nylock = screws.nuts()["#8-32 Nylock Nut"]
+nylock = screws.nuts()["Nylock Nut"]
 had = len(joints.Group)
 sc, nut, _ = screws.fasten(doc, head, tail, "star-screw", nylock, asm)
 assert sc.Label == "0.290 Torx (Star) Screw (8-32, Steel)", sc.Label
