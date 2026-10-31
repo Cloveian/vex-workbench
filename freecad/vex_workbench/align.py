@@ -41,8 +41,22 @@ def align(mover, target, gap, active=None, whole=False):
     # world placement of whatever obj sits in, its own placement taken back off the end
     parent = world.multiply(obj.Placement.inverse())
     put(obj, frame, parent, at, gap, 0)
-    joint = asm and snap.revolute(asm, snap.ref(asm, target, ft), snap.ref(asm, mover, fm), gap)
+    joint = asm and rejoint(asm, snap.ref(asm, target, ft), snap.ref(asm, mover, fm), gap)
     return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": 0, "joint": joint}
+
+
+def rejoint(asm, r1, r2, gap):
+    # one align joint per moving piece, an older one would drag it back
+    import UtilsAssembly
+    if r2:
+        for j in UtilsAssembly.getJointGroup(asm).Group:
+            if getattr(j, "VexAlign", False) and j.Reference2 and j.Reference2[0] == r2[0]:
+                asm.Document.removeObject(j.Name)
+    j = snap.revolute(asm, r1, r2, gap)
+    if j:
+        j.addProperty("App::PropertyBool", "VexAlign", "VEX")
+        j.VexAlign = True
+    return j
 
 
 class Panel(snap.Clicks):

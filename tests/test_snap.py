@@ -245,6 +245,15 @@ new = joints.Group[had:]
 assert [j.JointType for j in new] == ["Revolute"] and abs(new[0].Offset2.Base.z - 0.25 * IN) < 1e-9, new
 got = moved([p1, p2, bar])
 assert not got, got
+# lined up again somewhere else, its old align joint goes
+target = where(p1, App.Vector(2.75, 1.25, 0.046) * IN)
+align.align(where(bar, first), target, 0, asm)
+doc.recompute()
+mine = [j for j in joints.Group if getattr(j, "VexAlign", False) and j.Reference2[0] == bar]
+assert len(mine) == 1, mine
+got = moved([p1, p2, bar])
+assert not got, got
+assert (snap.hole(where(bar, first))[1].Base - snap.hole(target)[1].Base).Length < 1e-9
 # whole group: a Part in asm with a channel and a plate in it. aligning by the channel moves just the Part, so they keep where they are in it
 grp = doc.addObject("App::Part", "Grp")
 asm.addObject(grp)
