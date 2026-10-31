@@ -21,6 +21,10 @@ Click one or more holes, then **Frame on hole**. Each one gets a frame on its ex
 
 Then over in the Assembly workbench, joint two frames together (Fixed for bolted stuff). The joint picks whether the two z axes point the same way or opposite from how the parts sit when you make it, so if they come out *inside* each other instead of face to face, hit **Reverse** in the joint panel. either way the centers land exactly on each other.
 
+## Align
+
+**Align** does that in two clicks without any frames: click a hole on the part you want to move, then the hole on the part it goes against, and it jumps over so the holes line up and the faces sit flat on each other (same orange dots as the screw tool). **Rotate -** / **Rotate +** turn the last one around the hole by the angle in the box (90 to start, anything works), and **Gap** holds it that far off the other face, both work after its moved. with an assembly active it gets a Revolute joint between the two holes, so it can still spin and the gap shows as the joint's offset. a link array cant be the one that moves (yet), it can be the one it goes against tho.
+
 ## Screws
 
 **Screw** opens a panel with the screw (Star for now) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Revolute joint to its hole, so it can spin on it.

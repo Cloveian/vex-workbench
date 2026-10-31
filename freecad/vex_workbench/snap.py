@@ -1,4 +1,4 @@
-# snap to hole: click holes on VEX parts, get a frame on each exact center for Assembly joints. plus the joints and two-click panel screws and spacers use
+# snap to hole: click holes on VEX parts, get a frame on each exact center for Assembly joints. plus the joints and two-click panel screws, spacers and align use
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
@@ -101,16 +101,16 @@ def inside(parent):
 
 
 def revolute(asm, r1, r2, gap=0):
-    # spins on the hole axis, r2 frame held gap mm out along the r1 z
+    # spins on the hole axis, r2 frame held gap mm back from r1. gap goes in Offset2, what the joint panel's offset box shows
     import JointObject
     import UtilsAssembly
-    if r1 is None:
+    if r1 is None or r2 is None:
         return None
     j = UtilsAssembly.getJointGroup(asm).newObject("App::FeaturePython", "Joint")
     JointObject.Joint(j, JointObject.JointTypes.index("Revolute"))
     if j.ViewObject:
         JointObject.ViewProviderJoint(j.ViewObject)
-    j.Offset1 = App.Placement(Vector(0, 0, gap), App.Rotation())
+    j.Offset2 = App.Placement(Vector(0, 0, gap), App.Rotation())
     j.Proxy.setJointConnectors(j, [r1, r2])
     return j
 
@@ -174,7 +174,7 @@ class Clicks:
         return o
 
     def light(self, spots):
-        # picked holes in green till the screw or spacers are in
+        # picked holes in green till act() is done
         self.picked = []
         for link, pt, plc, _ in spots:
             try:

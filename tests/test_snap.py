@@ -1,4 +1,5 @@
-# hole frames + Fixed joints, shaft ends, the screw and spacer tools, run with: python tests/test_snap.py (needs FreeCAD + vex-step/)
+# hole frames + Fixed joints, shaft ends, the screw, spacer and align tools, run with: python tests/test_snap.py (needs FreeCAD + vex-step/)
+import math
 import sys
 from pathlib import Path
 
@@ -10,7 +11,7 @@ import FreeCAD as App  # noqa: E402
 import JointObject  # noqa: E402  Assembly workbench, works headless
 import Part  # noqa: E402
 
-from freecad.vex_workbench import library  # noqa: E402
+from freecad.vex_workbench import library, snap  # noqa: E402
 from freecad.vex_workbench.metal import IN  # noqa: E402
 
 doc = App.newDocument("snaptest")
@@ -215,6 +216,34 @@ assert sorted((round(c.x / IN, 3), round(c.z / IN, 3)) for c in pts) == [(-0.5, 
 ch = library.place(doc, gen["1x2x1x25 Steel C-Channel"])
 doc.recompute()
 assert len(library.screw_holes(ch)) == len(library.holes(Part.getShape(ch.LinkedObject))) == 248
+
+# align a channel onto the (3.25, 0.25) top hole on p1, 0.25 off and turned 30. a Revolute joint holds the gap, solving moves nothing
+from freecad.vex_workbench import align  # noqa: E402
+
+bar = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
+doc.recompute()
+first = library.screw_holes(bar)[0]
+
+
+def where(link, pt):
+    # the spot a click on that hole inside asm gives
+    return (link, pt, asm.getSubObject(link.Name + ".", retType=3), (asm, link.Name + "."))
+
+
+had = len(joints.Group)
+target = where(p1, App.Vector(3.25, 0.25, 0.046) * IN)
+s = align.align(where(bar, first), target, 0.25 * IN, asm)
+align.put(s["link"], s["frame"], s["parent"], s["at"], 0.25 * IN, 30)
+doc.recompute()
+(_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
+z, x = (lambda p: p.Rotation.multVec(App.Vector(0, 0, 1))), (lambda p: p.Rotation.multVec(App.Vector(1, 0, 0)))
+d = got.Base - at.Base
+assert abs(d.dot(z(at)) - 0.25 * IN) < 1e-9 and d.cross(z(at)).Length < 1e-9, d
+assert abs(z(got).dot(z(at)) + 1) < 1e-9 and abs(x(got).dot(x(at)) - math.cos(math.radians(30))) < 1e-9, (z(got), x(got))
+new = joints.Group[had:]
+assert [j.JointType for j in new] == ["Revolute"] and abs(new[0].Offset2.Base.z - 0.25 * IN) < 1e-9, new
+got = moved([p1, p2, bar])
+assert not got, got
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")

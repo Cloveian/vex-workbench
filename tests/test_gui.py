@@ -1,4 +1,5 @@
-# toolbar, colurs, the parts list, the dock, the screw tool and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+# toolbar, colurs, the parts list, the dock, the screw and align tools and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+import math
 import os
 import sys
 import time
@@ -36,7 +37,7 @@ try:
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
-    assert tools == ["VEX parts", "Frame on hole", "Screw", "Spacers", "Parts list"], tools
+    assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
     _, gen, steps = library.index()
@@ -254,6 +255,32 @@ try:
     QtWidgets.QApplication.processEvents()
     got = [o.Label for o in set(doc.Objects) - before if o.TypeId == "App::Link"]
     assert got == ["0.375 OD Spacer, 0.250 (Nylon)"], (got, panel.status.text())
+    panel.reject()
+    # align panel, bottom (1.25, 0.25) hole on p2 onto the one on top of p1 by their points, 0.125 off, then turned 45 and regapped
+    from freecad.vex_workbench import align
+    panel = align.Panel()
+    Gui.Control.showDialog(panel)
+    panel.gap.setValue(0.125)
+    panel.angle.setValue(45)
+    below = App.Vector(1.25, 0.25, 0) * IN  # bottom face of p2, its own coords
+    up = App.Vector(1.25, 0.25, 0.046) * IN  # top of p1, it sits at 0
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(p2.Placement.multVec(below)))
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(up))
+    QtWidgets.QApplication.processEvents()
+    assert panel.last and "lined up" in panel.status.text(), panel.status.text()
+
+    def frames():
+        return snap.hole((p1, up, p1.Placement, (p1, "")))[1], snap.hole((p2, below, p2.Placement, (p2, "")))[1]
+
+    at, got = frames()
+    assert abs(got.Base.z - at.Base.z - 0.125 * IN) < 1e-9 and (got.Base - at.Base).cross(App.Vector(0, 0, 1)).Length < 1e-9, got.Base
+    assert abs(got.Rotation.multVec(App.Vector(0, 0, 1)).z + 1) < 1e-9  # facing back down onto p1
+    x0 = got.Rotation.multVec(App.Vector(1, 0, 0))
+    panel.turn(1)
+    panel.gap.setValue(0.25)
+    at, got = frames()
+    assert abs(got.Base.z - at.Base.z - 0.25 * IN) < 1e-9, got.Base
+    assert abs(got.Rotation.multVec(App.Vector(1, 0, 0)).dot(x0) - math.cos(math.radians(45))) < 1e-9
     panel.reject()
     p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * IN), App.Rotation())
     doc.recompute()
