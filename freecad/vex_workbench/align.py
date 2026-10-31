@@ -89,7 +89,7 @@ class Panel(snap.Clicks):
         for w in (self.angle, back, ahead):
             row.addWidget(w)
         self.gap = QtWidgets.QDoubleSpinBox()
-        self.gap.setRange(0, 12)
+        self.gap.setRange(-12, 12)  # under 0 pushes it in, a shaft end through a hole
         self.gap.setDecimals(3)
         self.gap.setSingleStep(0.125)
         self.gap.setSuffix(" in")

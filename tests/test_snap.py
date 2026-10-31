@@ -257,6 +257,13 @@ assert len(mine) == 1, mine
 got = moved([p1, p2, bar])
 assert not got, got
 assert (snap.hole(where(bar, first))[1].Base - snap.hole(target)[1].Base).Length < 1e-9
+# a gap under 0 pushes a shaft end down through the hole, its axis on the hole axis
+sh = library.place(doc, gen["2.000 LS Shaft"])
+doc.recompute()
+target = where(p1, App.Vector(3.75, 0.25, 0.046) * IN)
+align.align((sh, App.Vector(), sh.Placement, (sh, "")), target, -0.5 * IN)
+at = snap.hole(target)[1]
+assert (sh.Placement.Base - (at.Base - z(at) * 0.5 * IN)).Length < 1e-9 and abs(z(sh.Placement).dot(z(at)) - 1) < 1e-9, sh.Placement
 # whole group: a Part in asm with a channel and a plate in it. aligning by the channel moves just the Part, so they keep where they are in it
 grp = doc.addObject("App::Part", "Grp")
 asm.addObject(grp)
