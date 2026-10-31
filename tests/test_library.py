@@ -44,11 +44,18 @@ b.Size = "5"
 doc.recompute()
 assert b.Label.startswith("1x5x1x10 Steel C-Channel"), b.Label
 
-# no generator for that variant, link stays put and nothing gets left behind
+# a cut down 1x1 is a variant like any other
 c = library.place(doc, gen["1x1x5 Steel Angle (Regular)"])
+c.Variant = "Cut 3x, Between Holes"
+assert c.Label.startswith("1x1x5 Steel Angle (Cut 3x, Between Holes)"), c.Label
+# no generator (the HS lockbar), nothing gets left behind
 n = len(doc.Objects)
-c.Variant = "Thin 5-Wide"
-assert len(doc.Objects) == n and c.Label.startswith("1x1x5 Steel Angle (Regular)"), (len(doc.Objects), n, c.Label)
+try:
+    library.source(doc, next(p for p in gen.values() if p["family"] == "hs-lockbar"))
+    raise AssertionError("made a lockbar")
+except ValueError:
+    pass
+assert len(doc.Objects) == n, (len(doc.Objects), n)
 
 # undo / redo dont make another source
 doc.UndoMode = 1

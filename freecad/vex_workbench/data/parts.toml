@@ -75,11 +75,16 @@ title = "1x1 Angle"
 folder = "Structure/{material}/1x1 Angle ({variant})"
 name = "1x1x{holes} {material} Angle ({variant})"
 material = ["Aluminum", "Steel"]
-variant = ["Regular", "Regular 2-Wide", "Thick 5-Wide", "Thin 5-Wide"]
+variant = ["Regular", "Cut 3x, Hole Edge", "Cut 3x, Between Holes"]
 holes = { from = 1, to = 35 }
 thickness = { Aluminum = 0.063 }
 chamfer = 0.09
 fixtures = ["1x1x35 Aluminum Angle (217-6484)"] # regular, 0.5 legs
+# the other two are half a 1x3x1 c-channel cut down the middle, its flange + the web up to the cut. the channel's own wall and tip chamfer
+# hole edge = along the side of the middle hole, 0.75 - 0.182 / 2
+[family.cut]
+"Cut 3x, Hole Edge" = { web = 0.659, flange = 0.546, chamfer = 0.064, thickness = {} }
+"Cut 3x, Between Holes" = { web = 0.5, flange = 0.546, chamfer = 0.064, thickness = {} }
 
 [[family]]
 id = "angle-2x2"

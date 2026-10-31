@@ -23,7 +23,7 @@ in build order, each one is something i can open and poke at
 
 ## Still need numbers for
 - [x] bend radius
-- [x] 1x1 angle variants: the official one, plus a 3x c-channel cut down the middle, along the middle hole's edge or between holes. ~~Regular 2-Wide, Thick 5-Wide, Thin 5-Wide, only fusion has them, as f3d~~ (still to make)
+- [x] 1x1 angle variants: the official one, plus a 3x c-channel cut down the middle, along the middle hole's edge or between holes. ~~Regular 2-Wide, Thick 5-Wide, Thin 5-Wide, only fusion has them, as f3d~~ (made, Cut 3x Hole Edge and Cut 3x Between Holes)
 - [ ] is aluminum c-channel really the steel shape? vex's al steps arent
 - [ ] which metal comes in which material (al bar? steel U-channel? steel 1x1? steel 3x c-channel?)
 - [ ] flange nuts (nylon, nylock), wing nut

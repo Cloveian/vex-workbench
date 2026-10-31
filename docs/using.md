@@ -43,7 +43,7 @@ While either panel is open every hole gets an orange point on both sides of the 
 
 ## Not there yet
 
-bending, the HS lockbar, drilled gears and the 1x1 angle variants (theres no numbers for those three yet).
+bending, the HS lockbar and drilled gears (theres no numbers for those two yet).
 
 ---
 Back to [main index](index.md)

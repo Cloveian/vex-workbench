@@ -110,6 +110,11 @@ def c_channel(p, g):
 
 def angle(size):
     def profile(p, g):
+        if "web" in p:
+            # cut out of a 3x c-channel, web runs up to the cut
+            h = p["flange"]
+            flange, _ = rows(1, p, g)
+            return [yz(0, 0), yz(h, 0), yz(h, p["web"])], [([h - x for x in flange], []), ([g["end"]], [])]
         a = size * g["pitch"]
         pts = [yz(0, 0), yz(a, 0), yz(a, a)]
         far, mid = rows(size, p, g)
@@ -145,7 +150,10 @@ PROFILES = {
 
 def make(part, cat):
     p, g, metal = part["params"], cat["grid"], cat["metal"]
-    if p.get("variant", "Regular") != "Regular":
+    sawn = p.get("cut", {}).get(p.get("variant"))
+    if sawn:
+        p = {**p, **sawn}
+    elif p.get("variant", "Regular") != "Regular":
         raise ValueError(f"no dims for {p['variant']} angles yet")
     mat = p["material"]
     t = p.get("thickness", {}).get(mat, metal["thickness"][mat])
@@ -175,7 +183,8 @@ def make(part, cat):
         notch, cham = diamond(metal["mark"]), diamond(p["chamfer"])
         every = metal["marks"] * g["pitch"]
         xs = [every * i for i in range(1, int(length / every - 1e-6) + 1)]
-        for k, a in [(0, 0), (last, lens[-1])]:
+        # a sawn edge has neither
+        for k, a in [(0, 0)] + ([] if sawn else [(last, lens[-1])]):
             cuts[k] += [notch.translated(Vector(x, a, 0)) for x in xs]
             cuts[k] += [cham.translated(Vector(x, a, 0)) for x in (0, length)]
         lofts, tris = reliefs(pts, d, t, r, xs, metal["relief"], metal["k"])

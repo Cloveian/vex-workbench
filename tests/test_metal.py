@@ -1,5 +1,6 @@
 # metal generator vs vex's steps, run with: python tests/test_metal.py (needs FreeCAD + vex-step/)
 import itertools
+import math
 import re
 import sys
 import time
@@ -89,6 +90,17 @@ for fam in cat["family"]:
             note, ok = " (info, al step)", True
         bad += not ok
         print(f"{'ok ' if ok else 'BAD'} {fx}: {size} vol {vol * 100:+.2f}% {holes}, {ms:.0f} ms{note}")
+
+# the cut 1x1 angles have no step, theyre half a 1x3x1 c-channel. two between-holes halves + the middle strip and its 10 holes = the channel
+g = cat["grid"]
+ch, half, edge = (metal.make(gen[n], cat) for n in ("1x3x1x10 Steel C-Channel", "1x1x10 Steel Angle (Cut 3x, Between Holes)", "1x1x10 Steel Angle (Cut 3x, Hole Edge)"))
+hole = g["hole"] ** 2 - (4 - math.pi) * g["round"] ** 2
+strip = (g["pitch"] * 10 * g["pitch"] - 10 * hole) * cat["metal"]["thickness"]["Steel"] * IN**3
+off = (2 * half.Volume + strip) / ch.Volume - 1
+b = edge.optimalBoundingBox()
+ok = abs(off) < 1e-6 and abs(b.ZLength / IN - 0.659) < 1e-6 and half.isValid() and edge.isValid()
+bad += not ok
+print(f"{'ok ' if ok else 'BAD'} cut 1x1 angles: 2 halves + strip vs the 1x3x1 channel {off * 100:+.5f}%, hole edge one {b.ZLength / IN:.3f} across")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)
