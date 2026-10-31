@@ -306,11 +306,12 @@ except ValueError:
     pass
 
 # bending, a plate folded 90 up across its 2.25 hole row. the short side turns, and the bent leg lands where the hand worked numbers say
-from freecad.vex_workbench import bend  # noqa: E402
+from freecad.vex_workbench import bend, partslist  # noqa: E402
 
 sheet = library.place(doc, gen["5x10 Steel Plate"])
 flat = library.place(doc, gen["5x10 Steel Plate"])
 doc.recompute()
+plates = partslist.count(doc)["5x10 Steel Plate"][0]
 b = bend.first(sheet, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)
 assert b["side"] == 1 and abs(b["t"] - 0.046 * IN) < 1e-9, b
 library.rebend(sheet, [b])
@@ -323,6 +324,7 @@ assert abs(bb.ZMax - (t + r + 2.25 * IN - w)) < 1e-6 and abs(bb.XMin - (2.25 * I
 assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.LinkedObject).Volume - 1) < 0.002, s.Volume
 # just that copy, and it still counts as a 5x10 plate
 assert sheet.LinkedObject != flat.LinkedObject and sheet.LinkedObject.VexName == flat.LinkedObject.VexName == "5x10 Steel Plate"
+assert partslist.count(doc)["5x10 Steel Plate"][0] == plates
 # a second bend on the leg that now stands square to x, its length is the first bend's face normal. across it is still across
 up = max(library.screw_holes(sheet), key=lambda c: c.z)
 b2 = bend.first(sheet, up, True, 0, 90)

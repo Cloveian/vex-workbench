@@ -1,5 +1,16 @@
 # Log
 
+## 2026-10-31 - bending
+
+- Bend tool. click a hole, it folds on a line through it, across or along the part and slid over by any amount, any angle, inside radius 0.032. metal.fold() cuts the part at the line, sweeps the cross section there round an axis r off the inside face, and turns the rest round the same axis after moving it back by the flat the bend eats, w = (r + k*t) * angle (~0.08" for a 90). a hole the line goes through leaves a gap in the cross section, so it stays open round the bend for free
+- a 90 up across a 5x10 plate lands within 1e-6 mm of the hand worked numbers (leg at 2.25 - r, top at t + r + 2.25 - w), volume within 0.07%. channels bend flanges and all, those come out heavy cuz the flanges get swept round too, the same extra every bend so +3.3% on a 1x2x1x35 and +11% on a 1x2x1x10. which is fine since real metal wont do that without cutting them anyway
+- bends live on the one placed copy (VexBends), its source is the straight part + the bends in order. it keeps the straight VexName so the parts list counts what you buy, and Holes changes redo the bends. the length direction for a second bend on a leg bent square to x comes from the earlier bend's face normal
+- metal.py already had a bend() for the corners between legs, mine overwrote it and everything with a flange broke. its fold() now
+- the hole cache keys on VexBends too: a bent source keeps the straight VexName, and FreeCAD gives an undone object's name to the next one made
+- 1x1 angles cut out of a 1x3x1 channel, along the middle hole's edge (0.659 web) or between the holes (0.5). two between-holes halves + the middle strip and its holes come out to the channel's volume exactly, which is a nice check with no step to compare to. the fusion only 2-wide / 5-wide ones with no numbers are gone, 868 -> 798 generated
+- the sawn edge check first looked for a "web" param, which the U-channel has too, so it lost its notches on one leg. only +0.1% volume, under the 0.2% the metal test lets through, a part by part volume compare caught it
+- screw tool: Pick the screw myself, one click puts the picked screw in that hole. shoulder screws only go in that way, the shoulder length is too much of a judgement call to pick for you
+
 ## 2026-10-31 - align
 
 - screws, nuts and spacers sit on Revolute joints now, not Fixed, so they can spin. snap.revolute() puts any gap in Offset2, cuz thats what the joint panel's offset box edits (Offset1 just showed as 0 there)
