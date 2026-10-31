@@ -35,7 +35,7 @@ def pick(gap, od):
 
 
 def stack(doc, s, parts, parent=None):
-    # parts piled up out of the face clicked in s, centered on its hole. Fixed joints down the pile in an assembly
+    # parts piled up out of the face clicked in s, centered on its hole. Revolute joints down the pile in an assembly
     f, a = snap.hole(s)
     local, asm = snap.inside(parent)
     below = asm and snap.ref(asm, s, f)
@@ -45,7 +45,7 @@ def stack(doc, s, parts, parent=None):
         o.Placement = local.multiply(a).multiply(App.Placement(Vector(0, 0, z), App.Rotation()))
         z += length(p)
         if asm:
-            snap.fixed(asm, below, snap.on(o, library.frame(o, App.Placement(), "Seat")))
+            snap.revolute(asm, below, snap.on(o, library.frame(o, App.Placement(), "Seat")))
             below = snap.on(o, library.frame(o, App.Placement(Vector(0, 0, length(p)), App.Rotation()), "Top"))
         put.append(o)
     return put

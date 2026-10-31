@@ -81,9 +81,9 @@ nylock = screws.nuts()["Nylock Nut"]
 had = len(joints.Group)
 sc, nut, _ = screws.fasten(doc, head, tail, "star-screw", nylock, asm)
 assert sc.Label == "0.290 Torx (Star) Screw (8-32, Steel)", sc.Label
-# a Fixed joint each, and solving moves nothing
+# a Revolute joint each, and solving moves nothing
 new = joints.Group[had:]
-assert [(j.JointType, j.Reference1[0], j.Reference2[0]) for j in new] == [("Fixed", p1, sc), ("Fixed", p2, nut)], new
+assert [(j.JointType, j.Reference1[0], j.Reference2[0]) for j in new] == [("Revolute", p1, sc), ("Revolute", p2, nut)], new
 
 
 def moved(objs):

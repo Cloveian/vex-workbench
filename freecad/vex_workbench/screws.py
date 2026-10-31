@@ -129,13 +129,13 @@ def fasten(doc, head, tail, family, nut, parent=None, od=None):
     s.Placement = local.multiply(a)  # under the head on the face, shank down -z
     # frames right on the hole frames, the joints dont move anything
     if asm:
-        snap.fixed(asm, snap.ref(asm, head, fa), snap.on(s, library.frame(s, App.Placement(), "Seat")))
+        snap.revolute(asm, snap.ref(asm, head, fa), snap.on(s, library.frame(s, App.Placement(), "Seat")))
     n = None
     if not threaded:
         n = library.place(doc, nut, parent)
         n.Placement = local.multiply(b).multiply(plc)
         if asm:
-            snap.fixed(asm, snap.ref(asm, tail, fb), snap.on(n, library.frame(n, plc.inverse(), "Seat")))
+            snap.revolute(asm, snap.ref(asm, tail, fb), snap.on(n, library.frame(n, plc.inverse(), "Seat")))
     put = [o for at, parts in fills for o in spacers.stack(doc, at, parts, parent)]
     return s, n, put
 

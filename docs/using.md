@@ -23,7 +23,7 @@ Then over in the Assembly workbench, joint two frames together (Fixed for bolted
 
 ## Screws
 
-**Screw** opens a panel with the screw (Star for now) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Fixed joint to its hole.
+**Screw** opens a panel with the screw (Star for now) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Revolute joint to its hole, so it can spin on it.
 
 Pick No nut, or click a threaded hole second (standoffs, and anything under 0.164 across like the motors), and the second click is the face the screw goes *into*. it aims for 3/8 of thread, takes 1/4 if the hole is shallower, and never goes past the bottom. Spacers in gaps fills every gap between the two clicked parts.
 

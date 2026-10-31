@@ -100,16 +100,19 @@ def inside(parent):
     return local, parent if parent and parent.isDerivedFrom("Assembly::AssemblyObject") else None
 
 
-def fixed(asm, r1, r2):
+def revolute(asm, r1, r2, gap=0):
+    # spins on the hole axis, r2 frame held gap mm out along the r1 z
     import JointObject
     import UtilsAssembly
     if r1 is None:
-        return
+        return None
     j = UtilsAssembly.getJointGroup(asm).newObject("App::FeaturePython", "Joint")
-    JointObject.Joint(j, JointObject.JointTypes.index("Fixed"))
+    JointObject.Joint(j, JointObject.JointTypes.index("Revolute"))
     if j.ViewObject:
         JointObject.ViewProviderJoint(j.ViewObject)
+    j.Offset1 = App.Placement(Vector(0, 0, gap), App.Rotation())
     j.Proxy.setJointConnectors(j, [r1, r2])
+    return j
 
 
 class Clicks:
