@@ -1,4 +1,4 @@
-# screw tool. click a hole on the head side, then one on the nut side, it puts in the shortest screw that makes it through the nut or into a thread
+# screw tool. click a hole on the head side, then one on the nut side, it puts in the shortest screw that makes it through the nut or into a thread. or one picked by hand, one click
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
