@@ -26,10 +26,14 @@ def spot(root, sub, pt):
     # a link array element sits under the link, its placement counts too. a number in the path, or a LinkElement with ShowElement on
     element = names[k].isdigit() or (k + 1 < len(objs) and objs[k + 1].isDerivedFrom("App::LinkElement"))
     n = k + 1 if element else k
-    # placement of the link through the whole path, assembly and all. App::Link has no getGlobalPlacement in 1.1
     path = "".join(name + "." for name in names[:n])
-    plc = root.getSubObject(path, retType=3) if n else root.Placement
+    plc = placement(root, path)
     return objs[k], plc.inverse().multVec(pt), plc, (root, path)
+
+
+def placement(root, path):
+    # world placement of what path names under root, assembly and all. App::Link has no getGlobalPlacement in 1.1
+    return root.getSubObject(path, retType=3) if path else root.Placement
 
 
 def picked():
@@ -121,8 +125,8 @@ class Clicks:
         self.form = QtWidgets.QWidget()
         self.form.setWindowTitle(title)
         lay = QtWidgets.QFormLayout(self.form)
-        for label, w in rows:
-            lay.addRow(label, w)
+        for row in rows:
+            lay.addRow(*row)  # (label, widget), or (widget,) across the row
         self.status = QtWidgets.QLabel()
         lay.addRow(self.status)
         self.first = None
@@ -191,7 +195,7 @@ class Clicks:
             src = link.LinkedObject.Name
             if src not in found:
                 found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.screw_holes(link)
-            plc = root.getSubObject(path, retType=3) if path else root.Placement
+            plc = placement(root, path)
             self.spots += [(link, c, plc, (root, path)) for c in found[src]]
 
     def ask(self, said=""):

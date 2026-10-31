@@ -16,25 +16,33 @@ def put(link, frame, parent, at, gap, spin):
     link.Placement = parent.inverse().multiply(want).multiply(frame.inverse())
 
 
-def align(mover, target, gap, asm=None):
-    # mover, target = snap.spot()s. state for turning it after, and a Revolute joint in asm if theres one
-    link = mover[0]
-    if link == target[0]:
-        raise ValueError("that's the same part twice, click a hole on the part to move then one on another part")
-    fm, _ = snap.hole(mover)
+def moving(mover, active, whole):
+    # what moves and its world placement. the clicked link (an array moves whole), or with whole the top group its in under active
+    root, path = mover[3]
+    names = path.split(".")[:-1]
+    objs = root.getSubObjectList(path)  # root first, then one per name
+    k = max(i for i, o in enumerate(objs) if o == mover[0])
+    if whole:
+        k = objs.index(active) + 1 if active in objs else 0
+    if not hasattr(objs[k], "Placement"):
+        raise ValueError(f"{objs[k].Label} is a plain group, it has no placement to move. put it in a Part instead")
+    return objs[k], snap.placement(root, "".join(n + "." for n in names[:k]))
+
+
+def align(mover, target, gap, active=None, whole=False):
+    # mover, target = snap.spot()s, active = the active part or assembly. state for turning it after, and a Revolute joint if its an assembly
+    obj, world = moving(mover, active, whole)
+    asm = snap.inside(active)[1]
+    if obj in target[3][0].getSubObjectList(target[3][1]):
+        raise ValueError(f"{target[0].Label} would move along with it, click a hole on something else to line it up on")
+    fm, hole = snap.hole(mover)
     ft, at = snap.hole(target)
-    world = mover[2]
-    if link.ElementCount:
-        # clicked one element, the whole array moves. its world placement is the path without the element
-        root, path = mover[3]
-        up = "".join(n + "." for n in path.split(".")[:-2])
-        world = root.getSubObject(up, retType=3) if up else root.Placement
-    frame = world.inverse().multiply(mover[2]).multiply(fm.Placement)  # in the link's coords, through the element if theres one
-    # world placement of whatever the link sits in, its own placement taken back off the end
-    parent = world.multiply(link.Placement.inverse())
-    put(link, frame, parent, at, gap, 0)
+    frame = world.inverse().multiply(hole)  # in obj coords
+    # world placement of whatever obj sits in, its own placement taken back off the end
+    parent = world.multiply(obj.Placement.inverse())
+    put(obj, frame, parent, at, gap, 0)
     joint = asm and snap.revolute(asm, snap.ref(asm, target, ft), snap.ref(asm, mover, fm), gap)
-    return {"link": link, "frame": frame, "parent": parent, "at": at, "spin": 0, "joint": joint}
+    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": 0, "joint": joint}
 
 
 class Panel(snap.Clicks):
@@ -61,24 +69,27 @@ class Panel(snap.Clicks):
         self.gap.setSuffix(" in")
         self.gap.setKeyboardTracking(False)  # one move per typed gap
         self.gap.valueChanged.connect(lambda: self.turn(0))
+        self.whole = QtWidgets.QCheckBox("Move its whole group")
+        self.whole.setChecked(p.GetBool("AlignWhole", False))
         self.last = None  # the last one aligned, what the buttons and the gap move
-        super().__init__("VEX align", [("Turn", turns), ("Gap", self.gap)])
+        super().__init__("VEX align", [("Turn", turns), ("Gap", self.gap), (self.whole,)])
 
     def act(self, mover, target):
         import UtilsAssembly
-        asm = snap.inside(UtilsAssembly.activePartOrAssembly())[1]
-        got = ui.run("Align VEX part", lambda: align(mover, target, self.gap.value() * IN, asm))
+        whole = self.whole.isChecked()
+        App.ParamGet(ui.PARAMS).SetBool("AlignWhole", whole)
+        got = ui.run("Align VEX part", lambda: align(mover, target, self.gap.value() * IN, UtilsAssembly.activePartOrAssembly(), whole))
         if got is None:
             return None
         self.last = got
-        got["link"].Document.recompute()
-        return f"{got['link'].Label} lined up on {target[0].Label}, the buttons and gap move it"
+        got["moved"].Document.recompute()
+        return f"{got['moved'].Label} lined up on {target[0].Label}, the buttons and gap move it"
 
     def turn(self, way):
         # way -1 / 1 for the buttons, 0 when the gap changed
         s = self.last
         # deleted or undone since
-        if not s or s["link"] not in self.doc.Objects:
+        if not s or s["moved"] not in self.doc.Objects:
             self.last = None
             return
         if way:
@@ -87,11 +98,11 @@ class Panel(snap.Clicks):
         gap = self.gap.value() * IN
 
         def move():
-            put(s["link"], s["frame"], s["parent"], s["at"], gap, s["spin"])
+            put(s["moved"], s["frame"], s["parent"], s["at"], gap, s["spin"])
             if s["joint"] in self.doc.Objects:
                 s["joint"].Offset2 = Placement(Vector(0, 0, gap), Rotation())
         ui.run("Turn VEX part", move)
-        s["link"].Document.recompute()
+        s["moved"].Document.recompute()
 
 
 class Align:

@@ -23,7 +23,7 @@ Then over in the Assembly workbench, joint two frames together (Fixed for bolted
 
 ## Align
 
-**Align** does that in two clicks without any frames: click a hole on the part you want to move, then the hole on the part it goes against, and it jumps over so the holes line up and the faces sit flat on each other (same orange dots as the screw tool). **Rotate -** / **Rotate +** turn the last one around the hole by the angle in the box (90 to start, anything works), and **Gap** holds it that far off the other face, both work after its moved. with an assembly active it gets a Revolute joint between the two holes, so it can still spin and the gap shows as the joint's offset. click a hole on one element of a link array and the whole array moves so that element's hole lands.
+**Align** does that in two clicks without any frames: click a hole on the part you want to move, then the hole on the part it goes against, and it jumps over so the holes line up and the faces sit flat on each other (same orange dots as the screw tool). **Rotate -** / **Rotate +** turn the last one around the hole by the angle in the box (90 to start, anything works), and **Gap** holds it that far off the other face, both work after its moved. with an assembly active it gets a Revolute joint between the two holes, so it can still spin and the gap shows as the joint's offset. click a hole on one element of a link array and the whole array moves so that element's hole lands. tick **Move its whole group** and it moves the Part (or sub-assembly) the clicked part is in instead, the top one under the active assembly, so a whole drive side goes over in one go and everything in it stays where it was in it.
 
 ## Screws
 

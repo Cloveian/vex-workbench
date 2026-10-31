@@ -225,15 +225,16 @@ doc.recompute()
 first = library.screw_holes(bar)[0]
 
 
-def where(link, pt):
-    # the spot a click on that hole inside asm gives
-    return (link, pt, asm.getSubObject(link.Name + ".", retType=3), (asm, link.Name + "."))
+def where(link, pt, up=""):
+    # the spot a click on that hole inside asm gives, up for the groups its in
+    path = up + link.Name + "."
+    return (link, pt, asm.getSubObject(path, retType=3), (asm, path))
 
 
 had = len(joints.Group)
 target = where(p1, App.Vector(3.25, 0.25, 0.046) * IN)
 s = align.align(where(bar, first), target, 0.25 * IN, asm)
-align.put(s["link"], s["frame"], s["parent"], s["at"], 0.25 * IN, 30)
+align.put(s["moved"], s["frame"], s["parent"], s["at"], 0.25 * IN, 30)
 doc.recompute()
 (_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
 z, x = (lambda p: p.Rotation.multVec(App.Vector(0, 0, 1))), (lambda p: p.Rotation.multVec(App.Vector(1, 0, 0)))
@@ -244,6 +245,26 @@ new = joints.Group[had:]
 assert [j.JointType for j in new] == ["Revolute"] and abs(new[0].Offset2.Base.z - 0.25 * IN) < 1e-9, new
 got = moved([p1, p2, bar])
 assert not got, got
+# whole group: a Part in asm with a channel and a plate in it. aligning by the channel moves just the Part, so they keep where they are in it
+grp = doc.addObject("App::Part", "Grp")
+asm.addObject(grp)
+g1 = library.place(doc, gen["1x2x1x5 Steel C-Channel"], grp)
+g2 = library.place(doc, gen["5x10 Steel Plate"], grp)
+g2.Placement = App.Placement(App.Vector(0, 3 * IN, 0), App.Rotation(0, 0, 90))
+doc.recompute()
+was = g1.Placement, g2.Placement
+inner = where(g1, first, grp.Name + ".")
+target = where(p1, App.Vector(4.25, 0.25, 0.046) * IN)
+align.align(inner, target, 0, asm, whole=True)
+doc.recompute()
+(_, at), (_, got) = snap.hole(target), snap.hole(where(g1, first, grp.Name + "."))
+assert (got.Base - at.Base).Length < 1e-9 and g1.Placement.isSame(was[0], 1e-9) and g2.Placement.isSame(was[1], 1e-9), got.Base
+# and a part in that same group cant be what it lines up on
+try:
+    align.align(inner, where(g2, App.Vector(0.25, 0.25, 0.046) * IN, grp.Name + "."), 0, asm, True)
+    raise AssertionError("lined a group up on itself")
+except ValueError:
+    pass
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")
