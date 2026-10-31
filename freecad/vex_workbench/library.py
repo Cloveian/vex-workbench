@@ -18,6 +18,7 @@ SQUARE = 0.17 * metal.IN, 0.2 * metal.IN
 OUT = 0.001 * metal.IN  # mm, the open-to-outside ray starts this far off the face
 SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
+CACHE = {}
 
 
 @functools.cache
@@ -180,6 +181,14 @@ def retarget(link):
     link.Label = part["name"]
 
 
+def cached(src, what):
+    # what(shape) for a source, worked out once. a source never changes, a reused object name comes with another VexName
+    key = (src.Document.Uid, src.Name, src.VexName, what)
+    if key not in CACHE:
+        CACHE[key] = what(Part.getShape(src))
+    return CACHE[key]
+
+
 def holes(shape):
     # (loop, center, outwerd normal) of every inner loop on a flat face. square, round, whatever
     out = []
@@ -187,9 +196,10 @@ def holes(shape):
         if f.Surface.TypeId != "Part::GeomPlane":
             continue
         n = f.normalAt(0, 0)
+        outer = f.OuterWire  # once, its worked out again on every call
         for w in f.Wires:
             b = w.BoundBox
-            if not w.isSame(f.OuterWire) and HOLE_MIN <= max(b.XLength, b.YLength, b.ZLength) <= HOLE_MAX:
+            if not w.isSame(outer) and HOLE_MIN <= max(b.XLength, b.YLength, b.ZLength) <= HOLE_MAX:
                 out.append((w, b.Center, n))
     return out
 
@@ -200,12 +210,18 @@ def ends(shape):
     return [(Vector(), Vector(0, 0, -1)), (Vector(0, 0, h), Vector(0, 0, 1))]
 
 
-def hits(shape, start, d, far):
-    # distences along d from start where it crosses a face, sorted. works on step shells with no solid
+def boxed(shape):
+    # faces + their bound boxes for hits(), ~35 ms on a 5x25 plate
+    return [(f, f.BoundBox) for f in shape.Faces]
+
+
+def hits(faces, start, d, far):
+    # distences along d from start where it crosses one of faces (from boxed), sorted. works on step shells with no solid
     e = Part.makeLine(start, start + d * far)
+    eb = e.BoundBox
     out = []
-    for f in shape.Faces:
-        if f.BoundBox.intersect(e.BoundBox):
+    for f, b in faces:
+        if b.intersect(eb):
             out += [(v.Point - start).Length for v in f.section(e).Vertexes]
     out.sort()
     # an edge or seam crossing shows up once per face
@@ -228,7 +244,7 @@ def screw_holes(link):
     src = link.LinkedObject
     if getattr(link, "VexFamily", None) in stock.FAMILIES:
         return [c for c, _ in ends(Part.getShape(src))]
-    # kept on the source, getShape alone is ~0.8 s on a 5x25 plate
+    # kept on the source, the 11W's rays take a while
     if not hasattr(src, "VexScrewHoles"):
         src.addProperty("App::PropertyVectorList", "VexScrewHoles", "VEX")
         src.setPropertyStatus("VexScrewHoles", "Hidden")
@@ -239,9 +255,10 @@ def screw_holes(link):
 def outermost(shape, rays):
     # one per hole and side. rays=True drops loops facing into the part, the 11W step has those. generated metal is all through holes
     far = shape.BoundBox.DiagonalLength
+    faces = boxed(shape) if rays else []
     kept = {}  # axis and side -> centers
     for w, c, n in sorted(holes(shape), key=lambda h: -h[1].dot(h[2])):
-        if not screwable(w) or rays and hits(shape, c + n * OUT, n, far):
+        if not screwable(w) or rays and hits(faces, c + n * OUT, n, far):
             continue
         key = tuple(round(v, 2) for v in (*n, *(c - n * c.dot(n))))
         # the 5.5W has its thread at the face and a wider loop 0.042 under it. a channel's other flange is its own hole
@@ -254,12 +271,11 @@ def hole_frame(link, point):
     # LCS on the exact center of the hole nearset point (link coords), z out of the face, x along the length if it can
     # it goes in the source so every copy has it
     src = link.LinkedObject
-    shape = Part.getShape(src)
     if getattr(link, "VexFamily", None) in stock.FAMILIES:
         # shafts have no loop to find, the end nearer the click
-        center, n = min(ends(shape), key=lambda e: (e[0] - point).Length)
+        center, n = min(ends(Part.getShape(src)), key=lambda e: (e[0] - point).Length)
     else:
-        found = holes(shape)
+        found = cached(src, holes)
         if not found:
             raise ValueError(f"no holes on {link.Label}")
         # a hole point is right on a center. coaxal loops a few thou deeper can be nearer than its own edge
