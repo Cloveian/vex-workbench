@@ -215,6 +215,7 @@ def make(part, cat):
 
 # --- bending a made part ---
 BIG = 1e4  # mm, a box this big is a half space
+NEAR = 0.3 * IN  # mm, cut off the clicked wall if its face on the line is this close to the hole. half a hole is 0.091
 
 
 def half(at, u, n, lo):
@@ -234,11 +235,19 @@ def fold(shape, b):
     a = math.radians(abs(b["angle"]))
     w = (b["r"] + b["k"] * b["t"]) * a  # flat length the bend eats, on the netural line. r inside radius, t wall
     keep = shape.cut(half(p, u, n, 0))
-    turns = shape.common(half(p, u, n, 0))
+
+    def on_line(f):
+        return f.Surface.TypeId == "Part::GeomPlane" and abs(abs(f.normalAt(0, 0).dot(u)) - 1) < 1e-6 and abs(u.dot(f.CenterOfMass - p)) < 1e-6
+
+    # only whats cut off the clicked wall turns. the plane goes on forever, so folding a channel's flange along it cuts the other flange too
+    near = Part.Vertex(p - n * b["t"] / 2)
+    mine, stays = [], []
+    for x in shape.common(half(p, u, n, 0)).Solids:
+        (mine if any(on_line(f) and f.distToShape(near)[0] < NEAR for f in x.Faces) else stays).append(x)
+    turns = Part.makeCompound(mine)
     rest = turns.common(half(p, u, n, w))
     # cross section on the line, swept round. a hole the line goes through leaves a gap in it, so it stays open round the bend
-    section = [f for f in turns.Faces if f.Surface.TypeId == "Part::GeomPlane" and abs(abs(f.normalAt(0, 0).dot(u)) - 1) < 1e-6
-               and abs(u.dot(f.CenterOfMass - p)) < 1e-6]
+    section = [f for f in turns.Faces if on_line(f)]
     if not section or not keep.Solids:
         raise ValueError("nothing to bend there, the line has to go across the metal with some on both sides")
     up = 1 if b["angle"] > 0 else -1
@@ -254,7 +263,7 @@ def fold(shape, b):
         rest.translate(-u * w)
         rest.rotate(at, axis, deg)
         pieces.append(rest)
-    out = keep.fuse(pieces).removeSplitter()
+    out = keep.fuse(pieces + stays).removeSplitter()
     # anything else that collapes comes back as nothing or a sliver, still isValid
     if len(out.Solids) != 1 or not 0.8 < out.Volume / shape.Volume < 1.5:
         raise ValueError("that bend came out broken, try it a little different")

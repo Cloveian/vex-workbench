@@ -343,6 +343,12 @@ try:
     raise AssertionError("folded a channel into its own flanges")
 except ValueError:
     pass
+# folding a flange's tip along the length, the line's plane cuts the other flange too and that one stays put
+tip = next(c for c in library.screw_holes(ch) if abs(c.z) < 1e-6 and abs(c.y - 0.25 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
+s = Part.getShape(ch.LinkedObject)
+out = metal.fold(s, bend.first(ch, tip, False, 0, 90))
+far = [f for f in out.Faces if f.Surface.TypeId == "Part::GeomPlane" and abs(f.normalAt(0, 0).z - 1) < 1e-6 and f.BoundBox.ZMin > 0.9 * IN]
+assert len(out.Solids) == 1 and abs(out.Volume / s.Volume - 1) < 0.005 and far and min(f.BoundBox.YMin for f in far) < 1e-6, out.Volume
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")
