@@ -151,7 +151,7 @@ try:
     arr.setElementVisible("0", True)
 
     # screw tool, two clicks on two stacked plates
-    from freecad.vex_workbench import screws
+    from freecad.vex_workbench import screws, ui
     p1 = library.place(doc, gen["5x10 Steel Plate"])
     p2 = library.place(doc, gen["5x10 Steel Plate"])
     p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * IN), App.Rotation())
@@ -264,6 +264,10 @@ try:
     panel.kind.setCurrentText("Star")
     panel.mine.setChecked(False)
     panel.kind.setCurrentText("Shoulder")
+    # and placing one doesnt save the forced tick over it
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(2.75, 0.25, 0.046) * IN))
+    QtWidgets.QApplication.processEvents()
+    assert not App.ParamGet(ui.PARAMS).GetBool("ScrewMine", True)
     panel.kind.setCurrentText("Star")
     assert panel.mine.isEnabled() and not panel.mine.isChecked()
     panel.reject()

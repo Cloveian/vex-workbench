@@ -200,7 +200,7 @@ class Panel(snap.Clicks):
         import UtilsAssembly
         p = App.ParamGet(ui.PARAMS)
         p.SetString("Screw", self.kind.currentText())
-        p.SetBool("ScrewMine", self.mine.isChecked())
+        p.SetBool("ScrewMine", self.mine.isChecked() if self.mine.isEnabled() else self.before)  # not the forced one shoulder screws get
         doc = head[0].Document
         active = UtilsAssembly.activePartOrAssembly()
         if tail is None:
