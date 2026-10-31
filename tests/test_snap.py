@@ -245,6 +245,9 @@ new = joints.Group[had:]
 assert [j.JointType for j in new] == ["Revolute"] and abs(new[0].Offset2.Base.z - 0.25 * IN) < 1e-9, new
 got = moved([p1, p2, bar])
 assert not got, got
+# it keeps the turn a part already has, to the nearest step: 80 stays 80, or 90 on a 90 or 45 step
+h = App.Placement(App.Vector(), align.FLIP.multiply(App.Rotation(App.Vector(0, 0, 1), 80)))
+assert [round(align.spun(h, App.Placement(), s), 6) for s in (0, 90, 45)] == [80, 90, 90]
 # lined up again somewhere else, its old align joint goes
 target = where(p1, App.Vector(2.75, 1.25, 0.046) * IN)
 align.align(where(bar, first), target, 0, asm)

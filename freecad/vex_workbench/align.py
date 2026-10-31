@@ -1,4 +1,6 @@
 # align tool. click a hole on the part to move, then one on the part it goes against, faces land flat on each other
+import math
+
 import FreeCAD as App
 import FreeCADGui as Gui
 from FreeCAD import Placement, Rotation, Vector
@@ -8,6 +10,7 @@ from . import snap, ui
 from .metal import IN
 
 FLIP = Rotation(Vector(1, 0, 0), 180)  # z against z, face to face
+X, Y = Vector(1, 0, 0), Vector(0, 1, 0)
 
 
 def put(link, frame, parent, at, gap, spin):
@@ -29,7 +32,15 @@ def moving(mover, active, whole):
     return objs[k], snap.placement(root, "".join(n + "." for n in names[:k]))
 
 
-def align(mover, target, gap, active=None, whole=False):
+def spun(hole, at, step):
+    # the spin put() needs to keep the hole x as near as it is now, to the nearest step deg. x after the flip is cos*ax - sin*ay
+    x = hole.Rotation.multVec(X)
+    ax, ay = at.Rotation.multVec(X), at.Rotation.multVec(Y)
+    spin = math.degrees(math.atan2(-x.dot(ay), x.dot(ax)))
+    return round(spin / step) * step if step else spin
+
+
+def align(mover, target, gap, active=None, whole=False, step=0):
     # mover, target = snap.spot()s, active = the active part or assembly. state for turning it after, and a Revolute joint if its an assembly
     obj, world = moving(mover, active, whole)
     asm = snap.inside(active)[1]
@@ -40,9 +51,10 @@ def align(mover, target, gap, active=None, whole=False):
     frame = world.inverse().multiply(hole)  # in obj coords
     # world placement of whatever obj sits in, its own placement taken back off the end
     parent = world.multiply(obj.Placement.inverse())
-    put(obj, frame, parent, at, gap, 0)
+    spin = spun(hole, at, step)
+    put(obj, frame, parent, at, gap, spin)
     joint = asm and rejoint(asm, snap.ref(asm, target, ft), snap.ref(asm, mover, fm), gap)
-    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": 0, "joint": joint}
+    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": spin, "joint": joint}
 
 
 def rejoint(asm, r1, r2, gap):
@@ -92,7 +104,8 @@ class Panel(snap.Clicks):
         import UtilsAssembly
         whole = self.whole.isChecked()
         App.ParamGet(ui.PARAMS).SetBool("AlignWhole", whole)
-        got = ui.run("Align VEX part", lambda: align(mover, target, self.gap.value() * IN, UtilsAssembly.activePartOrAssembly(), whole))
+        active = UtilsAssembly.activePartOrAssembly()
+        got = ui.run("Align VEX part", lambda: align(mover, target, self.gap.value() * IN, active, whole, self.angle.value()))
         if got is None:
             return None
         self.last = got
