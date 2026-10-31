@@ -56,7 +56,8 @@ def placed(doc):
         for sub in obj.getSubObjects():
             walk(root, obj.getSubObject(sub, retType=1), path + sub)
 
-    for root in doc.RootObjects:
+    # a sub-assembly that something links to isnt in RootObjects
+    for root in doc.RootObjectsIgnoreLinks:
         walk(root, root, "")
     return out
 

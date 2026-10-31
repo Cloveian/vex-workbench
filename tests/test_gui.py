@@ -125,6 +125,10 @@ try:
     copy.Placement = App.Placement(App.Vector(0, 200, 0), App.Rotation(0, 0, 90))
     doc.recompute()
     assert snapped(copy, f"{ch2.Name}.", f"Face{i + 1}", click, loop.BoundBox.Center) == ch2
+    # hole points find them all, each array element and the channel in Side and in its copy
+    paths = {(root.Name, path): link for link, (root, path) in snap.placed(doc)}
+    want = {(arr.Name, "0."): arr, (arr.Name, "1."): arr, (side.Name, f"{ch2.Name}."): ch2, (copy.Name, f"{ch2.Name}."): ch2}
+    assert all(paths.get(k) == v for k, v in want.items()), sorted(paths)
 
     # screw tool, two clicks on two stacked plates
     from freecad.vex_workbench import screws
