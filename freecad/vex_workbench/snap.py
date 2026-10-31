@@ -133,7 +133,7 @@ def gap(j):
 
 
 class Clicks:
-    # task panel, click a hole then another and act() gets both spots, what it hands back goes on the status line. PROMPTS for before the first and second click
+    # task panel, click a hole then another and act() gets both spots, what it hands back goes on the status line. PROMPTS for before the first and second click, ONE for one()
     def __init__(self, title, rows):
         self.form = QtWidgets.QWidget()
         self.form.setWindowTitle(title)
@@ -211,8 +211,12 @@ class Clicks:
             plc = placement(root, path)
             self.spots += [(link, c, plc, (root, path)) for c in found[src]]
 
+    def one(self):
+        # True for a panel thats one click right now, act() gets None for the second
+        return False
+
     def ask(self, said=""):
-        self.status.setText(said + self.PROMPTS[self.first is not None])
+        self.status.setText(said + (self.ONE if self.one() else self.PROMPTS[self.first is not None]))
 
     def addSelection(self, doc, obj, sub, pnt):
         if obj == self.marks.Name and sub.startswith("Vertex"):
@@ -221,7 +225,11 @@ class Clicks:
             s = spot(App.getDocument(doc).getObject(obj), sub, Vector(*pnt))
         if s is None:
             return
-        if self.first is None:
+        if self.one():
+            self.first = None
+            self.light([s])
+            QtCore.QTimer.singleShot(0, lambda: self.done(s, None))
+        elif self.first is None:
             self.first = s
             self.light([s])
         else:

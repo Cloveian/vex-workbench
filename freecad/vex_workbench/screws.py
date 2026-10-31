@@ -8,7 +8,8 @@ from PySide import QtWidgets
 from . import derived, library, snap, spacers, stock, ui
 from .metal import IN
 
-KINDS = {"Star": "star-screw"}
+KINDS = {"Star": "star-screw", "Shoulder": "shoulder-screw"}
+BY_HAND = ("shoulder-screw",)  # no auto pick, the shoulder length is my call
 NUT_FOLDER = "Hardware/Nuts/8-32 Nuts"
 NO_NUT = "No nut"
 TAPPED = 0.164 * IN  # mm, 8-32 major. a screw doesnt go through anything smaller so its a thread. 5.5W motor 0.136, 11W 0.1596 lead in
@@ -124,12 +125,8 @@ def fasten(doc, head, tail, family, nut, parent=None, od=None):
     fills = []
     if od:
         fills = [(s, spacers.pick(t, od)) for s, t in gaps(head, tail, a, gap, max(across, bore(head[0], fa)[0]))]
+    s = drop(doc, head, screw, parent)
     local, asm = snap.inside(parent)
-    s = library.place(doc, screw, parent)
-    s.Placement = local.multiply(a)  # under the head on the face, shank down -z
-    # frames right on the hole frames, the joints dont move anything
-    if asm:
-        snap.revolute(asm, snap.ref(asm, head, fa), snap.on(s, library.frame(s, App.Placement(), "Seat")))
     n = None
     if not threaded:
         n = library.place(doc, nut, parent)
@@ -140,14 +137,30 @@ def fasten(doc, head, tail, family, nut, parent=None, od=None):
     return s, n, put
 
 
+def drop(doc, head, screw, parent=None):
+    # screw (a catalog part) in the clicked hole, under its head on that face, shank down -z
+    fa, a = snap.hole(head)
+    local, asm = snap.inside(parent)
+    s = library.place(doc, screw, parent)
+    s.Placement = local.multiply(a)
+    # frames right on the hole frames, the joint doesnt move anything
+    if asm:
+        snap.revolute(asm, snap.ref(asm, head, fa), snap.on(s, library.frame(s, App.Placement(), "Seat")))
+    return s
+
+
 class Panel(snap.Clicks):
     PROMPTS = ("click a hole on the head side", "now the hole on the nut side, or the one it screws into")
+    ONE = "click the hole it goes in, the head lands on that face"
 
     def __init__(self):
         p = App.ParamGet(ui.PARAMS)
         self.kind = QtWidgets.QComboBox()
         self.kind.addItems(list(KINDS))
         self.kind.setCurrentText(p.GetString("Screw", "Star"))
+        self.mine = QtWidgets.QCheckBox("Pick the screw myself")
+        self.mine.setChecked(p.GetBool("ScrewMine", False))
+        self.size = QtWidgets.QComboBox()
         self.nut = QtWidgets.QComboBox()
         self.nut.addItems([*nuts(), NO_NUT])
         saved = p.GetString("Nut")
@@ -155,19 +168,49 @@ class Panel(snap.Clicks):
         self.fill = QtWidgets.QCheckBox("Spacers in gaps")
         self.fill.setChecked(p.GetBool("Fill", False))
         self.od = spacers.od_box()
-        super().__init__("VEX screw", [("Screw", self.kind), ("Nut", self.nut), (self.fill, self.od)])
+        self.kind.currentTextChanged.connect(self.relist)
+        self.mine.toggled.connect(self.modes)
+        super().__init__("VEX screw", [("Screw", self.kind), (self.mine, self.size), ("Nut", self.nut), (self.fill, self.od)])
+        self.relist()
+        self.size.setCurrentText(p.GetString("ScrewPick"))
+
+    def relist(self):
+        family = KINDS[self.kind.currentText()]
+        self.size.clear()
+        self.size.addItems([s["name"] for s in sizes(family)])
+        hand = family in BY_HAND
+        if hand:
+            self.mine.setChecked(True)
+        self.mine.setEnabled(not hand)
+        self.modes()
+
+    def modes(self):
+        for w in (self.nut, self.fill, self.od):
+            w.setEnabled(not self.mine.isChecked())
+        self.size.setEnabled(self.mine.isChecked())
+        self.ask()
+
+    def one(self):
+        return self.mine.isChecked()
 
     def act(self, head, tail):
         import UtilsAssembly
         p = App.ParamGet(ui.PARAMS)
         p.SetString("Screw", self.kind.currentText())
-        p.SetString("Nut", self.nut.currentText())
-        p.SetBool("Fill", self.fill.isChecked())
-        family = KINDS[self.kind.currentText()]
-        nut = None if self.nut.currentText() == NO_NUT else nuts()[self.nut.currentText()]
-        od = spacers.od_from(self.od) if self.fill.isChecked() else None
+        p.SetBool("ScrewMine", self.mine.isChecked())
         doc = head[0].Document
-        put = ui.run("Place VEX screw", lambda: fasten(doc, head, tail, family, nut, UtilsAssembly.activePartOrAssembly(), od))
+        active = UtilsAssembly.activePartOrAssembly()
+        if tail is None:
+            p.SetString("ScrewPick", self.size.currentText())
+            pick = library.index()[1][self.size.currentText()]
+            put = ui.run("Place VEX screw", lambda: (drop(doc, head, pick, active), None, []))
+        else:
+            p.SetString("Nut", self.nut.currentText())
+            p.SetBool("Fill", self.fill.isChecked())
+            family = KINDS[self.kind.currentText()]
+            nut = None if self.nut.currentText() == NO_NUT else nuts()[self.nut.currentText()]
+            od = spacers.od_from(self.od) if self.fill.isChecked() else None
+            put = ui.run("Place VEX screw", lambda: fasten(doc, head, tail, family, nut, active, od))
         if not put:
             return None
         doc.recompute()
@@ -179,7 +222,7 @@ class Screw:
     def GetResources(self):
         return {"Pixmap": "vex-screw.svg", "MenuText": "Screw",
                 "ToolTip": "Click a hole on the head side, then the one on the nut side. Puts in the shortest screw that makes it through the nut, "
-                "or gets 3/8\" into a threaded hole (1/4\" if that's all there is)"}
+                "or gets 3/8\" into a threaded hole (1/4\" if that's all there is). Or pick the screw yourself and place it with one click"}
 
     def Activated(self):
         Gui.Control.showDialog(Panel())

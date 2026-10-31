@@ -15,7 +15,7 @@ It makes the parts and puts frames on hole centers, and FreeCAD's built-in Assem
 - **Frame on hole**: click a hole (or the end of a shaft), and a frame goes on its exact center to joint to.
 - **Align**: click a hole on the part to move, then the hole it goes against, and it lands there with the faces flat on each other. Turn it by any angle or give it a gap after. It can move a whole link array, or the whole sub-assembly a part is in, and in an assembly it gets a joint that lets it spin.
 - **Editable placed parts**: change Holes or Size on a placed part and only that one changes. The same part placed 40 times is one model and 40 links.
-- **Screw**: click a hole on the head side, then one on the nut side, and it puts in the shortest screw that makes it through the nut, plus the nut. Click a threaded hole second (a standoff, a motor) and it goes 3/8" into the thread instead, no nut. While it's open, every hole you can screw into gets a dot to click.
+- **Screw**: click a hole on the head side, then one on the nut side, and it puts in the shortest screw that makes it through the nut, plus the nut. Click a threaded hole second (a standoff, a motor) and it goes 3/8" into the thread instead, no nut. Or pick the screw yourself (Robosource shoulder screws too) and place it with one click. While it's open, every hole you can screw into gets a dot to click.
 - **Spacers**: click two holes facing each other, and the gap gets filled with spacers and washers, like inside a boxed channel. The screw tool can fill its gaps too.
 - **Colors and weights** per material (star screw heads get VEX's color code for their length), and a **Parts list** button that counts everything into a spreadsheet.
 

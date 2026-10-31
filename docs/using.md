@@ -27,9 +27,11 @@ Then over in the Assembly workbench, joint two frames together (Fixed for bolted
 
 ## Screws
 
-**Screw** opens a panel with the screw (Star for now) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Revolute joint to its hole, so it can spin on it.
+**Screw** opens a panel with the screw (Star or Shoulder) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Revolute joint to its hole, so it can spin on it.
 
 Pick No nut, or click a threaded hole second (standoffs, and anything under 0.164 across like the motors), and the second click is the face the screw goes *into*. it aims for 3/8 of thread, takes 1/4 if the hole is shallower, and never goes past the bottom. Spacers in gaps fills every gap between the two clicked parts.
+
+Tick **Pick the screw myself** and pick one from the list next to it, then its one click: the hole it goes in, head on that face, no nut and no spacers. Shoulder screws only go in this way, the shoulder length is your call.
 
 **Spacers** does just the filling: click holes on two faces across from each other, fewest spacers + washers within 1/64 under the gap, never over. spacer OD is a setting, 0.375 to start.
 

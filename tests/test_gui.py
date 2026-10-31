@@ -162,6 +162,7 @@ try:
     panel = screws.Panel()
     Gui.Control.showDialog(panel)
     panel.kind.setCurrentText("Star")
+    panel.mine.setChecked(False)  # whatever the last real use left in the prefs
     panel.nut.setCurrentText("Nylock Nut")
     panel.fill.setChecked(False)
     before = set(doc.Objects)
@@ -242,6 +243,24 @@ try:
     dots = [panel.marks.Name, panel.lit.Name]
     panel.reject()
     assert not any(doc.getObject(n) for n in dots)
+    # picked by hand: one click, that screw, no nut. shoulder screws only go in that way
+    panel = screws.Panel()
+    Gui.Control.showDialog(panel)
+    panel.kind.setCurrentText("Star")
+    panel.mine.setChecked(True)
+    panel.size.setCurrentText("0.500 Torx (Star) Screw (8-32, Steel)")
+    assert panel.status.text().startswith(panel.ONE) and not panel.nut.isEnabled()
+    for name, at in (("0.500 Torx (Star) Screw (8-32, Steel)", 0.75), ("0.500, 0.18 Robosource Shoulder Screw (8-32, Steel)", 1.75)):
+        if "Shoulder" in name:
+            panel.kind.setCurrentText("Shoulder")
+            assert panel.mine.isChecked() and not panel.mine.isEnabled()
+            panel.size.setCurrentText(name)
+        before = set(doc.Objects)
+        Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(at, 0.25, 0.046) * IN))
+        QtWidgets.QApplication.processEvents()
+        got = [library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link"]
+        assert got == [name], (got, panel.status.text())
+    panel.reject()
     # spacer panel, the plates 0.25 apart now
     from freecad.vex_workbench import spacers
     p2.Placement = App.Placement(App.Vector(0, 0, -0.296 * IN), App.Rotation())
