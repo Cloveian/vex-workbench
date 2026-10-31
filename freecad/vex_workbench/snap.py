@@ -117,15 +117,26 @@ class Clicks:
         self.status = QtWidgets.QLabel()
         lay.addRow(self.status)
         self.first = None
+        self.picked = []  # world points lit green
         self.doc = App.ActiveDocument
-        self.marks = self.dots("VexHoles", MARK_SIZE, (1.0, 0.35, 0.1))
-        # the select highlight on these goes when the mouse leaves
-        self.lit = self.dots("VexPicked", PICK_SIZE, (0.1, 0.9, 0.2))
-        if self.lit.ViewObject:
-            self.lit.ViewObject.Selectable = False  # clicks go through to the orange ones
         self.mark()
+        self.draw()
         self.ask()
         Gui.Selection.addObserver(self)
+        App.addDocumentObserver(self)
+
+    def draw(self):
+        self.marks = self.dots("VexHoles", MARK_SIZE, (1.0, 0.35, 0.1))
+        self.marks.Shape = Part.Compound([Part.Vertex(plc.multVec(c)) for _, c, plc, _ in self.spots])
+        # the select highlight on these goes when the mouse leaves
+        self.lit = self.dots("VexPicked", PICK_SIZE, (0.1, 0.9, 0.2))
+        self.lit.Shape = Part.Compound([Part.Vertex(p) for p in self.picked])
+        if self.lit.ViewObject:
+            self.lit.ViewObject.Selectable = False  # clicks go through to the orange ones
+
+    def undraw(self):
+        for o in (self.marks, self.lit):
+            self.doc.removeObject(o.Name)
 
     def dots(self, name, size, color):
         o = self.doc.addObject("Part::Feature", name)
@@ -137,13 +148,13 @@ class Clicks:
 
     def light(self, spots):
         # picked holes in green till the screw or spacers are in
-        pts = []
+        self.picked = []
         for link, pt, plc, _ in spots:
             try:
-                pts.append(plc.multVec(library.hole_at(link, pt)[0]))
+                self.picked.append(plc.multVec(library.hole_at(link, pt)[0]))
             except ValueError:
                 pass  # part with no holes, act() says so
-        self.lit.Shape = Part.Compound([Part.Vertex(p) for p in pts])
+        self.lit.Shape = Part.Compound([Part.Vertex(p) for p in self.picked])
 
     def mark(self):
         # a point on every screw hole and stock end, Vertex<i+1> is spots[i]
@@ -155,7 +166,6 @@ class Clicks:
                 found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.screw_holes(link)
             plc = root.getSubObject(path, retType=3) if path else root.Placement
             self.spots += [(link, c, plc, (root, path)) for c in found[src]]
-        self.marks.Shape = Part.Compound([Part.Vertex(plc.multVec(c)) for _, c, plc, _ in self.spots])
 
     def ask(self, said=""):
         self.status.setText(said + self.PROMPTS[self.first is not None])
@@ -189,10 +199,26 @@ class Clicks:
 
     def reject(self):
         Gui.Selection.removeObserver(self)
-        for o in (self.marks, self.lit):
-            self.doc.removeObject(o.Name)
+        App.removeDocumentObserver(self)
+        self.undraw()
         Gui.Control.closeDialog()
         return True
+
+    # the points arent part of the robot, they stay out of the file
+    def slotStartSaveDocument(self, doc, path):
+        if doc == self.doc:
+            self.undraw()
+
+    def slotFinishSaveDocument(self, doc, path):
+        if doc == self.doc:
+            self.draw()
+
+    def slotDeletedDocument(self, doc):
+        # closed with the panel still open, the points go with it
+        if doc == self.doc:
+            Gui.Selection.removeObserver(self)
+            App.removeDocumentObserver(self)
+            Gui.Control.closeDialog()
 
 
 class HoleFrame:

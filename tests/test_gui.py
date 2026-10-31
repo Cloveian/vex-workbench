@@ -2,6 +2,7 @@
 import os
 import sys
 import traceback
+import zipfile
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -161,6 +162,18 @@ try:
     Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(first))
     # the picked one stays green, and goes once the screw is in
     assert [(v.Point - first).Length < 1e-6 for v in panel.lit.Shape.Vertexes] == [True], panel.lit.Shape.Vertexes
+    # saving with the panel open leaves the points out of the file, and puts them back
+    n = len(panel.marks.Shape.Vertexes)
+    saved = os.path.join(os.path.dirname(__file__), "_points.FCStd")
+    try:
+        doc.saveAs(saved)
+        assert len(panel.marks.Shape.Vertexes) == n and len(panel.lit.Shape.Vertexes) == 1
+        # openDocument would just hand back doc, its open on that file now
+        with zipfile.ZipFile(saved) as z:
+            xml = z.read("Document.xml").decode()
+        assert "VexHoles" not in xml and "VexPicked" not in xml and 'name="VexPart"' in xml
+    finally:
+        os.remove(saved)
     Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.25, 0.25, -0.046) * IN))
     QtWidgets.QApplication.processEvents()
     got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
