@@ -28,7 +28,7 @@ in build order, each one is something i can open and poke at
 - [ ] is aluminum c-channel really the steel shape? vex's al steps arent
 - [ ] which metal comes in which material (al bar? steel U-channel? steel 1x1? steel 3x c-channel?)
 - [ ] flange nuts (nylon, nylock), wing nut
-- [ ] HS spacer bore clearance
+- [x] HS spacer bore clearance: 0.252 across the flats on vex's steps, 0.002 over the shaft
 - [x] which spacer OD / length combos actually exist: whatever robosource sells is fine
 - [ ] drilled gear hole pattern
 - [ ] HS lockbar
