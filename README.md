@@ -77,6 +77,7 @@ The first one drives Firefox through VEX's CAD search using your Firefox cookies
 ## Known limits
 
 - Joints on a hole that a bend moves or a cut takes off break, so bend and cut before screwing things on. Joints on holes that stay put carry over.
+- That's for joints on hole frames, which is what the VEX tools make. One made with FreeCAD's own joint tool straight on a face or edge of a part breaks when that part changes size or gets bent, cut or drilled, since its faces get renumbered.
 - Channels and angles only bend away from their other walls. Cut the flanges off first to fold the other way, like you would for real.
 - Aluminum C-channel uses the steel channel's hole layout. VEX's own aluminum files are a little different.
 - The HS lockbar and drilled gears aren't there yet, there are no numbers for them.
