@@ -17,7 +17,7 @@
 | `freecad/vex_workbench/spacers.py` | Spacers command, fills a gap between two holes with spacers + washers |
 | `freecad/vex_workbench/align.py`   | Align command, hole on one part onto a hole on another, faces together, then turned or gapped, Revolute joint in an assembly |
 | `freecad/vex_workbench/shop.py`    | Bend, Cut and Drill commands, kept on the link as VexSteps in order. the geometry is `metal.work` (fold, cut, drill) |
-| `freecad/vex_workbench/ui.py`      | undo step, wait cursor and error box around building parts, number boxes for the panels |
+| `freecad/vex_workbench/ui.py`      | undo step, wait cursor and error box around building parts, number boxes for the panels, and the toolbar buttons that open them |
 | `freecad/vex_workbench/partslist.py` | Parts list command, links counted by name into a spreadsheet         |
 | `freecad/vex_workbench/data/parts.toml` | the [catalog](../design-choices/catalog.md)                      |
 | `freecad/vex_workbench/resources/icons/` | the workbench and command icons                                 |

@@ -1,6 +1,5 @@
 # screw tool. click a hole on the head side, then one on the nut side, it puts in the shortest screw that makes it through the nut or into a thread. or one picked by hand, one click
 import FreeCAD as App
-import FreeCADGui as Gui
 import Part
 from FreeCAD import Vector
 from PySide import QtWidgets
@@ -221,14 +220,6 @@ class Panel(snap.Clicks):
         return f"put in a {screw.Label}" + (f" + {len(extra)} spacers and washers" if extra else "")
 
 
-class Screw:
-    def GetResources(self):
-        return {"Pixmap": "vex-screw.svg", "MenuText": "Screw",
-                "ToolTip": "Click a hole on the head side, then the one on the nut side. Puts in the shortest screw that makes it through the nut, "
-                "or gets 3/8\" into a threaded hole (1/4\" if that's all there is). Or pick the screw yourself and place it with one click"}
-
-    def Activated(self):
-        Gui.Control.showDialog(Panel())
-
-    def IsActive(self):
-        return App.ActiveDocument is not None and not Gui.Control.activeDialog()
+SCREW = ui.Command(Panel, "vex-screw.svg", "Screw",
+                   "Click a hole on the head side, then the one on the nut side. Puts in the shortest screw that makes it through the nut, "
+                   "or gets 3/8\" into a threaded hole (1/4\" if that's all there is). Or pick the screw yourself and place it with one click")

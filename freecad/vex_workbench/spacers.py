@@ -2,7 +2,6 @@
 import itertools
 
 import FreeCAD as App
-import FreeCADGui as Gui
 from FreeCAD import Vector
 from PySide import QtWidgets
 
@@ -98,13 +97,5 @@ class Panel(snap.Clicks):
         return "put in " + ", ".join(o.Label for o in put)
 
 
-class Spacers:
-    def GetResources(self):
-        return {"Pixmap": "vex-spacer.svg", "MenuText": "Spacers",
-                "ToolTip": "Click holes on two faces across from each other. Fills the gap with spacers and washers, never more than 1/64\" short"}
-
-    def Activated(self):
-        Gui.Control.showDialog(Panel())
-
-    def IsActive(self):
-        return App.ActiveDocument is not None and not Gui.Control.activeDialog()
+SPACERS = ui.Command(Panel, "vex-spacer.svg", "Spacers",
+                     "Click holes on two faces across from each other. Fills the gap with spacers and washers, never more than 1/64\" short")

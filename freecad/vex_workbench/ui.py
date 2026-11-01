@@ -1,4 +1,4 @@
-# undo step, wait cursor and the error box around anything that builds parts. and the panels number boxes
+# undo step, wait cursor and the error box around anything that builds parts. and the panels number boxes, and toolbar buttons that open them
 import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtCore, QtWidgets
@@ -33,3 +33,18 @@ def number(lo, hi, suffix, value=0.0, step=1.0, decimals=2):
     box.setSuffix(suffix)
     box.setValue(value)
     return box
+
+
+class Command:
+    # greyed out while another panel is open
+    def __init__(self, panel, icon, name, tip):
+        self.panel, self.res = panel, {"Pixmap": icon, "MenuText": name, "ToolTip": tip}
+
+    def GetResources(self):
+        return self.res
+
+    def Activated(self):
+        Gui.Control.showDialog(self.panel())
+
+    def IsActive(self):
+        return App.ActiveDocument is not None and not Gui.Control.activeDialog()

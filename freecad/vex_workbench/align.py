@@ -2,7 +2,6 @@
 import math
 
 import FreeCAD as App
-import FreeCADGui as Gui
 from FreeCAD import Placement, Rotation, Vector
 from PySide import QtWidgets
 
@@ -136,13 +135,5 @@ class Panel(snap.Clicks):
         s["moved"].Document.recompute()
 
 
-class Align:
-    def GetResources(self):
-        return {"Pixmap": "vex-align.svg", "MenuText": "Align",
-                "ToolTip": "Click a hole on the part to move, then the hole it goes against. Faces land flat on each other, then turn it or set a gap"}
-
-    def Activated(self):
-        Gui.Control.showDialog(Panel())
-
-    def IsActive(self):
-        return App.ActiveDocument is not None and not Gui.Control.activeDialog()
+ALIGN = ui.Command(Panel, "vex-align.svg", "Align",
+                   "Click a hole on the part to move, then the hole it goes against. Faces land flat on each other, then turn it or set a gap")

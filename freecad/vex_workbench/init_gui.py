@@ -16,8 +16,8 @@ class VexWorkbench(Gui.Workbench):
 
     def Initialize(self):
         from . import align, browser, partslist, screws, shop, snap, spacers
-        cmds = {"Vex_Browser": browser.ShowBrowser(), "Vex_HoleFrame": snap.HoleFrame(), "Vex_Align": align.Align(), "Vex_Screw": screws.Screw(),
-                "Vex_Spacers": spacers.Spacers(), "Vex_Bend": shop.BEND, "Vex_Cut": shop.CUT, "Vex_Drill": shop.DRILL, "Vex_PartsList": partslist.PartsList()}
+        cmds = {"Vex_Browser": browser.ShowBrowser(), "Vex_HoleFrame": snap.HoleFrame(), "Vex_Align": align.ALIGN, "Vex_Screw": screws.SCREW,
+                "Vex_Spacers": spacers.SPACERS, "Vex_Bend": shop.BEND, "Vex_Cut": shop.CUT, "Vex_Drill": shop.DRILL, "Vex_PartsList": partslist.PartsList()}
         for name, cmd in cmds.items():
             Gui.addCommand(name, cmd)
         self.appendToolbar("VEX", list(cmds))

@@ -1,6 +1,5 @@
 # shop work on placed metal, bend or cut on a line through a hole or drill one anywhere. kept on that one copy as steps
 import FreeCAD as App
-import FreeCADGui as Gui
 import Part
 from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
@@ -207,21 +206,6 @@ class DrillPanel(Clicked):
         s["dia"] = self.size.value() * IN
 
 
-class Command:
-    # the three toolbar buttons, one per panel
-    def __init__(self, panel, icon, name, tip):
-        self.panel, self.res = panel, {"Pixmap": icon, "MenuText": name, "ToolTip": tip}
-
-    def GetResources(self):
-        return self.res
-
-    def Activated(self):
-        Gui.Control.showDialog(self.panel())
-
-    def IsActive(self):
-        return App.ActiveDocument is not None and not Gui.Control.activeDialog()
-
-
-BEND = Command(BendPanel, "vex-bend.svg", "Bend", "Click a hole the bend goes through. It folds there by the angle, then change the line, angle or which side turns")
-CUT = Command(CutPanel, "vex-cut.svg", "Cut", "Click a hole the cut goes through, across or along the part. The smaller side goes, or keep that one instead")
-DRILL = Command(DrillPanel, "vex-drill.svg", "Drill", "Click a spot on the metal and a round hole goes through there, snapped to the 0.25 grid. Hold Shift to skip the snap")
+BEND = ui.Command(BendPanel, "vex-bend.svg", "Bend", "Click a hole the bend goes through. It folds there by the angle, then change the line, angle or which side turns")
+CUT = ui.Command(CutPanel, "vex-cut.svg", "Cut", "Click a hole the cut goes through, across or along the part. The smaller side goes, or keep that one instead")
+DRILL = ui.Command(DrillPanel, "vex-drill.svg", "Drill", "Click a spot on the metal and a round hole goes through there, snapped to the 0.25 grid. Hold Shift to skip the snap")
