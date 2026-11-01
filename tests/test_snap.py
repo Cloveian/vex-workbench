@@ -128,11 +128,13 @@ def fake(refs):
 box = doc.addObject("Part::Box", "Box")
 for refs in ([box, ["Face1", "Vertex1"]], None):
     fake(refs)
-# drilling p1 somewhere else keeps the screw's joint on it, the frame comes over to the drilled source
+# drilling p1 somewhere else keeps the screw's joint on it, the frame comes over to the drilled source. a bare Frame on hole one too
+bare = library.hole_frame(p1, App.Vector(3.26, 0.26, 0.046) * IN).Placement
 library.rework(p1, [shop.drill(p1, App.Vector(3.5, 0.5, 0.046) * IN, 0.25 * IN, False)])
 doc.recompute()
 hole = new[0].Reference1[1][0]
 assert p1.LinkedObject.VexSteps and p1.LinkedObject.getObject(hole.rstrip(".")) in p1.LinkedObject.Group, hole
+assert any(o.TypeId == "App::LocalCoordinateSystem" and o.Placement.isSame(bare, 1e-6) for o in p1.LinkedObject.Group), bare
 got = moved([p1, p2, sc, nut])
 assert not got and local(nut) == [1.25, 0.25, -0.2391, -0.046], (got, local(nut))
 # and on one element of a link array
@@ -181,11 +183,13 @@ _, frame = new[1].Reference1[1][0].rstrip(".").split(".")
 assert p3.LinkedObject.VexSteps and p3.LinkedObject.getObject(frame) in p3.LinkedObject.Group, new[1].Reference1
 got = moved([sc, nut])
 assert not got and local(nut) == [1.25, 0.25, -0.2391, -0.046], (got, local(nut))
-# a plain size change too, p2 to 15 holes keeps its nut joint
+# a plain size change too, p2 to 15 holes keeps its nut joint. a bare frame stays on the 5x10 source, the 5x15 one is shared
 j2 = next(j for j in joints.Group if getattr(j, "JointType", "") == "Revolute" and j.Reference1[0] == p2)
+bare = library.hole_frame(p2, App.Vector(3.26, 0.26, 0) * IN).Placement
 p2.Holes = "15"
 library.refit(p2)  # no observer in here
 doc.recompute()
+assert not any(o.TypeId == "App::LocalCoordinateSystem" and o.Placement.isSame(bare, 1e-6) for o in p2.LinkedObject.Group), bare
 assert p2.LinkedObject.getObject(j2.Reference1[1][0].rstrip(".")) in p2.LinkedObject.Group, j2.Reference1
 n2 = j2.Reference2[0]
 got = moved([n2])

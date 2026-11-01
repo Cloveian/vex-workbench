@@ -231,30 +231,39 @@ def rework(link, done):
 
 
 def carry(link, was):
-    # joints on this copy onto frames in its new source, for holes still in the same spot. on a hole a bend moved or a cut took off they stay broken (todo)
+    # frames on the old source onto the new one, for holes still in the same spot, and joints on this copy with them. on a hole a bend moved or a cut took off they stay broken (todo)
     if was is None or was == link.LinkedObject:
         return
     lcs = {o.Name: o for o in was.Group if o.TypeId == "App::LocalCoordinateSystem"}
+    refs = []  # (joint, prop, obj, subs, frame name) through this copy
     for j in [o for o in link.Document.Objects if hasattr(o, "JointType")]:
         for prop in ("Reference1", "Reference2"):
             obj, subs = getattr(j, prop) or (None, [""])  # None when unset
             path = subs[0].split(".")[:-1]  # [..., "Link", "Hole001"], just ["Hole001"] on the link itself. "Face1" has no trailing dot
-            old = lcs.get(path[-1]) if path else None
             owner = path[:-1]
             if owner and owner[-1].isdigit():
                 owner.pop()  # link array element, "Link.2.Hole001."
-            if old is None or (owner[-1] != link.Name if owner else obj != link):
-                continue  # another copy of the same source, or not a frame
-            plc = old.Placement
-            try:
-                center, n = hole_at(link, plc.Base)
-            except ValueError:
-                continue
-            # either way along the axis, a standoff's Seat points in off an end whose normal points out
-            if (center - plc.Base).Length > 1e-4 or abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) < 1 - 1e-6:
-                continue
-            new = frame(link, plc, old.Label.rstrip("0123456789") or "Hole")
-            setattr(j, prop, [obj, [".".join(new.Name if p == old.Name else p for p in s.split(".")) for s in subs]])
+            if path and path[-1] in lcs and (owner[-1] == link.Name if owner else obj == link):
+                refs.append((j, prop, obj, subs, path[-1]))
+    # bare ones only onto a worked source just this copy uses, on a plain one theyd show up on every copy of that size
+    src = link.LinkedObject
+    private = bool(getattr(src, "VexSteps", "")) and [o for o in src.InList if o.isDerivedFrom("App::Link")] == [link]
+    wanted = {r[4] for r in refs}
+    moved = {}  # old frame name -> its copy in the new source
+    for old in lcs.values():
+        if not (private or old.Name in wanted):
+            continue
+        plc = old.Placement
+        try:
+            center, n = hole_at(link, plc.Base)
+        except ValueError:
+            return  # no holes left at all
+        # either way along the axis, a standoff's Seat points in off an end whose normal points out
+        if (center - plc.Base).Length < 1e-4 and abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) > 1 - 1e-6:
+            moved[old.Name] = frame(link, plc, old.Label.rstrip("0123456789") or "Hole")
+    for j, prop, obj, subs, name in refs:
+        if name in moved:
+            setattr(j, prop, [obj, [".".join(moved[name].Name if p == name else p for p in s.split(".")) for s in subs]])
 
 
 def prune(src):
