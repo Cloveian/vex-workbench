@@ -11,7 +11,7 @@ ICONS = os.path.join(os.path.dirname(__file__), "resources", "icons")
 
 class VexWorkbench(Gui.Workbench):
     MenuText = "VEX"
-    ToolTip = "VEX V5 parts with snap frames for Assembly"
+    ToolTip = "VEX V5 parts, with screw, spacer, align, bend, cut and drill tools"
     Icon = os.path.join(ICONS, "vex.svg")
 
     def Initialize(self):

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
     <name>VEX Workbench</name>
-    <description>VEX V5 parts at exact dimensions, with snap frames for the built-in Assembly workbench</description>
+    <description>VEX V5 parts at exact dimensions, plus screw, spacer, align, bend, cut and drill tools that work with the built-in Assembly workbench</description>
     <version>0.1.0</version>
     <date>2026-10-27</date>
 
