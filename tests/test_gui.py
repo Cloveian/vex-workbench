@@ -369,6 +369,32 @@ try:
     assert [s["do"] for s in got] == ["cut", "drill"], panel.status.text()
     assert (App.Vector(*got[1]["c"]) - App.Vector(4, 0.25, 0.046) * IN).Length < 1e-6, got[1]["c"]
     panel.reject()
+    # click a flange's hole then slide the line onto the web, the side gets picked again for the new line so the flange goes
+    chan = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
+    chan.Placement.Base = App.Vector(0, 500, 0)
+    doc.recompute()
+    plain = Part.getShape(chan.LinkedObject).Volume
+    panel = shop.CutPanel()
+    Gui.Control.showDialog(panel)
+    panel.across.setCurrentText("Along")
+    panel.off.setValue(0)
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(2.25 * IN, 500 + 0.25 * IN, 0)))
+    QtWidgets.QApplication.processEvents()
+    # Off the hole slides along n x d, whichever way that points the web is +y. a wrong way would pop an error box nobody closes offscreen
+    s = library.steps(chan)[0]
+    panel.off.setValue(0.25 if App.Vector(*s["n"]).cross(App.Vector(*s["d"])).y > 0 else -0.25)
+    s = Part.getShape(chan.LinkedObject)
+    assert len(library.steps(chan)) == 1 and len(s.Solids) == 1 and abs(s.Volume / plain - 0.732) < 0.01, (s.Volume / plain, panel.status.text())
+    # keeping the other side there is two pieces, refused. the button stays unflipped for the next slide
+    said, warning = [], QtWidgets.QMessageBox.warning
+    QtWidgets.QMessageBox.warning = lambda *a: said.append(a[2])
+    try:
+        side = library.steps(chan)[0]["side"]
+        next(w for w in panel.form.findChildren(QtWidgets.QPushButton) if w.text() == "Keep the other side").click()
+    finally:
+        QtWidgets.QMessageBox.warning = warning
+    assert said and "more than one piece" in said[0] and library.steps(chan)[0]["side"] == side and panel.flipped == 1, (said, panel.flipped)
+    panel.reject()
     # same in an assembly gets joints, with their view providers
     asm = doc.addObject("Assembly::AssemblyObject", "Assembly")
     asm.Type = "Assembly"

@@ -372,6 +372,12 @@ for z in (0, 1):
     library.rework(flush, done)
 web = next(c for c in library.screw_holes(flush) if abs(c.y - 0.546 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
 assert len(metal.fold(Part.getShape(flush.LinkedObject), shop.bend(flush, web, True, 0, -90)).Solids) == 1
+# taking the web side off instead would leave the two flanges as two pieces, that gets refused
+try:
+    metal.cut(Part.getShape(ch.LinkedObject), dict(done[0], side=-done[0]["side"]))
+    raise AssertionError("cut a channel into two")
+except ValueError as e:
+    assert "more than one piece" in str(e), e
 # drilling: a click at (2.07, 0.29) snaps 0.25 steps off the nearest hole to (2, 0.25), between two holes. shift drills it right there
 spot = App.Vector(2.07, 0.29, 0.046) * IN
 h = shop.drill(plate, spot, 0.17 * IN)

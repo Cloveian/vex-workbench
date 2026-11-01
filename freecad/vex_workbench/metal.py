@@ -260,7 +260,7 @@ def cut(shape, c):
         raise ValueError("nothing to cut there, the line has to go across the metal with some on both sides")
     out = keep.fuse(stays).removeSplitter() if stays else keep
     if len(out.Solids) != 1:
-        raise ValueError("that cut leaves it in more than one piece, try keeping the other side")
+        raise ValueError("that cut would leave it in more than one piece")
     return out
 
 

@@ -38,15 +38,19 @@ def line(center, n, across, off, before):
 
 
 def lined(link, pt, across, off, do):
-    # a step on a line through the hole nearest pt. the smaller side is the one that turns or goes
+    # a step on a line through the hole nearest pt
     center, n = library.hole_at(link, pt)
     p, d = line(center, n, across, off, library.steps(link))
-    t = wall(link, center, n)
-    shape = Part.getShape(link.LinkedObject)
-    # just whats cut off the clicked wall counts, a far flange the plane slices through stays put either way
-    past = sum(x.Volume for x in metal.split(shape, p, n.cross(d), n, t)[1])
-    return {"do": do, "p": list(p), "d": list(d), "n": list(n), "t": t, "center": list(center),
-            "side": 1 if past < shape.Volume / 2 else -1}
+    s = {"do": do, "p": list(p), "d": list(d), "n": list(n), "t": wall(link, center, n), "center": list(center)}
+    s["side"] = smaller(Part.getShape(link.LinkedObject), s)
+    return s
+
+
+def smaller(shape, s):
+    # the side (+-1) that turns or goes. just whats cut off the clicked wall counts, a far flange the plane slices stays put
+    p, u, n = metal.line(dict(s, side=1))
+    past = sum(x.Volume for x in metal.split(shape, p, u, n, s["t"])[1])
+    return 1 if past < shape.Volume / 2 else -1
 
 
 def bend(link, pt, across, off, angle):
@@ -114,6 +118,7 @@ class Clicked(snap.Clicks):
         if not ui.run(self.UNDO, go):
             return None
         self.last = link, len(library.steps(link))
+        self.flipped = 1  # the button's -1, on top of whichever side is smaller
         link.Document.recompute()
         return f"{self.DID} {link.Label}, the boxes change that one"
 
@@ -123,9 +128,15 @@ class Clicked(snap.Clicks):
         if link is None or link not in self.doc.Objects or len(library.steps(link)) != count:
             self.last = None
             return
+        self.flipped *= side
         done = library.steps(link)
-        self.tweak(done[-1], done[:-1], side)
-        ui.run(self.UNDO, lambda: library.rework(link, done))
+
+        def go():
+            self.tweak(link, done[-1], done[:-1])  # in here, a line it cant make shows the error box
+            library.rework(link, done)
+            return True
+        if not ui.run(self.UNDO, go):
+            self.flipped *= side  # refused, nothing got flipped
         link.Document.recompute()
 
 
@@ -145,10 +156,12 @@ class Lined(Clicked):
         App.ParamGet(ui.PARAMS).SetString("ShopLine", self.across.currentText())
         return self.across.currentText() == "Across", self.off.value() * IN
 
-    def tweak(self, s, before, side):
+    def tweak(self, link, s, before):
         across, off = self.where()
         p, d = line(Vector(*s["center"]), Vector(*s["n"]), across, off, before)
-        s.update(p=list(p), d=list(d), side=s["side"] * side)
+        s.update(p=list(p), d=list(d))
+        # a new line can have the other side smaller
+        s["side"] = smaller(library.worked(link.Document, library.part_of(link), before), s) * self.flipped
 
 
 class BendPanel(Lined):
@@ -162,8 +175,8 @@ class BendPanel(Lined):
         App.ParamGet(ui.PARAMS).SetFloat("BendAngle", self.angle.value())
         return bend(link, pt, *self.where(), self.angle.value())
 
-    def tweak(self, s, before, side):
-        super().tweak(s, before, side)
+    def tweak(self, link, s, before):
+        super().tweak(link, s, before)
         s["angle"] = self.angle.value()
 
 
@@ -190,7 +203,7 @@ class DrillPanel(Clicked):
         shift = QtWidgets.QApplication.queryKeyboardModifiers() & QtCore.Qt.ShiftModifier
         return drill(link, pt, self.size.value() * IN, not shift)
 
-    def tweak(self, s, before, side):
+    def tweak(self, link, s, before):
         s["dia"] = self.size.value() * IN
 
 

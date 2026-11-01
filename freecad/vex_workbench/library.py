@@ -96,6 +96,14 @@ def group(doc):
     return g
 
 
+def worked(doc, part, steps):
+    # the plain part's shape with steps done to it, mm. off the plain source, building a 35 long channel from scratch is 1.6 s
+    s = Part.getShape(source(doc, part))
+    for step in steps:
+        s = metal.work(s, step)
+    return s
+
+
 def source(doc, part, steps=()):
     # one per variant and set of steps (bends, cuts, drilled holes). a worked one keeps the plain one's VexName, thats what gets bought
     name, key = part["name"], json.dumps(list(steps)) if steps else ""
@@ -103,10 +111,7 @@ def source(doc, part, steps=()):
         if getattr(o, "VexName", None) == name and getattr(o, "VexSteps", "") == key:
             return o
     if steps:
-        # off the plain one, building a 35 long channel from scratch is 1.6 s. vex's face colors dont survive the steps
-        s, faces = Part.getShape(source(doc, part)), None
-        for step in steps:
-            s = metal.work(s, step)
+        s, faces = worked(doc, part, steps), None  # vex's face colors dont survive the steps
     else:
         s, faces = shape(part)  # first, or no generator leaves an empty source behind
     src = doc.addObject("App::Part", "VexPart")
@@ -213,6 +218,8 @@ def steps(link):
 
 def rework(link, done):
     # just this copy gets its own worked source, the plain one stays for the rest
+    # made first, a step that cant be done raises before anything changes. the observer would hit it with nobody to catch it
+    source(link.Document, part_of(link), done)
     if not hasattr(link, "VexSteps"):
         link.addProperty("App::PropertyString", "VexSteps", "VEX")
         link.setPropertyStatus("VexSteps", "Hidden")
