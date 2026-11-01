@@ -8,6 +8,9 @@
 - the side that goes or turns gets picked off just the clicked wall's pieces, the whole half space counted the far flange too and cut the web off instead of the flange. and it gets picked again when you slide the line after clicking, plus a cut that would leave two pieces says no
 - a step that couldnt be done blew up inside the document observer with nobody to catch it, now the new source gets made first so it errors in the panel like it should. that also put up a modal error box in the gui test, which offscreen just sits there forever, fun
 - README rewritten for someone landing on it cold, quick start, the tools grouped, known limits. spots for screenshots in docs/img/shots.txt, those need the real window
+- making a worked part shorter keeps the steps that still fit and drops the rest with a warning, it used to get stuck half changed. and the old worked source gets deleted after, both there and on every redo of a step
+- parts list: total is what the copies really weigh, each is the plain one off the shelf. i thought a cut copy only ever weighs less so the heaviest would do, then measured a bend. it adds 0.04 g on a plate, cuz k = 0.44 puts the neutral line inside of the middle of the wall so the bend has a bit more metal than the flat it eats
+- joints come over to the new source when a part gets bent, cut or drilled, for holes that are still in the same spot. the joint refs are just names of LCSs in the source, so a new source = every joint on that part pointing at nothing. ones on a hole a bend moved still break, that ones a decision (follow the hole? delete the joint?)
 
 ## 2026-10-31 - bending
 
