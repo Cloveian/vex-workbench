@@ -110,6 +110,24 @@ def local(link):
 assert local(nut) == [1.25, 0.25, -0.2391, -0.046], local(nut)
 got = local(sc)
 assert got[:2] == [1.25, 0.25] and got[2] == round(0.046 - 0.29, 4) and got[3] == round(0.046 + 0.087, 4), got
+
+from freecad.vex_workbench import shop  # noqa: E402
+
+# joints on a face of something else and with nothing picked yet get skipped. outside asm so the solver doesnt see them
+box = doc.addObject("Part::Box", "Box")
+for refs in ([box, ["Face1", "Vertex1"]], None):
+    odd = doc.addObject("App::FeaturePython", "Odd")
+    odd.addProperty("App::PropertyString", "JointType")
+    for prop in ("Reference1", "Reference2"):
+        odd.addProperty("App::PropertyXLinkSubHidden", prop)
+        setattr(odd, prop, refs)
+# drilling p1 somewhere else keeps the screw's joint on it, the frame comes over to the drilled source
+library.rework(p1, [shop.drill(p1, App.Vector(3.5, 0.5, 0.046) * IN, 0.25 * IN, False)])
+doc.recompute()
+hole = new[0].Reference1[1][0]
+assert p1.LinkedObject.VexSteps and p1.LinkedObject.getObject(hole.rstrip(".")) in p1.LinkedObject.Group, hole
+got = moved([p1, p2, sc, nut])
+assert not got and local(nut) == [1.25, 0.25, -0.2391, -0.046], (got, local(nut))
 sc, *_ = screws.fasten(doc, head, tail, "hex-screw", nylock)
 assert sc.Label == "0.375 Hex Screw (8-32, Steel)", sc.Label
 try:
@@ -135,6 +153,13 @@ assert [j.Reference1[0] for j in new] == [p1, sub] and new[1].Reference1[1][0].s
 got = moved([sc, nut])
 assert not got, got
 assert local(nut) == [1.25, 0.25, -0.2391, -0.046], local(nut)
+# and through the sub-assembly link
+library.rework(p3, [shop.drill(p3, App.Vector(3.5, 0.5, 0) * IN, 0.25 * IN, False)])
+doc.recompute()
+_, frame = new[1].Reference1[1][0].rstrip(".").split(".")
+assert p3.LinkedObject.VexSteps and p3.LinkedObject.getObject(frame) in p3.LinkedObject.Group, new[1].Reference1
+got = moved([sc, nut])
+assert not got and local(nut) == [1.25, 0.25, -0.2391, -0.046], (got, local(nut))
 
 # stright through both flanges of one channel (a), head and nut on the same part. 1.0 + 0.193 -> the 1.25
 on_a = (asm, a.Name + ".")

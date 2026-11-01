@@ -49,7 +49,7 @@ Only that one copy bends, the rest stay straight, and it still counts as the str
 
 **Drill** puts a round hole through the wall where you click, **Size** across (0.17 to start, 8-32 clearance). it snaps to the 0.25 grid off the nearest hole on that face, hold Shift to drill right where you clicked. a drilled 8-32 hole gets a dot like any other. on a plate the grid spots between holes already have little square holes, so drilling one of those just opens it up.
 
-bends, cuts and drilled holes all go on that copy in the order you did them, and it still counts as the plain part. joints on its holes dont carry over any of them, so do the shop work before screwing things on.
+bends, cuts and drilled holes all go on that copy in the order you did them, and it still counts as the plain part. joints on its holes come along as long as the hole stays put, the ones on a hole a bend moved or a cut took off break. so bend and cut before screwing things on.
 
 ## Parts list
 

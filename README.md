@@ -76,7 +76,7 @@ The first one drives Firefox through VEX's CAD search using your Firefox cookies
 
 ## Known limits
 
-- Joints made to a part's holes don't carry over when that part gets bent, cut or drilled, so do those first.
+- Joints on a hole that a bend moves or a cut takes off break, so bend and cut before screwing things on. Joints on holes that stay put carry over.
 - Channels and angles only bend away from their other walls. Cut the flanges off first to fold the other way, like you would for real.
 - Aluminum C-channel uses the steel channel's hole layout. VEX's own aluminum files are a little different.
 - The HS lockbar and drilled gears aren't there yet, there are no numbers for them.

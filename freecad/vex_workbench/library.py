@@ -226,7 +226,30 @@ def rework(link, done):
     was = link.LinkedObject
     link.VexSteps = json.dumps(done)
     retarget(link)
+    carry(link, was)
     prune(was)
+
+
+def carry(link, was):
+    # joints on this copy onto frames in its new source, for holes still in the same spot. on a hole a bend moved or a cut took off they stay broken (todo)
+    if was is None or was == link.LinkedObject:
+        return
+    lcs = {o.Name: o for o in was.Group if o.TypeId == "App::LocalCoordinateSystem"}
+    for j in [o for o in link.Document.Objects if hasattr(o, "JointType")]:
+        for prop in ("Reference1", "Reference2"):
+            obj, subs = getattr(j, prop) or (None, [""])  # None when unset
+            path = subs[0].split(".")[:-1]  # [..., "Link", "Hole001"], just ["Hole001"] on the link itself. "Face1" has no trailing dot
+            old = lcs.get(path[-1]) if path else None
+            if old is None or (path[-2] != link.Name if len(path) > 1 else obj != link):
+                continue  # another copy of the same source, or not a frame
+            try:
+                center, n = hole_at(link, old.Placement.Base)
+            except ValueError:
+                continue
+            if (center - old.Placement.Base).Length > 1e-4 or n.dot(old.Placement.Rotation.multVec(Vector(0, 0, 1))) < 1 - 1e-6:
+                continue
+            new = frame(link, old.Placement, old.Label.rstrip("0123456789") or "Hole")
+            setattr(j, prop, [obj, [".".join(new.Name if p == old.Name else p for p in s.split(".")) for s in subs]])
 
 
 def prune(src):
@@ -414,4 +437,5 @@ def refit(link):
         App.Console.PrintWarning(f"VEX: {len(done) - k} of the bends, cuts or drilled holes on {link.Label} didn't fit the new size, dropped them\n")
         link.VexSteps = json.dumps(done[:k])
     retarget(link)
+    carry(link, was)
     prune(was)
