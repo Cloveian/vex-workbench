@@ -13,6 +13,9 @@
 - joints come over to the new source when a part gets bent, cut or drilled, for holes that are still in the same spot. the joint refs are just names of LCSs in the source, so a new source = every joint on that part pointing at nothing. ones on a hole a bend moved still break, that ones a decision (folow the hole? delete the joint?). it runs on every size change too, any part, and a standoff or spacer keeps the joint on the end that didnt move. its Seat points in while the end's normal points out, so the axis matches either way round
 - offscreen freecad cant draw its 3d view, but `saveImage` still renders with `LIBGL_ALWAYS_SOFTWARE=1`, hole dots and all. so README images can come out of a script, just no panels in them
 - looked stuff up for the roadmap: hs spacer bore is 0.252 on vex's steps, robosource's shoulder screw length includes the shoulder (screw() had it right), vex's cad library has none of al bar / steel U / steel 1x1 / steel 3x, and vex's terms dont say if the steps can be shared
+- a bare Frame on hole comes along too now, but only onto a worked source just that copy uses. on a plain one it would turn up on every plate that size, placed later or not
+- refit wiped all the steps when even the plain part couldnt be made, then errored anyway. now it just errors. and a fresh clone with no vex-step/ gets told to go read the README instead of a path
+- freecad's own joint tool on a face or edge still breaks on any of this, faces get renumbered. only frames carry
 
 ## 2026-10-31 - bending
 
