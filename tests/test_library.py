@@ -63,10 +63,22 @@ from freecad.vex_workbench import shop  # noqa: E402
 pl = library.place(doc, gen["5x10 Steel Plate"])
 doc.recompute()
 library.rework(pl, [shop.bend(pl, App.Vector(1.25, 0.25, 0.046) * IN, True, 0, 90), shop.cut(pl, App.Vector(3.75, 0.25, 0.046) * IN, True, 0)])
+doc.UndoMode = 1
+doc.openTransaction("holes")
+long = pl.LinkedObject
 pl.Holes = "5"
+doc.commitTransaction()
 doc.recompute()
 assert [s["do"] for s in library.steps(pl)] == ["fold"] and pl.Label == "5x5 Steel Plate", (library.steps(pl), pl.Label)
 assert abs(Part.getShape(pl.LinkedObject).BoundBox.XMax - 2.5 * IN) < 0.01
+worked = [o for o in doc.getObject(library.GROUP).Group if getattr(o, "VexSteps", "")]
+assert worked == [pl.LinkedObject], [o.Label for o in worked]  # the 5x10 one got cleaned up
+doc.undo()
+doc.recompute()
+assert len(library.steps(pl)) == 2 and pl.LinkedObject == long and Part.getShape(long).isValid(), (library.steps(pl), pl.LinkedObject)
+doc.redo()
+doc.recompute()
+doc.UndoMode = 0
 doc.removeObject(pl.Name)  # the parts list count further down doesnt want it
 
 # undo / redo dont make another source

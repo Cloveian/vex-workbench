@@ -226,11 +226,15 @@ def rework(link, done):
     was = link.LinkedObject
     link.VexSteps = json.dumps(done)
     retarget(link)
-    # a worked source nothing links anymore, every redo of a step would leave one
-    if was != link.LinkedObject and getattr(was, "VexSteps", "") and not [o for o in was.InList if o.isDerivedFrom("App::Link")]:
-        for o in was.Group:
-            link.Document.removeObject(o.Name)
-        link.Document.removeObject(was.Name)
+    prune(was)
+
+
+def prune(src):
+    # a worked source nothing links anymore goes, every redo of a step or size change would leave one
+    if getattr(src, "VexSteps", "") and not [o for o in src.InList if o.isDerivedFrom("App::Link")]:
+        for o in src.Group:
+            src.Document.removeObject(o.Name)
+        src.Document.removeObject(src.Name)
 
 
 def cached(src, what):
@@ -399,7 +403,7 @@ class Observer:
 
 def refit(link):
     # after a size change the steps that still fit, up to the first that doesnt (a cut past the new end)
-    done = steps(link)
+    done, was = steps(link), link.LinkedObject
     for k in range(len(done), -1, -1):
         try:
             source(link.Document, part_of(link), done[:k])
@@ -410,3 +414,4 @@ def refit(link):
         App.Console.PrintWarning(f"VEX: {len(done) - k} of the bends, cuts or drilled holes on {link.Label} didn't fit the new size, dropped them\n")
         link.VexSteps = json.dumps(done[:k])
     retarget(link)
+    prune(was)
