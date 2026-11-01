@@ -1,0 +1,7 @@
+screenshots the README wants, taken in the real FreeCAD window. drop them in here with these names, then swap each <!-- screenshot: ... --> comment in README.md for ![...](docs/img/name.png)
+
+hero.png, a small frame: two channels, a motor, a few screws, a tool panel open so the orange hole dots show
+align.png, a channel lined up on a plate, Align panel open
+bend.png, a plate bent up 90 at a hole row, Bend panel open
+
+dark theme or light, just keep them the same. ~1200 px wide is plenty
