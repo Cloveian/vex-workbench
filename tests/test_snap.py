@@ -203,6 +203,15 @@ labels = stacked(put)
 assert labels == [("0.5 OD Spacer, 0.875 (Nylon)", 0.046), ("Washer, 0.375 OD, 0.032 (Nylon)", 0.921)], labels
 got = moved(put)
 assert not got, got
+# a shorter spacer keeps its joint at the bottom end, the Top one up to the washer moved. back to 0.875 fixes that one
+seat = next(j for j in joints.Group if getattr(j, "JointType", "") == "Revolute" and j.Reference2[0] == put[0])
+for length in ("0.5", "0.875"):
+    put[0].Length = length
+    library.refit(put[0])  # no observer in here
+    doc.recompute()
+    assert put[0].LinkedObject.getObject(seat.Reference2[1][0].rstrip(".")) in put[0].LinkedObject.Group, (length, seat.Reference2)
+got = moved(put)
+assert not got, got
 
 # no nut, into a standoff under the (1.25, 0.25) hole in p1. the 0.5 is through, a 2 is tapped 0.5 from each end
 for size, want in [("0.500", "0.500"), ("2.000", "0.500"), ("0.375", "0.375")]:

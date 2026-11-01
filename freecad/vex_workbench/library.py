@@ -242,13 +242,15 @@ def carry(link, was):
             old = lcs.get(path[-1]) if path else None
             if old is None or (path[-2] != link.Name if len(path) > 1 else obj != link):
                 continue  # another copy of the same source, or not a frame
+            plc = old.Placement
             try:
-                center, n = hole_at(link, old.Placement.Base)
+                center, n = hole_at(link, plc.Base)
             except ValueError:
                 continue
-            if (center - old.Placement.Base).Length > 1e-4 or n.dot(old.Placement.Rotation.multVec(Vector(0, 0, 1))) < 1 - 1e-6:
+            # either way along the axis, a standoff's Seat points in off an end whose normal points out
+            if (center - plc.Base).Length > 1e-4 or abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) < 1 - 1e-6:
                 continue
-            new = frame(link, old.Placement, old.Label.rstrip("0123456789") or "Hole")
+            new = frame(link, plc, old.Label.rstrip("0123456789") or "Hole")
             setattr(j, prop, [obj, [".".join(new.Name if p == old.Name else p for p in s.split(".")) for s in subs]])
 
 
