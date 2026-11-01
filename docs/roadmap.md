@@ -11,7 +11,7 @@ in build order, each one is something i can open and poke at
 - [x] **Snap to hole**. click a hole, frame at its exact center. two channels jointed hole to hole should be 0 apart
 - [x] **The other generators**: shafts, standoffs, spacers, washers, nuts (thin nylock = vex nylock shaved to 11/64), torx button screws, shoulder screws. each checked against its step where there is one
 - [x] **Hole finding on step parts**, the 0.182 square and 8-32 round holes, so motors and gears snap too
-	works on click already, any inner loop up to 0.5" on a flat face picked by distance to the loop (58 of 58 on the motor's screw hole edges). the screw and spacer panels put points on just the screw holes (8-32 round or ~0.182 square, open to the outside, one per hole and side), worked out the first time a part needs them and kept on its source. 11W and 5.5W get their 2 front ones (the 11W's case screw holes have heads in them 0.05 down, so no). a face click near a vent can still grab the vent
+	works on click already, any inner loop up to 0.5" on a flat face picked by distance to the loop (58 of 58 on the motor's screw hole edges). the tool panels put dots on just the screw holes (8-32 round or ~0.182 square, open to the outside, one per hole and side), worked out the first time a part needs them and kept on its source. 11W and 5.5W get their 2 front ones (the 11W's case screw holes have heads in them 0.05 down, so no). a face click near a vent can still grab the vent
 - [x] Extras like colors per material, weight, a parts list
 
 ## Later
@@ -20,7 +20,7 @@ in build order, each one is something i can open and poke at
 - [x] Align tool. hole on the part to move, then the hole it goes against
 	faces land flat, keeps its turn to the nearest step, Rotate / Gap after. moves a link array whole, or the group its in. Revolute joint in an assembly, swapped out if its aligned again
 - [x] Bending metal, cutting, drilling
-	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032. the cross section at the line swept round, holes the line goes through stay open. per copy, kept on the link and redone if its Holes change
+	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032. the cross section at the line swept round, holes the line goes through stay open. cut on the same lines (to length, or a flange off flush), drill a round hole anywhere snapped to the 0.25 grid. all per copy, kept on the link in order and redone if its Holes change
 
 ## Still need numbers for
 - [x] bend radius

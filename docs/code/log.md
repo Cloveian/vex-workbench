@@ -1,5 +1,14 @@
 # Log
 
+## 2026-11-01 - cutting, drilling, presentable
+
+- Cut works on the same lines as Bend: through a hole, across or along, slid over. metal.cut() is fold() without the fold, the same split (only whats cut off the clicked wall goes, a far flange the plane slices stays). sawn edge, no notches. slide 0.25 from a flange's hole row onto the web and the flange comes off flush, do both flanges and the web finally folds toward where they were
+- Drill: click a spot, a round hole goes through the wall, snapped to the 0.25 grid off the nearest hole on that face (Shift for exact). the wall thickness comes off that hole too, cuz on a plate the grid spots are already little square holes and a ray there just goes straight through
+- the bends list became a steps list (VexSteps, fold / cut / drill in order) and bend.py became shop.py with all three panels on one base. metal.py already had a cut variable in make(), renamed it before it bit me like bend() did
+- the side that goes or turns gets picked off just the clicked wall's pieces, the whole half space counted the far flange too and cut the web off instead of the flange. and it gets picked again when you slide the line after clicking, plus a cut that would leave two pieces says no
+- a step that couldnt be done blew up inside the document observer with nobody to catch it, now the new source gets made first so it errors in the panel like it should. that also put up a modal error box in the gui test, which offscreen just sits there forever, fun
+- README rewritten for someone landing on it cold, quick start, the tools grouped, known limits. spots for screenshots in docs/img/shots.txt, those need the real window
+
 ## 2026-10-31 - bending
 
 - Bend tool. click a hole, it folds on a line through it, across or along the part and slid over by any amount, any angle, inside radius 0.032. metal.fold() cuts the part at the line, sweeps the cross section there round an axis r off the inside face, and turns the rest round the same axis after moving it back by the flat the bend eats, w = (r + k*t) * angle (~0.08" for a 90). a hole the line goes through leaves a gap in the cross section, so it stays open round the bend for free
