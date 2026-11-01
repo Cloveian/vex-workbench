@@ -53,7 +53,7 @@ bends, cuts and drilled holes all go on that copy in the order you did them, and
 
 ## Parts list
 
-**Parts list** counts every placed VEX part by name into a spreadsheet in the document ("VEX parts list"), with the weight of each and the total. vex's step parts and the license plates have no material, so they show a ? and get counted at the bottom. it counts every element of a link array and every copy of a linked sub-assembly too.
+**Parts list** counts every placed VEX part by name into a spreadsheet in the document ("VEX parts list"), with the weight of each and the total. each is the plain part off the shelf, the total is what the placed ones really weigh, so a cut down copy counts lighter (a bent one a hair heavier). vex's step parts and the license plates have no material, so they show a ? and get counted at the bottom. it counts every element of a link array and every copy of a linked sub-assembly too.
 
 ## Not there yet
 
