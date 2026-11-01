@@ -9,6 +9,7 @@
 
     <maintainer email="146399971+Cloveian@users.noreply.github.com">Cloveian</maintainer>
     <author>Cloveian</author>
+    <license file="LICENSE">LGPL-2.1-or-later</license>
 
     <icon>freecad/vex_workbench/resources/icons/vex.svg</icon>
 

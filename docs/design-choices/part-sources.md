@@ -58,5 +58,7 @@ todo before release: check vex's terms on redistributeing their steps. if it's a
 
 looked: vex's kb pages for GO and the workcell cad say its free for personal and educational use (and no selling 3d printed copies), nothing for V5 itself, their EULA is about products not downloads, and nothing says yes or no to redistributing. so it's an email to vex
 
+**Decision:** ship them. only the ones that are needed (or going to be): the bases the generators start from and the V5 robot parts, gzipped into `freecad/vex_workbench/steps/` (209 files, 131 MB). no kits, field elements, legacy cortex, controller or test fixtures, those stay in the local `vex-step/` download
+
 ---
 Back to [design choices](index.md) | [goals](../goals.md)
