@@ -437,7 +437,8 @@ def refit(link):
             source(link.Document, part_of(link), done[:k])
             break
         except ValueError:
-            pass
+            if k == 0:
+                raise  # the plain part cant be made, nothing to do with the steps. they stay
     if k < len(done):
         App.Console.PrintWarning(f"VEX: {len(done) - k} of the bends, cuts or drilled holes on {link.Label} didn't fit the new size, dropped them\n")
         link.VexSteps = json.dumps(done[:k])

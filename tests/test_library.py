@@ -79,6 +79,22 @@ assert len(library.steps(pl)) == 2 and pl.LinkedObject == long and Part.getShape
 doc.redo()
 doc.recompute()
 doc.UndoMode = 0
+
+
+# when even the plain part cant be made the error comes out and the fold stays
+def refuse(*_):
+    raise ValueError("cant")
+
+
+real, library.source = library.source, refuse
+try:
+    library.refit(pl)
+    raise AssertionError("refit went through")
+except ValueError as e:
+    assert str(e) == "cant", e
+finally:
+    library.source = real
+assert [s["do"] for s in library.steps(pl)] == ["fold"], library.steps(pl)
 doc.removeObject(pl.Name)  # the parts list count further down doesnt want it
 
 # undo / redo dont make another source
