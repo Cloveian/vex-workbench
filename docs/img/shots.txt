@@ -5,3 +5,5 @@ align.png, a channel lined up on a plate, Align panel open
 bend.png, a plate bent up 90 at a hole row, Bend panel open
 
 dark theme or light, just keep them the same. ~1200 px wide is plenty
+
+or tools/render_shots.py renders all three into downloads/ with no window, models and hole dots only, no panels (command at the top of it)
