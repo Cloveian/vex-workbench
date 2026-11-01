@@ -391,5 +391,22 @@ class Observer:
         # undo / redo puts LinkedObject back itself, retargetting made a second source
         if doc.Restoring or doc.Transacting or not hasattr(obj, "VexFamily"):
             return
-        if prop != "VexFamily" and obj.getGroupOfProperty(prop) == "VEX":
-            retarget(obj)
+        if prop == "VexSteps":
+            retarget(obj)  # rework() / refit() already checked them
+        elif prop != "VexFamily" and obj.getGroupOfProperty(prop) == "VEX":
+            refit(obj)
+
+
+def refit(link):
+    # after a size change the steps that still fit, up to the first that doesnt (a cut past the new end)
+    done = steps(link)
+    for k in range(len(done), -1, -1):
+        try:
+            source(link.Document, part_of(link), done[:k])
+            break
+        except ValueError:
+            pass
+    if k < len(done):
+        App.Console.PrintWarning(f"VEX: {len(done) - k} of the bends, cuts or drilled holes on {link.Label} didn't fit the new size, dropped them\n")
+        link.VexSteps = json.dumps(done[:k])
+    retarget(link)

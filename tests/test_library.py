@@ -57,6 +57,18 @@ except ValueError:
     pass
 assert len(doc.Objects) == n, (len(doc.Objects), n)
 
+# shortening a bent and cut plate keeps the bend at 1.25 and drops the cut at 3.75 thats past the new end
+from freecad.vex_workbench import shop  # noqa: E402
+
+pl = library.place(doc, gen["5x10 Steel Plate"])
+doc.recompute()
+library.rework(pl, [shop.bend(pl, App.Vector(1.25, 0.25, 0.046) * IN, True, 0, 90), shop.cut(pl, App.Vector(3.75, 0.25, 0.046) * IN, True, 0)])
+pl.Holes = "5"
+doc.recompute()
+assert [s["do"] for s in library.steps(pl)] == ["fold"] and pl.Label == "5x5 Steel Plate", (library.steps(pl), pl.Label)
+assert abs(Part.getShape(pl.LinkedObject).BoundBox.XMax - 2.5 * IN) < 0.01
+doc.removeObject(pl.Name)  # the parts list count further down doesnt want it
+
 # undo / redo dont make another source
 doc.UndoMode = 1
 doc.openTransaction("holes")
