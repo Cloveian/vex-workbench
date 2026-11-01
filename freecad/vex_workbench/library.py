@@ -59,8 +59,8 @@ def options(family):
 
 def shape(part):
     if "file" in part:
-        path = str(catalog.step_path(part))
-        return colored(path) if App.GuiUp else (Part.read(path), None)
+        with catalog.step_file(part) as path:
+            return colored(str(path)) if App.GuiUp else (Part.read(str(path)), None)
     if part["family"] in GENERATORS:
         return GENERATORS[part["family"]](part, cat()), None
     raise ValueError(f"no generator for {part['family']} yet")

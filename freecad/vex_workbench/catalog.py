@@ -1,10 +1,16 @@
 # reads parts.toml into every part, generated and step. no FreeCAD in here
+import contextlib
+import gzip
 import itertools
+import os
+import shutil
+import tempfile
 import tomllib
 from pathlib import Path
 
 CATALOG = Path(__file__).parent / "data" / "parts.toml"
-STEP_DIR = Path(__file__).parents[2] / "vex-step"  # the repo checkout for now, todo where shipped ones go
+SHIPPED = Path(__file__).parent / "steps"  # the subset that ships, gzipped by tools/ship_steps.py
+STEP_DIR = Path(__file__).parents[2] / "vex-step"  # the whole download, for the test fixtures and anything not shipped
 
 # everything else in a [[family]] is a param
 FAMILY_KEYS = ("id", "title", "folder", "name", "fixtures")
@@ -61,10 +67,35 @@ def step_parts(cat):
     return [{**p, "folder": g["folder"]} for g in cat["group"] for p in g["parts"]]
 
 
+def shipped(step):
+    return SHIPPED / step["folder"] / (step["file"] + ".gz")
+
+
+def has(step):
+    return shipped(step).is_file() or (STEP_DIR / step["folder"] / step["file"]).is_file()
+
+
 def step_path(step):
+    # the downloaded one
     path = STEP_DIR / step["folder"] / step["file"]
     if not STEP_DIR.is_dir():
-        raise ValueError(f"VEX's STEP files aren't downloaded yet, so this part can't be made. The README says how to get them into {STEP_DIR}")
+        raise ValueError(f"{step['file']} doesn't ship with the workbench and VEX's STEP files aren't downloaded, the README says how to get them into {STEP_DIR}")
     if not path.is_file():
         raise ValueError(f"no step file at {path}")
     return path
+
+
+@contextlib.contextmanager
+def step_file(step):
+    # a plain step to read, the shipped one unzipped into a temp file till the with ends
+    gz = shipped(step)
+    if not gz.is_file():
+        yield step_path(step)
+        return
+    fd, tmp = tempfile.mkstemp(suffix=".step")
+    try:
+        with os.fdopen(fd, "wb") as out, gzip.open(gz) as src:
+            shutil.copyfileobj(src, out)
+        yield Path(tmp)
+    finally:
+        os.remove(tmp)

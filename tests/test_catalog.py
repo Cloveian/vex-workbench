@@ -64,4 +64,14 @@ except ValueError as e:
     assert "README" in str(e), e
 catalog.STEP_DIR = vs
 
+# every base ships, and a shipped one comes out a real step thats gone again after
+bases = {v["params"]["base"] for v in gen if "base" in v["params"]}
+base_steps = [p for p in steps if Path(p["file"]).stem in bases]
+unshipped = [p["file"] for p in base_steps if not catalog.shipped(p).is_file()]
+assert len(base_steps) == len(bases) and not unshipped, unshipped
+with catalog.step_file(base_steps[0]) as path:
+    with open(path, "rb") as f:
+        assert f.read(12) == b"ISO-10303-21", path
+assert not path.exists(), path
+
 print(f"ok, {len(gen)} generated, {len(steps)} step parts")

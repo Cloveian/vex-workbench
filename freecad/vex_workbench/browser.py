@@ -3,7 +3,7 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtCore, QtWidgets
 
-from . import library, ui
+from . import catalog, library, ui
 
 KIND = QtCore.Qt.UserRole  # ("family", id) or ("step", folder/file) on each item
 _dock = None
@@ -42,6 +42,8 @@ class Browser(QtWidgets.QWidget):
                 it.setToolTip(0, "no generator yet")
         folders = {}
         for key, p in steps.items():
+            if not catalog.has(p):
+                continue  # not shipped and not downloaded
             parent = self.tree
             path = ""
             for bit in p["folder"].split("/"):

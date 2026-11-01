@@ -12,15 +12,16 @@ FLIP = Rotation(Vector(1, 0, 0), 180)
 
 
 @functools.cache
-def read(path):
-    s = Part.read(path)
+def read(folder, file):
+    with catalog.step_file({"folder": folder, "file": file}) as path:
+        s = Part.read(str(path))
     s.scale(1 / IN)
     return s
 
 
 def base(p, cat):
     step = next(s for s in catalog.step_parts(cat) if s["file"].rsplit(".", 1)[0] == p["base"])
-    return read(str(catalog.step_path(step))).copy()
+    return read(step["folder"], step["file"]).copy()
 
 
 def slab(z0, z1, u=1.0):
