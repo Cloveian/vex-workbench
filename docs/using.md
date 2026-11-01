@@ -37,11 +37,17 @@ Tick **Pick the screw myself** and pick one from the list next to it, then its o
 
 While either panel is open every hole gets an orange point on both sides of the metal, plus the ends of shafts and standoffs. on vex's step parts its only 8-32 sized holes a screw can get to from outside, so the motors get their screw holes and not the vents. click a point and its exactly that hole, a bigger green dot stays on it till the screw or spacers are in (face clicks get one on the hole they picked too). screws, nuts, spacers and washers dont get points, and the points all go away on Close. clicking a face still works too (nearest hole). parts placed, moved or deleted while its open get their points sorted out a moment after.
 
-## Bending
+## Bending, cutting, drilling
 
 **Bend** folds any VEX metal part on a line through a hole: click the hole (same dots), and it bends there by the **Angle** (90 to start, + folds toward the face you clicked, - away from it). **Line** picks across the length or along it, **Off the hole** slides the line over (0.25 puts it between two rows), and **Other side turns** swaps which side moves, the shorter one moves to start. all of those redo the last bend till you click the next hole. inside radius 0.032 like vex's own bends, so a 90 eats about 0.08" of flat.
 
 Only that one copy bends, the rest stay straight, and it still counts as the straight part in the parts list (thats what you buy). change Holes on it and it keeps its bends. bend before screwing stuff onto it tho, joints on its old holes dont carry over. channels bend too, flanges and all, which real metal wont do without cutting them first, so thats on you :P. only away from the flanges tho, folding the web into its own flanges gets refused (angles the same with their other leg)
+
+**Cut** works on the same kind of line (Line, Off the hole), the smaller side goes and **Keep the other side** swaps it. across through a hole is cut to length, along a flange cuts just that flange (the far one stays). sawn edge, no notches or chamfers.
+
+**Drill** puts a round hole through the wall where you click, **Size** across (0.17 to start, 8-32 clearance). it snaps to the 0.25 grid off the nearest hole on that face, hold Shift to drill right where you clicked. a drilled 8-32 hole gets a dot like any other. on a plate the grid spots between holes already have little square holes, so drilling one of those just opens it up.
+
+bends, cuts and drilled holes all go on that copy in the order you did them, and it still counts as the plain part.
 
 ## Parts list
 

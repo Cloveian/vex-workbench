@@ -194,13 +194,13 @@ def make(part, cat):
             b = bend(pts, d, n, j, t, r).extrude(X * length)
             bends.append(b.cut(mine) if mine else b)  # 5 long or less has no marks, so no reliefs
     pieces = []
-    for k, cut in enumerate(cuts):
+    for k, tools in enumerate(cuts):
         # flat part of the leg only, the bends have the rest
         a0, a1 = (r + t if k else 0), lens[k] - (r + t if k < last else 0)
         f = Part.Face(Part.makePolygon([Vector(0, a0, 0), Vector(length, a0, 0), Vector(length, a1, 0), Vector(0, a1, 0), Vector(0, a0, 0)]))
         # only what crosses an edge needs a boolean, the rest go in as plain inner wires
         inside, edge = [], []
-        for c in cut:
+        for c in tools:
             b = c.BoundBox
             (inside if b.XMin > 1e-6 and b.XMax < length - 1e-6 and b.YMin > a0 + 1e-6 and b.YMax < a1 - 1e-6 else edge).append(c)
         if edge:
@@ -213,7 +213,7 @@ def make(part, cat):
     return solid
 
 
-# --- bending a made part ---
+# --- shop work on a made part: bends, cuts, drilled holes ---
 BIG = 1e4  # mm, a box this big is a half space
 NEAR = 0.3 * IN  # mm, cut off the clicked wall if its face on the line is this close to the hole. half a hole is 0.091
 
@@ -226,28 +226,63 @@ def half(at, u, n, lo):
     return box
 
 
+def work(shape, step):
+    # one step off a placed copy's list
+    return {"fold": fold, "cut": cut, "drill": drill}[step["do"]](shape, step)
+
+
+def line(step):
+    # line through p along d on the face out along n, and u into its side (+-1 of n x d)
+    p, d, n = (Vector(*step[key]) for key in ("p", "d", "n"))
+    return p, n.cross(d) * step["side"], n
+
+
+def on_line(f, p, u):
+    return f.Surface.TypeId == "Part::GeomPlane" and abs(abs(f.normalAt(0, 0).dot(u)) - 1) < 1e-6 and abs(u.dot(f.CenterOfMass - p)) < 1e-6
+
+
+def split(shape, p, u, n, t):
+    # (this side, the pieces past the line cut off the clicked wall, any other pieces past it)
+    # the plane goes on forever, so a line along a channel's flange cuts the other flange too
+    keep = shape.cut(half(p, u, n, 0))
+    near = Part.Vertex(p - n * t / 2)
+    mine, stays = [], []
+    for x in shape.common(half(p, u, n, 0)).Solids:
+        (mine if any(on_line(f, p, u) and f.distToShape(near)[0] < NEAR for f in x.Faces) else stays).append(x)
+    return keep, mine, stays
+
+
+def cut(shape, c):
+    # whats past the line off the clicked wall gone, a plain sawn edge
+    p, u, n = line(c)
+    keep, gone, stays = split(shape, p, u, n, c["t"])
+    if not gone or not keep.Solids:
+        raise ValueError("nothing to cut there, the line has to go across the metal with some on both sides")
+    return keep.fuse(stays).removeSplitter() if stays else keep
+
+
+def drill(shape, h):
+    # a round hole dia across straight through the wall at c, the clicked face out along n
+    c, n = Vector(*h["c"]), Vector(*h["n"])
+    poke = EPS * IN
+    out = shape.cut(Part.makeCylinder(h["dia"] / 2, h["t"] + 2 * poke, c + n * poke, -n))
+    if shape.Volume - out.Volume < 1e-6:
+        raise ValueError("nothing to drill there")
+    return out
+
+
 def fold(shape, b):
     # shape folded once by a bend dict, mm in its own coords
     if abs(b["angle"]) < 1e-6:
         return shape
-    p, d, n = (Vector(*b[key]) for key in ("p", "d", "n"))  # line through p along d, on the face out along n
-    u = n.cross(d) * b["side"]  # into the side that turns
+    p, u, n = line(b)  # u into the side that turns
     a = math.radians(abs(b["angle"]))
     w = (b["r"] + b["k"] * b["t"]) * a  # flat length the bend eats, on the netural line. r inside radius, t wall
-    keep = shape.cut(half(p, u, n, 0))
-
-    def on_line(f):
-        return f.Surface.TypeId == "Part::GeomPlane" and abs(abs(f.normalAt(0, 0).dot(u)) - 1) < 1e-6 and abs(u.dot(f.CenterOfMass - p)) < 1e-6
-
-    # only whats cut off the clicked wall turns. the plane goes on forever, so folding a channel's flange along it cuts the other flange too
-    near = Part.Vertex(p - n * b["t"] / 2)
-    mine, stays = [], []
-    for x in shape.common(half(p, u, n, 0)).Solids:
-        (mine if any(on_line(f) and f.distToShape(near)[0] < NEAR for f in x.Faces) else stays).append(x)
+    keep, mine, stays = split(shape, p, u, n, b["t"])
     turns = Part.makeCompound(mine)
     rest = turns.common(half(p, u, n, w))
     # cross section on the line, swept round. a hole the line goes through leaves a gap in it, so it stays open round the bend
-    section = [f for f in turns.Faces if on_line(f)]
+    section = [f for f in turns.Faces if on_line(f, p, u)]
     if not section or not keep.Solids:
         raise ValueError("nothing to bend there, the line has to go across the metal with some on both sides")
     up = 1 if b["angle"] > 0 else -1

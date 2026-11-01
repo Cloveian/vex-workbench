@@ -17,7 +17,7 @@ It makes the parts and puts frames on hole centers, and FreeCAD's built-in Assem
 - **Editable placed parts**: change Holes or Size on a placed part and only that one changes. The same part placed 40 times is one model and 40 links.
 - **Screw**: click a hole on the head side, then one on the nut side, and it puts in the shortest screw that makes it through the nut, plus the nut. Click a threaded hole second (a standoff, a motor) and it goes 3/8" into the thread instead, no nut. Or pick the screw yourself (Robosource shoulder screws too) and place it with one click. While it's open, every hole you can screw into gets a dot to click.
 - **Spacers**: click two holes facing each other, and the gap gets filled with spacers and washers, like inside a boxed channel. The screw tool can fill its gaps too.
-- **Bend**: click a hole and the metal folds there by any angle, across or along the part. Only that copy bends, and it still counts as the straight part in the parts list.
+- **Bend, Cut, Drill**: click a hole and the metal folds there by any angle, or gets cut there (to length, or a flange off), or click a spot and drill a round hole. Only that copy changes, and it still counts as the plain part in the parts list.
 - **Colors and weights** per material (star screw heads get VEX's color code for their length), and a **Parts list** button that counts everything into a spreadsheet.
 
 ## Running it

@@ -12,11 +12,11 @@
 | `freecad/vex_workbench/derived.py` | parts cut out of a vex step: screws at any length, the thin nylock, other materials |
 | `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s. hole finding too (`holes`, `hole_at`, `screw_holes` kept on the source, `cached` per source) |
 | `freecad/vex_workbench/browser.py` | the VEX parts dock                                                    |
-| `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`. plus the joint bits and the click panel (orange hole points, green picked ones) the screw, spacer, align and bend tools build on |
+| `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`. plus the joint bits and the click panel (orange hole points, green picked ones) the screw, spacer, align and shop tools build on |
 | `freecad/vex_workbench/screws.py`  | Screw command, two hole clicks -> shortest screw + nut (or into a thread), jointed in an assembly |
 | `freecad/vex_workbench/spacers.py` | Spacers command, fills a gap between two holes with spacers + washers |
 | `freecad/vex_workbench/align.py`   | Align command, hole on one part onto a hole on another, faces together, then turned or gapped, Revolute joint in an assembly |
-| `freecad/vex_workbench/bend.py`    | Bend command, a line through a clicked hole, kept on the link as VexBends. the geometry is `metal.fold` |
+| `freecad/vex_workbench/shop.py`    | Bend, Cut and Drill commands, kept on the link as VexSteps in order. the geometry is `metal.work` (fold, cut, drill) |
 | `freecad/vex_workbench/ui.py`      | undo step, wait cursor and error box around building parts, number boxes for the panels |
 | `freecad/vex_workbench/partslist.py` | Parts list command, links counted by name into a spreadsheet         |
 | `freecad/vex_workbench/data/parts.toml` | the [catalog](../design-choices/catalog.md)                      |

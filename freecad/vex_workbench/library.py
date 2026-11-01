@@ -96,26 +96,26 @@ def group(doc):
     return g
 
 
-def source(doc, part, bends=()):
-    # one per variant and set of bends. a bent one keeps the straight one's VexName, thats what gets bought
-    name, key = part["name"], json.dumps(list(bends)) if bends else ""
+def source(doc, part, steps=()):
+    # one per variant and set of steps (bends, cuts, drilled holes). a worked one keeps the plain one's VexName, thats what gets bought
+    name, key = part["name"], json.dumps(list(steps)) if steps else ""
     for o in group(doc).Group:
-        if getattr(o, "VexName", None) == name and getattr(o, "VexBends", "") == key:
+        if getattr(o, "VexName", None) == name and getattr(o, "VexSteps", "") == key:
             return o
-    if bends:
-        # off the straight one, building a 35 long channel from scratch is 1.6 s. vex's face colors dont survive a fold
+    if steps:
+        # off the plain one, building a 35 long channel from scratch is 1.6 s. vex's face colors dont survive the steps
         s, faces = Part.getShape(source(doc, part)), None
-        for b in bends:
-            s = metal.fold(s, b)
+        for step in steps:
+            s = metal.work(s, step)
     else:
         s, faces = shape(part)  # first, or no generator leaves an empty source behind
     src = doc.addObject("App::Part", "VexPart")
-    src.Label = f"{name} source" + (", bent" if bends else "")  # the placed copies get the plain name
+    src.Label = f"{name} source" + (", worked" if steps else "")  # the placed copies get the plain name
     src.addProperty("App::PropertyString", "VexName", "VEX")
     src.VexName = name
     if key:
-        src.addProperty("App::PropertyString", "VexBends", "VEX")
-        src.VexBends = key
+        src.addProperty("App::PropertyString", "VexSteps", "VEX")
+        src.VexSteps = key
     solid = doc.addObject("Part::Feature", "Solid")
     solid.Shape = s
     p = part.get("params", {})
@@ -202,33 +202,33 @@ def part_of(link):
 
 def retarget(link):
     part = part_of(link)
-    link.LinkedObject = source(link.Document, part, bends(link))
+    link.LinkedObject = source(link.Document, part, steps(link))
     link.Label = part["name"]
 
 
-def bends(link):
-    # the bends on one placed copy, metal.fold() dicts in order
-    return json.loads(getattr(link, "VexBends", "") or "[]")
+def steps(link):
+    # the bends, cuts and drilled holes on one placed copy, metal.work() dicts in order
+    return json.loads(getattr(link, "VexSteps", "") or "[]")
 
 
-def rebend(link, done):
-    # just this copy gets its own bent source, the straight one stays for the rest
-    if not hasattr(link, "VexBends"):
-        link.addProperty("App::PropertyString", "VexBends", "VEX")
-        link.setPropertyStatus("VexBends", "Hidden")
+def rework(link, done):
+    # just this copy gets its own worked source, the plain one stays for the rest
+    if not hasattr(link, "VexSteps"):
+        link.addProperty("App::PropertyString", "VexSteps", "VEX")
+        link.setPropertyStatus("VexSteps", "Hidden")
     was = link.LinkedObject
-    link.VexBends = json.dumps(done)
+    link.VexSteps = json.dumps(done)
     retarget(link)
-    # a bent source nothing links anymore, every redo of a bend would leave one
-    if was != link.LinkedObject and getattr(was, "VexBends", "") and not [o for o in was.InList if o.isDerivedFrom("App::Link")]:
+    # a worked source nothing links anymore, every redo of a step would leave one
+    if was != link.LinkedObject and getattr(was, "VexSteps", "") and not [o for o in was.InList if o.isDerivedFrom("App::Link")]:
         for o in was.Group:
             link.Document.removeObject(o.Name)
         link.Document.removeObject(was.Name)
 
 
 def cached(src, what):
-    # what(shape) for a source, worked out once. a source never changes, a reused object name comes with another VexName or VexBends
-    key = (src.Document.Uid, src.Name, src.VexName, getattr(src, "VexBends", ""), what)
+    # what(shape) for a source, worked out once. a source never changes, a reused object name comes with another VexName or VexSteps
+    key = (src.Document.Uid, src.Name, src.VexName, getattr(src, "VexSteps", ""), what)
     if key not in CACHE:
         CACHE[key] = what(Part.getShape(src))
     return CACHE[key]

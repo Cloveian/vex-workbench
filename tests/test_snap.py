@@ -1,4 +1,4 @@
-# hole frames + Fixed joints, shaft ends, the screw, spacer, align and bend tools, run with: python tests/test_snap.py (needs FreeCAD + vex-step/)
+# hole frames + Fixed joints, shaft ends, the screw, spacer, align, bend, cut and drill tools, run with: python tests/test_snap.py (needs FreeCAD + vex-step/)
 import math
 import sys
 from pathlib import Path
@@ -306,15 +306,15 @@ except ValueError:
     pass
 
 # bending, a plate folded 90 up across its 2.25 hole row. the short side turns, and the bent leg lands where the hand worked numbers say
-from freecad.vex_workbench import bend, metal, partslist  # noqa: E402
+from freecad.vex_workbench import metal, partslist, shop  # noqa: E402
 
 sheet = library.place(doc, gen["5x10 Steel Plate"])
 flat = library.place(doc, gen["5x10 Steel Plate"])
 doc.recompute()
 plates = partslist.count(doc)["5x10 Steel Plate"][0]
-b = bend.first(sheet, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)
+b = shop.bend(sheet, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)
 assert b["side"] == 1 and abs(b["t"] - 0.046 * IN) < 1e-9, b
-library.rebend(sheet, [b])
+library.rework(sheet, [b])
 s = Part.getShape(sheet.LinkedObject)
 t, r = 0.046 * IN, 0.032 * IN
 w = (r + 0.44 * t) * math.pi / 2  # flat it eats, on the neutral line
@@ -327,28 +327,48 @@ assert sheet.LinkedObject != flat.LinkedObject and sheet.LinkedObject.VexName ==
 assert partslist.count(doc)["5x10 Steel Plate"][0] == plates
 # a second bend on the leg that now stands square to x, its length is the first bend's face normal. across it is still across
 up = max(library.screw_holes(sheet), key=lambda c: c.z)
-b2 = bend.first(sheet, up, True, 0, 90)
+b2 = shop.bend(sheet, up, True, 0, 90)
 assert abs(App.Vector(*b2["d"]).z) < 1e-9 and abs(abs(App.Vector(*b2["d"]).y) - 1) < 1e-9, b2["d"]
-library.rebend(sheet, [b, b2])
+library.rework(sheet, [b, b2])
 s = Part.getShape(sheet.LinkedObject)
 assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.LinkedObject).Volume - 1) < 0.004, s.Volume
 # a channel bends away from its flanges, folding the web into them gets refused
 ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
 doc.recompute()
 web = next(c for c in library.screw_holes(ch) if abs(c.z) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
-out = metal.fold(Part.getShape(ch.LinkedObject), bend.first(ch, web, True, 0, 90))
+out = metal.fold(Part.getShape(ch.LinkedObject), shop.bend(ch, web, True, 0, 90))
 assert len(out.Solids) == 1, out
 try:
-    metal.fold(Part.getShape(ch.LinkedObject), bend.first(ch, web, True, 0, -90))
+    metal.fold(Part.getShape(ch.LinkedObject), shop.bend(ch, web, True, 0, -90))
     raise AssertionError("folded a channel into its own flanges")
 except ValueError:
     pass
 # folding a flange's tip along the length, the line's plane cuts the other flange too and that one stays put
 tip = next(c for c in library.screw_holes(ch) if abs(c.z) < 1e-6 and abs(c.y - 0.25 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
 s = Part.getShape(ch.LinkedObject)
-out = metal.fold(s, bend.first(ch, tip, False, 0, 90))
+out = metal.fold(s, shop.bend(ch, tip, False, 0, 90))
 far = [f for f in out.Faces if f.Surface.TypeId == "Part::GeomPlane" and abs(f.normalAt(0, 0).z - 1) < 1e-6 and f.BoundBox.ZMin > 0.9 * IN]
 assert len(out.Solids) == 1 and abs(out.Volume / s.Volume - 1) < 0.005 and far and min(f.BoundBox.YMin for f in far) < 1e-6, out.Volume
+# cut to length through the 3.75 hole, the short end goes. the other side kept instead starts there
+plate = library.place(doc, gen["5x10 Steel Plate"])
+doc.recompute()
+s = Part.getShape(plate.LinkedObject)
+c = shop.cut(plate, App.Vector(3.75, 0.25, 0.046) * IN, True, 0)
+assert abs(metal.cut(s, c).BoundBox.XMax - 3.75 * IN) < 1e-6
+assert abs(metal.cut(s, dict(c, side=-c["side"])).BoundBox.XMin - 3.75 * IN) < 1e-6
+# cutting a flange tip off along the channel leaves the far flange whole
+out = metal.cut(Part.getShape(ch.LinkedObject), shop.cut(ch, tip, False, 0))
+top = [f for f in out.Faces if f.Surface.TypeId == "Part::GeomPlane" and abs(f.normalAt(0, 0).z - 1) < 1e-6 and f.BoundBox.ZMin > 0.9 * IN]
+low = [f for f in out.Faces if f.BoundBox.ZMax < 0.1 * IN]  # whats left of the clicked flange
+assert len(out.Solids) == 1 and top and min(f.BoundBox.YMin for f in top) < 1e-6 and min(f.BoundBox.YMin for f in low) > 0.2 * IN, out.BoundBox
+# drilling: a click at (2.07, 0.29) snaps 0.25 steps off the nearest hole to (2, 0.25), between two holes. shift drills it right there
+spot = App.Vector(2.07, 0.29, 0.046) * IN
+h = shop.drill(plate, spot, 0.17 * IN)
+assert (App.Vector(*h["c"]) - App.Vector(2, 0.25, 0.046) * IN).Length < 1e-6 and abs(h["t"] - 0.046 * IN) < 1e-6, h
+assert (App.Vector(*shop.drill(plate, spot, 0.17 * IN, False)["c"]) - spot).Length < 1e-6
+library.rework(plate, [h])
+new = [w for w, c, _ in library.holes(Part.getShape(plate.LinkedObject)) if (c - App.Vector(*h["c"])).Length < 1e-6]
+assert new and library.screwable(new[0]), new
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")

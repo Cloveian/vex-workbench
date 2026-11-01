@@ -1,4 +1,4 @@
-# toolbar, colurs, the parts list, the dock, the screw, align and bend tools and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
+# toolbar, colurs, the parts list, the dock, the screw, align, bend, cut and drill tools and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import math
 import os
 import sys
@@ -37,7 +37,7 @@ try:
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
-    assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Bend", "Parts list"], tools
+    assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Bend", "Cut", "Drill", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
     _, gen, steps = library.index()
@@ -324,26 +324,50 @@ try:
     p2.Placement = App.Placement(App.Vector(0, 0, -0.046 * IN), App.Rotation())
     doc.recompute()
     # bend panel, one click on a dot folds a plate there, the angle box redoes that bend and the button turns the other side
-    from freecad.vex_workbench import bend
+    from freecad.vex_workbench import shop
     sheet = library.place(doc, gen["5x10 Steel Plate"])
     sheet.Placement.Base = App.Vector(0, 300, 0)
     doc.recompute()
-    panel = bend.Panel()
+    panel = shop.BendPanel()
     Gui.Control.showDialog(panel)
     panel.across.setCurrentText("Across")
     panel.off.setValue(0)
     panel.angle.setValue(90)
     Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(2.25 * IN, 300 + 0.25 * IN, 0.046 * IN)))
     QtWidgets.QApplication.processEvents()
-    assert panel.last == (sheet, 1) and len(library.bends(sheet)) == 1, panel.status.text()
+    assert panel.last == (sheet, 1) and len(library.steps(sheet)) == 1, panel.status.text()
     up = Part.getShape(sheet.LinkedObject).BoundBox.ZMax
     panel.angle.setValue(45)
-    assert len(library.bends(sheet)) == 1 and Part.getShape(sheet.LinkedObject).BoundBox.ZMax < up - 1
+    assert len(library.steps(sheet)) == 1 and Part.getShape(sheet.LinkedObject).BoundBox.ZMax < up - 1
     next(w for w in panel.form.findChildren(QtWidgets.QPushButton) if w.text() == "Other side turns").click()
-    assert library.bends(sheet)[0]["side"] == -1 and library.bends(sheet)[0]["angle"] == 45, library.bends(sheet)
+    assert library.steps(sheet)[0]["side"] == -1 and library.steps(sheet)[0]["angle"] == 45, library.steps(sheet)
     # the redos dont leave old bent sources lying around
-    bent = [o for o in library.group(doc).Group if getattr(o, "VexBends", "")]
+    bent = [o for o in library.group(doc).Group if getattr(o, "VexSteps", "")]
     assert bent == [sheet.LinkedObject], [o.Label for o in bent]
+    panel.reject()
+    # cut panel takes the end off another plate at a dot, the button keeps the other side. then drill a hole in it by a face click
+    stock = library.place(doc, gen["5x10 Steel Plate"])
+    stock.Placement.Base = App.Vector(0, 400, 0)
+    doc.recompute()
+    panel = shop.CutPanel()
+    Gui.Control.showDialog(panel)
+    panel.across.setCurrentText("Across")
+    panel.off.setValue(0)
+    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.75 * IN, 400 + 0.25 * IN, 0.046 * IN)))
+    QtWidgets.QApplication.processEvents()
+    assert [s["do"] for s in library.steps(stock)] == ["cut"], panel.status.text()
+    assert abs(Part.getShape(stock.LinkedObject).BoundBox.XMax - 3.75 * IN) < 0.01
+    next(w for w in panel.form.findChildren(QtWidgets.QPushButton) if w.text() == "Keep the other side").click()
+    assert abs(Part.getShape(stock.LinkedObject).BoundBox.XMin - 3.75 * IN) < 0.01
+    panel.reject()
+    panel = shop.DrillPanel()
+    Gui.Control.showDialog(panel)
+    panel.size.setValue(0.17)
+    Gui.Selection.addSelection(doc.Name, stock.Name, f"Face{top}", 4.07 * IN, 400 + 0.29 * IN, 0.046 * IN)
+    QtWidgets.QApplication.processEvents()
+    got = library.steps(stock)
+    assert [s["do"] for s in got] == ["cut", "drill"], panel.status.text()
+    assert (App.Vector(*got[1]["c"]) - App.Vector(4, 0.25, 0.046) * IN).Length < 1e-6, got[1]["c"]
     panel.reject()
     # same in an assembly gets joints, with their view providers
     asm = doc.addObject("Assembly::AssemblyObject", "Assembly")

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="8" fill="#c8102e"/>
+  <!-- a bar with the end coming off at a hole -->
+  <rect x="6" y="26" width="30" height="14" rx="2" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5"/>
+  <rect x="42" y="26" width="16" height="14" rx="2" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5" opacity="0.5"/>
+  <rect x="12" y="30" width="6" height="6" rx="1" fill="#3a3f45"/>
+  <rect x="24" y="30" width="6" height="6" rx="1" fill="#3a3f45"/>
+  <line x1="39" y1="12" x2="39" y2="54" stroke="#f2c230" stroke-width="3" stroke-dasharray="5 3"/>
+</svg>

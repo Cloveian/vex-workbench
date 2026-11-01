@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="8" fill="#c8102e"/>
+  <!-- a plate with square holes and a new round one going in -->
+  <rect x="8" y="34" width="48" height="20" rx="2" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5"/>
+  <rect x="14" y="40" width="8" height="8" rx="1" fill="#3a3f45"/>
+  <rect x="42" y="40" width="8" height="8" rx="1" fill="#3a3f45"/>
+  <circle cx="32" cy="44" r="4.5" fill="#3a3f45"/>
+  <path d="M28 10 L36 10 L36 24 L32 30 L28 24 Z" fill="#f2c230"/>
+</svg>
