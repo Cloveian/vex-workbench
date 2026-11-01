@@ -144,6 +144,11 @@ odd = fake([row, [f"1.{f.Name}.", f"1.{f.Name}."]])
 library.rework(row, [shop.drill(row, App.Vector(3.5, 0.5, 0.046) * IN, 0.25 * IN, False)])
 _, name = odd.Reference1[1][0].rstrip(".").split(".")
 assert name != f.Name and row.LinkedObject.getObject(name) in row.LinkedObject.Group, odd.Reference1
+# then longer, drilled hole and joint both come along
+row.Holes = "15"
+library.refit(row)
+_, again = odd.Reference1[1][0].rstrip(".").split(".")
+assert library.steps(row) and again != name and row.LinkedObject.getObject(again) in row.LinkedObject.Group, odd.Reference1
 sc, *_ = screws.fasten(doc, head, tail, "hex-screw", nylock)
 assert sc.Label == "0.375 Hex Screw (8-32, Steel)", sc.Label
 try:
