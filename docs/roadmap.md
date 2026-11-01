@@ -33,7 +33,7 @@ in build order, each one is something i can open and poke at
 - [ ] drilled gear hole pattern
 - [ ] HS lockbar
 - [ ] are the nylon / aluminum hex nuts just the steel shape
-- [ ] shoulder screw thread = length - shoulder?
+- [x] shoulder screw thread = length - shoulder? yes, robosource: "Overall length of 0.375" includes shoulder and threads". thats how screw() already does it
 
 ---
 Back to [goals](goals.md) | [main index](index.md)
