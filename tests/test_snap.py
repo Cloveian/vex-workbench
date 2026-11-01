@@ -160,6 +160,15 @@ _, frame = new[1].Reference1[1][0].rstrip(".").split(".")
 assert p3.LinkedObject.VexSteps and p3.LinkedObject.getObject(frame) in p3.LinkedObject.Group, new[1].Reference1
 got = moved([sc, nut])
 assert not got and local(nut) == [1.25, 0.25, -0.2391, -0.046], (got, local(nut))
+# a plain size change too, p2 to 15 holes keeps its nut joint
+j2 = next(j for j in joints.Group if getattr(j, "JointType", "") == "Revolute" and j.Reference1[0] == p2)
+p2.Holes = "15"
+library.refit(p2)  # no observer in here
+doc.recompute()
+assert p2.LinkedObject.getObject(j2.Reference1[1][0].rstrip(".")) in p2.LinkedObject.Group, j2.Reference1
+n2 = j2.Reference2[0]
+got = moved([n2])
+assert not got and local(n2) == [1.25, 0.25, -0.2391, -0.046], (got, local(n2))
 
 # stright through both flanges of one channel (a), head and nut on the same part. 1.0 + 0.193 -> the 1.25
 on_a = (asm, a.Name + ".")
