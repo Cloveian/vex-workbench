@@ -11,6 +11,8 @@
 - making a worked part shorter keeps the steps that still fit and drops the rest with a warning, it used to get stuck half changed. and the old worked source gets deleted after, both there and on every redo of a step
 - parts list: total is what the copies really weigh, each is the plain one off the shelf. i thought a cut copy only ever weighs less so the heaviest would do, then measured a bend. it adds 0.04 g on a plate, cuz k = 0.44 puts the neutral line inside of the middle of the wall so the bend has a bit more metal than the flat it eats
 - joints come over to the new source when a part gets bent, cut or drilled, for holes that are still in the same spot. the joint refs are just names of LCSs in the source, so a new source = every joint on that part pointing at nothing. ones on a hole a bend moved still break, that ones a decision (folow the hole? delete the joint?). it runs on every size change too, any part, and a standoff or spacer keeps the joint on the end that didnt move. its Seat points in while the end's normal points out, so the axis matches either way round
+- offscreen freecad cant draw its 3d view, but `saveImage` still renders with `LIBGL_ALWAYS_SOFTWARE=1`, hole dots and all. so README images can come out of a script, just no panels in them
+- looked stuff up for the roadmap: hs spacer bore is 0.252 on vex's steps, robosource's shoulder screw length includes the shoulder (screw() had it right), vex's cad library has none of al bar / steel U / steel 1x1 / steel 3x, and vex's terms dont say if the steps can be shared
 
 ## 2026-10-31 - bending
 
