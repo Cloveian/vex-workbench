@@ -113,14 +113,21 @@ assert got[:2] == [1.25, 0.25] and got[2] == round(0.046 - 0.29, 4) and got[3] =
 
 from freecad.vex_workbench import shop  # noqa: E402
 
-# joints on a face of something else and with nothing picked yet get skipped. outside asm so the solver doesnt see them
-box = doc.addObject("Part::Box", "Box")
-for refs in ([box, ["Face1", "Vertex1"]], None):
+
+def fake(refs):
+    # joint lookalike outside asm, the solver doesnt see it
     odd = doc.addObject("App::FeaturePython", "Odd")
     odd.addProperty("App::PropertyString", "JointType")
     for prop in ("Reference1", "Reference2"):
         odd.addProperty("App::PropertyXLinkSubHidden", prop)
         setattr(odd, prop, refs)
+    return odd
+
+
+# joints on a face of something else and with nothing picked yet get skipped
+box = doc.addObject("Part::Box", "Box")
+for refs in ([box, ["Face1", "Vertex1"]], None):
+    fake(refs)
 # drilling p1 somewhere else keeps the screw's joint on it, the frame comes over to the drilled source
 library.rework(p1, [shop.drill(p1, App.Vector(3.5, 0.5, 0.046) * IN, 0.25 * IN, False)])
 doc.recompute()
@@ -128,6 +135,15 @@ hole = new[0].Reference1[1][0]
 assert p1.LinkedObject.VexSteps and p1.LinkedObject.getObject(hole.rstrip(".")) in p1.LinkedObject.Group, hole
 got = moved([p1, p2, sc, nut])
 assert not got and local(nut) == [1.25, 0.25, -0.2391, -0.046], (got, local(nut))
+# and on one element of a link array
+row = library.place(doc, gen["5x10 Steel Plate"])
+row.ElementCount = 3
+doc.recompute()
+f = library.frame(row, App.Placement(App.Vector(1.25, 0.25, 0.046) * IN, App.Rotation()))
+odd = fake([row, [f"1.{f.Name}.", f"1.{f.Name}."]])
+library.rework(row, [shop.drill(row, App.Vector(3.5, 0.5, 0.046) * IN, 0.25 * IN, False)])
+_, name = odd.Reference1[1][0].rstrip(".").split(".")
+assert name != f.Name and row.LinkedObject.getObject(name) in row.LinkedObject.Group, odd.Reference1
 sc, *_ = screws.fasten(doc, head, tail, "hex-screw", nylock)
 assert sc.Label == "0.375 Hex Screw (8-32, Steel)", sc.Label
 try:

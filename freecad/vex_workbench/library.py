@@ -240,7 +240,10 @@ def carry(link, was):
             obj, subs = getattr(j, prop) or (None, [""])  # None when unset
             path = subs[0].split(".")[:-1]  # [..., "Link", "Hole001"], just ["Hole001"] on the link itself. "Face1" has no trailing dot
             old = lcs.get(path[-1]) if path else None
-            if old is None or (path[-2] != link.Name if len(path) > 1 else obj != link):
+            owner = path[:-1]
+            if owner and owner[-1].isdigit():
+                owner.pop()  # link array element, "Link.2.Hole001."
+            if old is None or (owner[-1] != link.Name if owner else obj != link):
                 continue  # another copy of the same source, or not a frame
             plc = old.Placement
             try:
