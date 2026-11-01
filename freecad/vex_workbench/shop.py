@@ -41,9 +41,11 @@ def lined(link, pt, across, off, do):
     # a step on a line through the hole nearest pt. the smaller side is the one that turns or goes
     center, n = library.hole_at(link, pt)
     p, d = line(center, n, across, off, library.steps(link))
+    t = wall(link, center, n)
     shape = Part.getShape(link.LinkedObject)
-    past = shape.common(metal.half(p, n.cross(d), n, 0)).Volume
-    return {"do": do, "p": list(p), "d": list(d), "n": list(n), "t": wall(link, center, n), "center": list(center),
+    # just whats cut off the clicked wall counts, a far flange the plane slices through stays put either way
+    past = sum(x.Volume for x in metal.split(shape, p, n.cross(d), n, t)[1])
+    return {"do": do, "p": list(p), "d": list(d), "n": list(n), "t": t, "center": list(center),
             "side": 1 if past < shape.Volume / 2 else -1}
 
 

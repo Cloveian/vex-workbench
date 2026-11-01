@@ -361,6 +361,17 @@ out = metal.cut(Part.getShape(ch.LinkedObject), shop.cut(ch, tip, False, 0))
 top = [f for f in out.Faces if f.Surface.TypeId == "Part::GeomPlane" and abs(f.normalAt(0, 0).z - 1) < 1e-6 and f.BoundBox.ZMin > 0.9 * IN]
 low = [f for f in out.Faces if f.BoundBox.ZMax < 0.1 * IN]  # whats left of the clicked flange
 assert len(out.Solids) == 1 and top and min(f.BoundBox.YMin for f in top) < 1e-6 and min(f.BoundBox.YMin for f in low) > 0.2 * IN, out.BoundBox
+# both flanges off flush with the web (the line slid 0.25 over to its inside face), then the web folds the way the flanges were
+flush = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
+doc.recompute()
+done = []
+for z in (0, 1):
+    at = next(c for c in library.screw_holes(flush) if abs(c.z - z * IN) < 1e-6 and abs(c.y - 0.25 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
+    s = next(s for s in (shop.cut(flush, at, False, o * IN) for o in (0.25, -0.25)) if abs(s["p"][1] - 0.5 * IN) < 1e-6)
+    done.append(s)
+    library.rework(flush, done)
+web = next(c for c in library.screw_holes(flush) if abs(c.y - 0.546 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
+assert len(metal.fold(Part.getShape(flush.LinkedObject), shop.bend(flush, web, True, 0, -90)).Solids) == 1
 # drilling: a click at (2.07, 0.29) snaps 0.25 steps off the nearest hole to (2, 0.25), between two holes. shift drills it right there
 spot = App.Vector(2.07, 0.29, 0.046) * IN
 h = shop.drill(plate, spot, 0.17 * IN)

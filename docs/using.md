@@ -43,7 +43,7 @@ While either panel is open every hole gets an orange point on both sides of the 
 
 Only that one copy bends, the rest stay straight, and it still counts as the straight part in the parts list (thats what you buy). change Holes on it and it keeps its bends. bend before screwing stuff onto it tho, joints on its old holes dont carry over. channels bend too, flanges and all, which real metal wont do without cutting them first, so thats on you :P. only away from the flanges tho, folding the web into its own flanges gets refused (angles the same with their other leg)
 
-**Cut** works on the same kind of line (Line, Off the hole), the smaller side goes and **Keep the other side** swaps it. across through a hole is cut to length, along a flange cuts just that flange (the far one stays). sawn edge, no notches or chamfers.
+**Cut** works on the same kind of line (Line, Off the hole), the smaller side goes and **Keep the other side** swaps it. across through a hole is cut to length, along a flange cuts just that flange (the far one stays). slide the line 0.25 over from a flange's hole row (one way or the other, whichever lands on the web) and the whole flange comes off flush, do both and the web can fold the way it got refused before. sawn edge, no notches or chamfers. a cut that would leave it in two pieces gets refused.
 
 **Drill** puts a round hole through the wall where you click, **Size** across (0.17 to start, 8-32 clearance). it snaps to the 0.25 grid off the nearest hole on that face, hold Shift to drill right where you clicked. a drilled 8-32 hole gets a dot like any other. on a plate the grid spots between holes already have little square holes, so drilling one of those just opens it up.
 

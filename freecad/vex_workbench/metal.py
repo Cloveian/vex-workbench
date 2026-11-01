@@ -258,7 +258,10 @@ def cut(shape, c):
     keep, gone, stays = split(shape, p, u, n, c["t"])
     if not gone or not keep.Solids:
         raise ValueError("nothing to cut there, the line has to go across the metal with some on both sides")
-    return keep.fuse(stays).removeSplitter() if stays else keep
+    out = keep.fuse(stays).removeSplitter() if stays else keep
+    if len(out.Solids) != 1:
+        raise ValueError("that cut leaves it in more than one piece, try keeping the other side")
+    return out
 
 
 def drill(shape, h):
