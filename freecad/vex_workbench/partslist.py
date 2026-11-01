@@ -7,8 +7,12 @@ from . import library
 SHEET = "VexPartsList"
 
 
+def weight(src):
+    return src.VexMass.getValueAs("g").Value if hasattr(src, "VexMass") else None
+
+
 def count(doc):
-    # name -> [count, g each]. None without a material, step parts and the plates
+    # name -> [count, g each, g all of them]. grams None without a material, step parts and license plates
     out = {}
 
     def walk(o, n):
@@ -16,8 +20,12 @@ def count(doc):
             n *= max(o.ElementCount, 1)  # link arrays
             src = o.LinkedObject
             if hasattr(src, "VexName"):
-                each = src.VexMass.getValueAs("g").Value if hasattr(src, "VexMass") else None
-                out.setdefault(src.VexName, [0, each])[0] += n
+                g = weight(src)
+                row = out.setdefault(src.VexName, [0, g, None if g is None else 0])
+                row[0] += n
+                if g is not None:
+                    row[1] = max(row[1], g)  # heaviest copy, a worked one with its holes changed has no plain source
+                    row[2] += n * g
                 return
             o = src  # a linked sub-assembly, its parts n more times
         for child in getattr(o, "Group", []):
@@ -25,6 +33,10 @@ def count(doc):
 
     for o in library.roots(doc):
         walk(o, 1)
+    # each = off the shelf weight, a bend adds a bit and a cut takes some off
+    for src in getattr(doc.getObject(library.GROUP), "Group", []):
+        if getattr(src, "VexName", None) in out and not getattr(src, "VexSteps", ""):
+            out[src.VexName][1] = weight(src)
     return out
 
 
@@ -36,7 +48,7 @@ def fill(doc):
         sheet.set(f"{col}1", head)
     grams = parts = unknown = 0
     rows = sorted(count(doc).items())
-    for row, (name, (n, each)) in enumerate(rows, 2):
+    for row, (name, (n, each, total)) in enumerate(rows, 2):
         sheet.set(f"A{row}", name)
         sheet.set(f"B{row}", str(n))
         parts += n
@@ -45,8 +57,8 @@ def fill(doc):
             unknown += n
             continue
         sheet.set(f"C{row}", f"{each:.2f}")
-        sheet.set(f"D{row}", f"{n * each:.2f}")
-        grams += n * each
+        sheet.set(f"D{row}", f"{total:.2f}")
+        grams += total
     end = len(rows) + 3
     note = f", {unknown} without a weight" if unknown else ""
     sheet.set(f"A{end}", f"Total, {parts} parts{note}")

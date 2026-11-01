@@ -102,7 +102,7 @@ grams = a.LinkedObject.VexMass.getValueAs("g").Value
 assert abs(grams - Part.getShape(a.LinkedObject).Volume * 7.85 / 1000) < 1e-6, grams
 assert not hasattr(w.LinkedObject, "VexMass")
 counts = partslist.count(doc)
-assert [n for n, _ in counts.values()] == [1, 1, 1, 1] and counts[w.Label][1] is None, counts
+assert [row[0] for row in counts.values()] == [1, 1, 1, 1] and counts[w.Label][1] is None, counts
 sheet = partslist.fill(doc)
 assert sheet.get("A7").startswith("Total, 4 parts, 1 without"), sheet.get("A7")
 
@@ -118,6 +118,17 @@ arr.ElementCount = 3
 doc.recompute()
 counts = partslist.count(doc)
 assert counts["1x2x1x20 Aluminum C-Channel"][0] == 4 and counts["1.000 Standoff (8-32, Aluminum)"][0] == 3, counts
+
+# a plate bent and one cut in half. each stays the plain one (the bend adds a bit), the total is what both really weigh
+p1, p2 = (library.place(doc, gen["5x10 Steel Plate"]) for _ in range(2))
+doc.recompute()
+plain = p1.LinkedObject.VexMass.getValueAs("g").Value
+library.rework(p1, [shop.bend(p1, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)])
+library.rework(p2, [shop.cut(p2, App.Vector(2.5, 0.25, 0.046) * IN, True, 0)])
+doc.recompute()
+bent, half = (o.LinkedObject.VexMass.getValueAs("g").Value for o in (p1, p2))
+n, each, total = partslist.count(doc)["5x10 Steel Plate"]
+assert n == 2 and each == plain and abs(total - bent - half) < 1e-6 and half < plain < bent, (n, each, total, plain, bent, half)
 
 App.closeDocument(doc.Name)
 print("ok")
