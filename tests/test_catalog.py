@@ -55,4 +55,13 @@ if vs.is_dir():
     gone = [p["file"] for p in steps if not (vs / p["folder"] / p["file"]).is_file()]
     assert not gone, gone
 
+# a fresh clone without them gets pointed at the README
+catalog.STEP_DIR = ROOT / "no-such-folder"
+try:
+    catalog.step_path(steps[0])
+    raise AssertionError("found a step in a folder that isnt there")
+except ValueError as e:
+    assert "README" in str(e), e
+catalog.STEP_DIR = vs
+
 print(f"ok, {len(gen)} generated, {len(steps)} step parts")

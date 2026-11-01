@@ -63,6 +63,8 @@ def step_parts(cat):
 
 def step_path(step):
     path = STEP_DIR / step["folder"] / step["file"]
+    if not STEP_DIR.is_dir():
+        raise ValueError(f"VEX's STEP files aren't downloaded yet, so this part can't be made. The README says how to get them into {STEP_DIR}")
     if not path.is_file():
         raise ValueError(f"no step file at {path}")
     return path
