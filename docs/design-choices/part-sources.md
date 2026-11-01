@@ -56,5 +56,7 @@ C, generate what we can, ship the steps for the rest. 23 generated families in t
 
 todo before release: check vex's terms on redistributeing their steps. if it's a no, the workbench runs the fetch script on first launch instead
 
+looked: vex's kb pages for GO and the workcell cad say its free for personal and educational use (and no selling 3d printed copies), nothing for V5 itself, their EULA is about products not downloads, and nothing says yes or no to redistributing. so it's an email to vex
+
 ---
 Back to [design choices](index.md) | [goals](../goals.md)
