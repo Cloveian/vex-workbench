@@ -18,6 +18,10 @@ def family(id):
     return [p for p in gen if p["family"] == id]
 
 
+# fractions and mm -> inches, other strings left alone
+assert catalog.exact(["5/16", "29 mm", "0.5 OD", {"a": "1/4"}]) == [0.3125, 29 / 25.4, "0.5 OD", {"a": 0.25}]
+assert next(f for f in cat["family"] if f["id"] == "u-channel")["web"] == 29 / 25.4
+
 # step parts
 assert len(steps) == 289, len(steps)
 assert sum("sku" not in p for p in steps) == 15

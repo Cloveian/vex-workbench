@@ -1,5 +1,5 @@
 # vex parts catalog
-# inches everywhere, bleh
+# inches everywhere, bleh. "5/16" and "29 mm" strings come out inches too
 
 [grid]
 pitch = 0.5
@@ -62,7 +62,7 @@ name = "2x2x2x{holes} {material} U-Channel"
 material = ["Aluminum", "Steel"]
 holes = { from = 1, to = 20 }
 flange = 1.017
-web = 1.1417 # 29 mm, so 0.0157 wider than 1.0 inside. a 2x c-channel slides in
+web = "29 mm" # so 0.0157 wider than 1.0 inside on aluminum. a 2x c-channel slides in
 thickness = { Aluminum = 0.063 }
 past_bend = 0.313 # 0.25 off the inside
 between = true

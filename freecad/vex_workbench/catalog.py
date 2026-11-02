@@ -3,9 +3,11 @@ import contextlib
 import gzip
 import itertools
 import os
+import re
 import shutil
 import tempfile
 import tomllib
+from fractions import Fraction
 from pathlib import Path
 
 CATALOG = Path(__file__).parent / "data" / "parts.toml"
@@ -18,7 +20,22 @@ FAMILY_KEYS = ("id", "title", "folder", "name", "fixtures")
 
 def load(path=CATALOG):
     with open(path, "rb") as f:
-        return tomllib.load(f)
+        return exact(tomllib.load(f))
+
+
+def exact(v):
+    # "5/16" and "29 mm" in the toml -> inches
+    if isinstance(v, dict):
+        return {k: exact(x) for k, x in v.items()}
+    if isinstance(v, list):
+        return [exact(x) for x in v]
+    if isinstance(v, str):
+        if re.fullmatch(r"\d+/\d+", v):
+            return float(Fraction(v))
+        mm = re.fullmatch(r"(\d+(?:\.\d+)?) ?mm", v)
+        if mm:
+            return float(mm[1]) / 25.4
+    return v
 
 
 def span(r):
