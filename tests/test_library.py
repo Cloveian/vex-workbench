@@ -6,6 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import freecad  # noqa: E402,F401  puts FreeCAD on the path, and finds freecad/vex_workbench in ROOT
+freecad.__path__.insert(0, str(ROOT / "freecad"))  # this checkout ahead of an addon manager install of it
 import FreeCAD as App  # noqa: E402
 import Part  # noqa: E402
 

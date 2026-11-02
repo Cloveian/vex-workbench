@@ -228,7 +228,7 @@ class Clicks:
         self.picked = []
         for link, pt, plc, _ in spots:
             try:
-                self.picked.append(plc.multVec(library.hole_at(link, pt)[0]))
+                self.picked.append(plc.multVec(library.hole_spot(link, pt)[0]))
             except ValueError:
                 pass  # part with no holes, act() says so
         self.show(self.lit, self.picked)

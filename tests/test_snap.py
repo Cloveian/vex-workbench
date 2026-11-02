@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import freecad  # noqa: E402,F401
+freecad.__path__.insert(0, str(ROOT / "freecad"))
 import FreeCAD as App  # noqa: E402
 import JointObject  # noqa: E402  Assembly workbench, works headless
 import Part  # noqa: E402
@@ -454,6 +455,22 @@ assert (App.Vector(*shop.drill(plate, spot, 0.17 * IN, False)["c"]) - spot).Leng
 library.rework(plate, [h])
 new = [w for w, c, _ in library.holes(Part.getShape(plate.LinkedObject)) if (c - App.Vector(*h["c"])).Length < 1e-6]
 assert new and library.screwable(new[0]), new
+
+# a 1x2x1 c-channel inside a steel U-channel: the U's flange inside dots sit out in the 0.025 gap, outside ones stay on the metal
+u = library.place(doc, gen["2x2x2x10 Steel U-Channel"])
+ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
+ch.Placement = App.Placement(App.Vector(0, 5, 3) * IN, App.Rotation())
+doc.recompute()
+side = (29 / 25.4 - 2 * 0.046 - 1) / 2
+zs = sorted({round(c.z / IN, 4) for c in library.screw_holes(u) if c.x < 0.3 * IN and abs(c.y / IN - 0.204) < 1e-3})
+assert zs == [0, round(0.046 + side, 4), round(29 / 25.4 - 0.046 - side, 4), round(29 / 25.4, 4)], zs
+inner = App.Vector(0.25, 0.204, 0.046) * IN
+assert abs(library.hole_frame(u, inner).Placement.Base.z / IN - 0.046 - side) < 1e-9
+# lined up on that hole the c-channel sits square in the middle, the same gap both sides
+align.align((ch, App.Vector(0.26, 0.26, 0) * IN, ch.Placement, (ch, "")), (u, inner, u.Placement, (u, "")), 0)
+doc.recompute()
+b = ch.Shape.optimalBoundingBox()
+assert abs(b.ZMin / IN - 0.046 - side) < 1e-6 and abs((29 / 25.4 - 0.046) - b.ZMax / IN - side) < 1e-6, (b.ZMin / IN, b.ZMax / IN)
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")

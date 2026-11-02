@@ -148,6 +148,11 @@ PROFILES = {
 }
 
 
+def thickness(p, cat):
+    # in, the family's own for its material or the metal one
+    return p.get("thickness", {}).get(p["material"], cat["metal"]["thickness"][p["material"]])
+
+
 def make(part, cat):
     p, g, metal = part["params"], cat["grid"], cat["metal"]
     sawn = p.get("cut", {}).get(p.get("variant"))
@@ -155,8 +160,7 @@ def make(part, cat):
         p = {**p, **sawn}
     elif p.get("variant", "Regular") != "Regular":
         raise ValueError(f"no dims for {p['variant']} angles yet")
-    mat = p["material"]
-    t = p.get("thickness", {}).get(mat, metal["thickness"][mat])
+    t = thickness(p, cat)
     pts, legs = PROFILES[part["family"]](p, g)
     d, n = frames(pts)
     length = p["holes"] * g["pitch"]

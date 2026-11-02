@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 import freecad  # noqa: E402,F401
+freecad.__path__.insert(0, str(ROOT / "freecad"))
 import Part  # noqa: E402
 
 from freecad.vex_workbench import catalog, library, metal  # noqa: E402

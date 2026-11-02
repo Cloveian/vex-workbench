@@ -255,7 +255,7 @@ def carry(link, was):
             continue
         plc = old.Placement
         try:
-            center, n = hole_at(link, plc.Base)
+            center, n = hole_spot(link, plc.Base)
         except ValueError:
             return  # no holes left at all
         # either way along the axis, a standoff's Seat points in off an end whose normal points out
@@ -362,7 +362,8 @@ def screw_holes(link):
         src.addProperty("App::PropertyVectorList", "VexScrewHoles", "VEX")
         src.setPropertyStatus("VexScrewHoles", "Hidden")
         src.VexScrewHoles = outermost(Part.getShape(src), hasattr(link, "VexStep"))
-    return list(src.VexScrewHoles)
+    gap = u_gap(link)
+    return [into_gap(c, gap) for c in src.VexScrewHoles]
 
 
 def outermost(shape, rays):
@@ -386,10 +387,35 @@ def outermost(shape, rays):
     return [c for cs in kept.values() for c in cs]
 
 
-def hole_frame(link, point):
-    # LCS on the hole from hole_at, z out of the face, x along the length if it can
-    # it goes in the source so every copy has it
+def u_gap(link):
+    # a U-channel's flange insides as (z, mm out into the channel). its 29 mm leaves a gap round the 2x c-channel it goes over, steel 0.025 a side, al 0.008
+    part = part_of(link)
+    if part.get("family") != "u-channel":
+        return []
+    c = cat()
+    p, t = part["params"], metal.thickness(part["params"], c)
+    off = (p["web"] - 2 * t - 2 * c["grid"]["pitch"]) / 2 * metal.IN
+    return [(t * metal.IN, off), ((p["web"] - t) * metal.IN, -off)]
+
+
+def into_gap(c, gap):
+    # c moved off a U-channel flange inside by u_gap(), so a c-channel's outer dots inside it meet these
+    for z, off in gap:
+        if abs(c.z - z) < 1e-6:
+            return Vector(c.x, c.y, c.z + off)
+    return c
+
+
+def hole_spot(link, point):
+    # hole_at, but where the frame and dot go. same thing except on a U-channel's flange insides
     center, n = hole_at(link, point)
+    return into_gap(center, u_gap(link)), n
+
+
+def hole_frame(link, point):
+    # LCS on the hole from hole_spot, z out of the face, x along the length if it can
+    # it goes in the source so every copy has it
+    center, n = hole_spot(link, point)
     x, y = square_to(n)
     return frame(link, Placement(center, Rotation(x, y, n, "ZXY")))
 
