@@ -52,9 +52,13 @@ def smaller(shape, s):
     return 1 if past < shape.Volume / 2 else -1
 
 
-def bend(link, pt, across, off, angle):
+def bend(link, pt, across, off, angle, r=None, centered=False):
+    # r inside radius in, vex's 0.032 to start. centered puts the middle of the bend on the line
     cat = library.cat()["metal"]
-    return dict(lined(link, pt, across, off, "fold"), angle=angle, r=cat["bend"] * IN, k=cat["k"])
+    s = dict(lined(link, pt, across, off, "fold"), angle=angle, r=(cat["bend"] if r is None else r) * IN, k=cat["k"])
+    if centered:
+        s["centered"] = True  # only when on, older steps stay the same json
+    return s
 
 
 def cut(link, pt, across, off):
@@ -88,7 +92,7 @@ def drill(link, pt, dia, grid=GRID):
     v = Part.Vertex(pt)
     # the face whose plane its on first. a click on a hole's dot is as far from the hole's own wall as from the face round it
     face = min((f for f in shape.Faces if f.Surface.TypeId == "Part::GeomPlane"),
-               key=lambda f: (round(abs(f.normalAt(0, 0).dot(pt - f.Vertexes[0].Point)), 6), f.distToShape(v)[0]))
+               key=lambda f: (abs(f.normalAt(0, 0).dot(pt - f.Vertexes[0].Point)) > 1e-6, f.distToShape(v)[0]))
     n = face.normalAt(0, 0)
     c = pt - n * n.dot(pt - face.Vertexes[0].Point)
     near = on_face(src, n, c)
@@ -226,17 +230,33 @@ class Lined(Clicked):
 class BendPanel(Lined):
     DID = "bent"
 
+    SITS = ["Next to the line", "Centered on it"]
+
     def __init__(self):
-        self.angle = ui.number(-180, 180, " deg", App.ParamGet(ui.PARAMS).GetFloat("BendAngle", 90))
-        super().__init__("VEX bend", [("Angle", self.angle)], "Other side turns")
+        prefs = App.ParamGet(ui.PARAMS)
+        self.angle = ui.number(-180, 180, " deg", prefs.GetFloat("BendAngle", 90))
+        # vice and hammer bends are way tighter than vex's
+        self.radius = ui.number(0, 0.5, " in", prefs.GetFloat("BendRadius", library.cat()["metal"]["bend"]), step=0.001, decimals=3)
+        self.sits = QtWidgets.QComboBox()
+        self.sits.addItems(self.SITS)
+        self.sits.setCurrentIndex(prefs.GetInt("BendSits", 0))
+        rows = [("Angle", self.angle), ("Inside radius", self.radius), ("Bend sits", self.sits)]
+        super().__init__("VEX bend", rows, "Other side turns")
 
     def step(self, link, pt):
-        App.ParamGet(ui.PARAMS).SetFloat("BendAngle", self.angle.value())
-        return bend(link, pt, *self.where(), self.angle.value())
+        prefs = App.ParamGet(ui.PARAMS)
+        prefs.SetFloat("BendAngle", self.angle.value())
+        prefs.SetFloat("BendRadius", self.radius.value())
+        prefs.SetInt("BendSits", self.sits.currentIndex())
+        return bend(link, pt, *self.where(), self.angle.value(), self.radius.value(), self.sits.currentIndex() == 1)
 
     def tweak(self, link, s, before):
         super().tweak(link, s, before)
         s["angle"] = self.angle.value()
+        s["r"] = self.radius.value() * IN
+        s.pop("centered", None)
+        if self.sits.currentIndex() == 1:
+            s["centered"] = True
 
 
 class CutPanel(Lined):

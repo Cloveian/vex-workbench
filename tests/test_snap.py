@@ -474,6 +474,19 @@ for done in ([h, wide], [h, wide, shop.drill(plate, App.Vector(0.07, 0.75, 0.046
     grids.append([{(round(p.x, 4), round(p.y, 4)) for p in spots if abs(p.z - z) < 1e-6} for z in (0.046 * IN, 0)])
 assert grids[0][0] and grids[0][0] == grids[0][1] == grids[1][0] == grids[1][1], [len(s) for g in grids for s in g]
 
+# a bend centered on its line sits half the flat it eats back from where one next to the line does, and a 0 radius (vice and hammer) still folds
+flat = library.place(doc, gen["5x10 Steel Plate"])
+doc.recompute()
+shape = Part.getShape(flat.LinkedObject)
+at = App.Vector(2.25, 0.25, 0.046) * IN
+next_to, centered, sharp = (metal.fold(shape, shop.bend(flat, at, True, 0, 90, r, c)) for r, c in ((None, False), (None, True), (0, False)))
+s = shop.bend(flat, at, True, 0, 90)
+w = (s["r"] + s["k"] * s["t"]) * math.pi / 2
+a, b = next_to.optimalBoundingBox(), centered.optimalBoundingBox()
+assert sorted(round(abs(d) / w, 6) for d in (a.XMin - b.XMin, a.XMax - b.XMax)) == [0, 0.5], (a, b, w)
+assert all(len(x.Solids) == 1 and x.isValid() for x in (next_to, centered, sharp))
+assert "centered" not in s and shop.bend(flat, at, True, 0, 90, centered=True)["centered"]
+
 # a 1x2x1 c-channel inside a steel U-channel: the U's flange inside dots sit out in the 0.025 gap, outside ones stay on the metal
 u = library.place(doc, gen["2x2x2x10 Steel U-Channel"])
 ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])

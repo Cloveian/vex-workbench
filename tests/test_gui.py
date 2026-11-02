@@ -344,6 +344,8 @@ try:
     doc.recompute()
     panel = shop.BendPanel()
     Gui.Control.showDialog(panel)
+    panel.radius.setValue(0.032)  # whatever the last real use left in the prefs
+    panel.sits.setCurrentIndex(0)
     panel.across.setCurrentText("Across")
     panel.off.setValue(0)
     panel.angle.setValue(90)

@@ -20,7 +20,7 @@ in build order, each one is something i can open and poke at
 - [x] Align tool. hole on the part to move, then the hole it goes against
 	faces land flat, keeps its turn to the nearest step, Rotate / Gap after. moves a link array whole, or the group its in. Revolute joint in an assembly, swapped out if its aligned again
 - [x] Bending metal, cutting, drilling
-	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032. the cross section at the line swept round, holes the line goes through stay open. cut on the same lines (to length, or a flange off flush), drill a round hole anywhere snapped to a grid (0.25 to start). all per copy, kept on the link in order and redone if its Holes change
+	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032 to start. the cross section at the line swept round, holes the line goes through stay open. cut on the same lines (to length, or a flange off flush), drill a round hole anywhere snapped to a grid (0.25 to start). all per copy, kept on the link in order and redone if its Holes change
 
 ## From actually using it
 - [x] dots drawn on top of solids, and a bigger area to click them
@@ -29,7 +29,7 @@ in build order, each one is something i can open and poke at
 - [x] dots on every click-to-do tool, and a "show more" grid with a size box (drill needs it most). all six tools had dots already, drill gets Grid + Show the grid
 - [ ] screw tool takes several holes on one face, then the ones across. with "auto finish" on, one click across does them all, off and its a click across for each
 - [ ] cut tool. click two points for a line, doesnt have to go all the way across (slots, notches), more pairs for more cuts. plus a sketch-it button for anything fancier
-- [ ] bend: centered on the line or next to it, and an inside radius box (vice and hammer bends are way tighter than 0.032)
+- [x] bend: centered on the line or next to it, and an inside radius box (vice and hammer bends are way tighter than 0.032)
 - [ ] place menu for wheels, gears and anything else with a pile of variants, same as the c-channel one (family, then type / size / whatever), only combos that exist
 - [ ] simple joint tool: spin on a hole, slide along a line, and drag a part to see it move
 - [ ] duplicate a sub-assembly, mirrorred across a plane or turned about an axis. parts get turned, not mirrored, so they stay real parts

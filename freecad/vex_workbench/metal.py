@@ -285,6 +285,8 @@ def fold(shape, b):
     p, u, n = line(b)  # u into the side that turns
     a = math.radians(abs(b["angle"]))
     w = (b["r"] + b["k"] * b["t"]) * a  # flat length the bend eats, on the netural line. r inside radius, t wall
+    if b.get("centered"):
+        p = p - u * (w / 2)  # middle of the bend on the line
     keep, mine, stays = split(shape, p, u, n, b["t"])
     turns = Part.makeCompound(mine)
     rest = turns.common(half(p, u, n, w))
