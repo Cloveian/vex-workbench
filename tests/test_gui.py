@@ -231,16 +231,29 @@ try:
     k = mark(App.Vector(3.75, 0.25, 0.046) * IN)
     assert panel.points[snap.nearest(screen, screen[mark(App.Vector(3.75, 0.25, 0) * IN)][:2])] == panel.points[k]
     assert snap.nearest(screen, (-100, -100)) is None
-    # a real mouse press 2 px off that dot, through the viewer like a click would go
+    # a real press + release 2 px off that dot, through the viewer like a click would go
     from pivy import coin
-    ev = coin.SoMouseButtonEvent()
-    ev.setButton(coin.SoMouseButtonEvent.BUTTON1)
-    ev.setState(coin.SoButtonEvent.DOWN)
-    ev.setPosition(coin.SbVec2s(round(screen[k][0]) + 2, round(screen[k][1])))
-    press = coin.SoHandleEventAction(region)
-    press.setEvent(ev)
-    press.apply(view.getViewer().getSoRenderManager().getSceneGraph())
-    assert press.isHandled() and [(p - panel.points[k]).Length < 1e-6 for p in panel.picked] == [True], panel.picked
+
+    def mouse(state, x, y):
+        ev = coin.SoMouseButtonEvent()
+        ev.setButton(coin.SoMouseButtonEvent.BUTTON1)
+        ev.setState(state)
+        ev.setPosition(coin.SbVec2s(round(x), round(y)))
+        act = coin.SoHandleEventAction(region)
+        act.setEvent(ev)
+        act.apply(view.getViewer().getSoRenderManager().getSceneGraph())
+
+    # isHandled() is no use here, FreeCAD's own selection node marks every press handled
+    Gui.Selection.clearSelection()
+    mouse(coin.SoButtonEvent.DOWN, screen[k][0] + 2, screen[k][1])
+    mouse(coin.SoButtonEvent.UP, screen[k][0] + 2, screen[k][1])  # FreeCAD selects the edge under it here
+    QtWidgets.QApplication.processEvents()
+    assert [(p - panel.points[k]).Length < 1e-6 for p in panel.picked] == [True] and panel.first, panel.picked
+    assert not Gui.Selection.getSelectionEx(), [s.SubElementNames for s in Gui.Selection.getSelectionEx()]  # and that got dropped
+    # nowhere near a dot changes nothing
+    mouse(coin.SoButtonEvent.DOWN, 1, 1)
+    mouse(coin.SoButtonEvent.UP, 1, 1)
+    assert len(panel.picked) == 1, panel.picked
     overlay, root = panel.overlay, view.getSceneGraph()
     panel.reject()
     assert root.findChild(overlay) == -1

@@ -1,4 +1,6 @@
 # snap to hole: click holes on VEX parts, get a frame on each exact center for Assembly joints. plus the joints and the click panel the other tools use
+import time
+
 import FreeCAD as App
 import FreeCADGui as Gui
 from FreeCAD import Vector
@@ -13,6 +15,7 @@ MARK_SIZE = 9  # px
 PICK_SIZE = 14  # px, drawn over the orange one
 PICK_RADIUS = 14  # px from a dot that still clicks it
 SAME_SPOT = 3  # px, dots closer than this on screen (two sides of one hole) go to the one nearer the camera
+RELEASE = 1.0  # s after a dot press that a selection still counts as its release
 REFRESH = 100  # ms after the last change, the points get worked out again
 MOVES = ("Placement", "Visibility", "VisibilityList", "ElementCount", "LinkedObject", "Group")  # changes that move, hide or swap a part's holes. Group for one draged into another sub-assembly
 
@@ -32,16 +35,16 @@ def spot(root, sub, pt):
     return objs[k], plc.inverse().multVec(pt), plc, (root, path)
 
 
-def nearest(dots, at):
-    # index of the dot clicked at at, None for none. dots are (x, y, depth) on screen, px
+def nearest(dots, at, scale=1):
+    # index of the dot a click lands on, None for none. at and dots are (x, y[, depth]) on screen, px. scale = device px per screen px
     def apart(a, b):
         return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
 
-    close = [i for i, d in enumerate(dots) if apart(d, at) <= PICK_RADIUS]
+    close = [i for i, d in enumerate(dots) if apart(d, at) <= PICK_RADIUS * scale]
     if not close:
         return None
     best = dots[min(close, key=lambda i: apart(dots[i], at))]
-    return min((i for i in close if apart(dots[i], best) <= SAME_SPOT), key=lambda i: dots[i][2])
+    return min((i for i in close if apart(dots[i], best) <= SAME_SPOT * scale), key=lambda i: dots[i][2])
 
 
 def placement(root, path):
@@ -176,7 +179,10 @@ class Clicks:
     def draw(self):
         # coin only, not in the document. SoAnnotation draws them last with no depth test, so through solids too
         from pivy import coin
-        self.view = Gui.getDocument(self.doc.Name).ActiveView
+        gd = Gui.getDocument(self.doc.Name)
+        # a spreadsheet or techdraw page in front has no scene
+        self.view = gd.ActiveView if hasattr(gd.ActiveView, "getSceneGraph") else gd.mdiViewsOfType("Gui::View3DInventor")[0]
+        self.took = 0  # when the last press took a dot, s
         self.overlay = coin.SoAnnotation()
         self.marks = self.dots(self.overlay, MARK_SIZE, (1.0, 0.35, 0.1))
         self.lit = self.dots(self.overlay, PICK_SIZE, (0.1, 0.9, 0.2))
@@ -247,10 +253,15 @@ class Clicks:
         region = cb.getAction().getViewportRegion()
         w, h = region.getViewportSizePixels().getValue()
         x, y = ev.getNormalizedPosition(region).getValue()
-        i = nearest(self.on_screen(region), (x * w, y * h))
-        if i is not None:
-            cb.setHandled()  # or FreeCAD selects the face under it too
-            self.take(self.spots[i])
+        # region is device px, 2x on a hidpi screen
+        i = nearest(self.on_screen(region), (x * w, y * h), Gui.getMainWindow().devicePixelRatioF())
+        if i is None:
+            self.took = 0
+            return
+        # FreeCAD selects the face under it on the relase, setHandled here cant stop that. addSelection drops it
+        self.took = time.monotonic()
+        cb.setHandled()
+        self.take(self.spots[i])
 
     def mark(self):
         # a point on every screw hole and stock end
@@ -272,6 +283,10 @@ class Clicks:
 
     def addSelection(self, doc, obj, sub, pnt):
         # a face click, the dots come in through clicked()
+        if time.monotonic() - self.took < RELEASE:  # what was under a dot that already got taken
+            self.took = 0
+            QtCore.QTimer.singleShot(0, Gui.Selection.clearSelection)
+            return
         s = spot(App.getDocument(doc).getObject(obj), sub, Vector(*pnt))
         if s is not None:
             self.take(s)
