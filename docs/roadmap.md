@@ -22,6 +22,20 @@ in build order, each one is something i can open and poke at
 - [x] Bending metal, cutting, drilling
 	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032. the cross section at the line swept round, holes the line goes through stay open. cut on the same lines (to length, or a flange off flush), drill a round hole anywhere snapped to the 0.25 grid. all per copy, kept on the link in order and redone if its Holes change
 
+## From actually using it
+- [ ] dots drawn on top of solids, and a bigger area to click them
+- [ ] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones
+- [ ] U-channel inner dots in a hair, to match where a c-channel's outer ones sit
+- [ ] dots on every click-to-do tool, and a "show more" grid with a size box (drill needs it most)
+- [ ] screw tool takes several holes on one face, then the ones across. with "auto finish" on, one click across does them all, off and its a click across for each
+- [ ] cut tool. click two points for a line, doesnt have to go all the way across (slots, notches), more pairs for more cuts. plus a sketch-it button for anything fancier
+- [ ] bend: centered on the line or next to it, and an inside radius box (vice and hammer bends are way tighter than 0.032)
+- [ ] place menu for wheels, gears and anything else with a pile of variants, same as the c-channel one (family, then type / size / whatever), only combos that exist
+- [ ] simple joint tool: spin on a hole, slide along a line, and drag a part to see it move
+- [ ] duplicate a sub-assembly, mirrorred across a plane or turned about an axis. parts get turned, not mirrored, so they stay real parts
+- [ ] real colors and materials on every vex part
+- [ ] weight for the step parts too, vex's listed mass where there is one, an estimate where there isnt
+
 ## Still need numbers for
 - [x] bend radius
 - [x] 1x1 angle variants: the official one, plus a 3x c-channel cut down the middle, along the middle hole's edge or between holes. ~~Regular 2-Wide, Thick 5-Wide, Thin 5-Wide, only fusion has them, as f3d~~ (made, Cut 3x Hole Edge and Cut 3x Between Holes)
