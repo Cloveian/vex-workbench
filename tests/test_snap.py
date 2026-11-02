@@ -451,11 +451,13 @@ try:
     raise AssertionError("cut a channel into two")
 except ValueError as e:
     assert "more than one piece" in str(e), e
-# drilling: a click at (2.07, 0.29) snaps 0.25 steps off the nearest hole to (2, 0.25), between two holes. shift drills it right there
+# drilling: a click at (2.07, 0.29) snaps 0.25 steps off the first hole to (2, 0.25), between two holes. shift drills it right there
 spot = App.Vector(2.07, 0.29, 0.046) * IN
 h = shop.drill(plate, spot, 0.17 * IN)
 assert (App.Vector(*h["c"]) - App.Vector(2, 0.25, 0.046) * IN).Length < 1e-6 and abs(h["t"] - 0.046 * IN) < 1e-6, h
 assert (App.Vector(*shop.drill(plate, spot, 0.17 * IN, False)["c"]) - spot).Length < 1e-6
+# right on a hole's center (its dot) it still drills down through the face, not into the hole's wall
+assert App.Vector(*shop.drill(plate, App.Vector(2.25, 0.25, 0.046) * IN, 0.25 * IN, False)["n"]).z > 1 - 1e-6
 library.rework(plate, [h])
 new = [w for w, c, _ in library.holes(Part.getShape(plate.LinkedObject)) if (c - App.Vector(*h["c"])).Length < 1e-6]
 assert new and library.screwable(new[0]), new
@@ -464,6 +466,13 @@ wide = shop.drill(plate, App.Vector(3.5, 0.5, 0.046) * IN, 0.25 * IN, False)
 library.rework(plate, [h, wide])
 dots = [c for c in library.hole_dots(plate) if (c - App.Vector(3.5, 0.5, 0) * IN).Length < 0.05 * IN]
 assert len(dots) == 2, dots
+# 0.3 doesnt go into the pitch, the grid on both sides still lines up. a drill in front of the first hole doesnt move it
+grids = []
+for done in ([h, wide], [h, wide, shop.drill(plate, App.Vector(0.07, 0.75, 0.046) * IN, 0.12 * IN, False)]):
+    library.rework(plate, done)
+    spots = shop.grid_spots(plate, 0.3 * IN)
+    grids.append([{(round(p.x, 4), round(p.y, 4)) for p in spots if abs(p.z - z) < 1e-6} for z in (0.046 * IN, 0)])
+assert grids[0][0] and grids[0][0] == grids[0][1] == grids[1][0] == grids[1][1], [len(s) for g in grids for s in g]
 
 # a 1x2x1 c-channel inside a steel U-channel: the U's flange inside dots sit out in the 0.025 gap, outside ones stay on the metal
 u = library.place(doc, gen["2x2x2x10 Steel U-Channel"])

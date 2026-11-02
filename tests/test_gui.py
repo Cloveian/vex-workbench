@@ -377,11 +377,35 @@ try:
     panel = shop.DrillPanel()
     Gui.Control.showDialog(panel)
     panel.size.setValue(0.17)
+    panel.grid.setValue(0.25)  # whatever the last real use left in the prefs
+    panel.show_grid.setChecked(False)
     Gui.Selection.addSelection(doc.Name, stock.Name, f"Face{top}", 4.07 * IN, 400 + 0.29 * IN, 0.046 * IN)
     QtWidgets.QApplication.processEvents()
     got = library.steps(stock)
     assert [s["do"] for s in got] == ["cut", "drill"], panel.status.text()
     assert (App.Vector(*got[1]["c"]) - App.Vector(4, 0.25, 0.046) * IN).Length < 1e-6, got[1]["c"]
+    # showing the grid puts a dot between the holes, and a click on it drills right there
+    holes_only = len(panel.points)
+    panel.show_grid.setChecked(True)
+    between = App.Vector(4.5 * IN, 400 + 0.25 * IN, 0.046 * IN)
+    assert len(panel.points) > holes_only and any((p - between).Length < 1e-6 for p in panel.points), len(panel.points)
+    click(between)
+    QtWidgets.QApplication.processEvents()
+    got = library.steps(stock)
+    assert len(got) == 3 and (App.Vector(*got[2]["c"]) - App.Vector(4.5, 0.25, 0.046) * IN).Length < 1e-6, got[-1]["c"]
+    quarter = len(panel.points)
+    # none on the ends, the cut one at 3.75 is right on the grid
+    b = Part.getShape(stock.LinkedObject).BoundBox
+    assert not [p for p in panel.extra(stock) if min(abs(p.x - b.XMin), abs(p.x - b.XMax)) < 1e-6], b
+    panel.grid.setValue(0.125)
+    assert len(panel.points) > quarter, (len(panel.points), quarter)
+    # 0.2 doesnt go into the 0.5 pitch, the dots it does show still drill right there
+    panel.grid.setValue(0.2)
+    spots = panel.extra(stock)
+    moved = [p for p in spots[::10] if (App.Vector(*shop.drill(stock, p, 0.17 * IN, 0.2 * IN)["c"]) - p).Length > 1e-6]
+    assert spots and not moved, (len(spots), moved)
+    panel.show_grid.setChecked(False)
+    panel.grid.setValue(0.25)
     panel.reject()
     # click a flange's hole then slide the line onto the web, the side gets picked again for the new line so the flange goes
     chan = library.place(doc, gen["1x2x1x10 Steel C-Channel"])

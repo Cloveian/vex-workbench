@@ -270,9 +270,13 @@ class Clicks:
         for link, (root, path) in placed(self.doc):
             src = link.LinkedObject.Name
             if src not in found:
-                found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.hole_dots(link)
+                found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.hole_dots(link) + self.extra(link)
             plc = placement(root, path)
             self.spots += [(link, c, plc, (root, path)) for c in found[src]]
+
+    def extra(self, link):
+        # more dots on link than its holes, link coords. the drill's grid
+        return []
 
     def one(self):
         # True for a panel thats one click right now, act() gets None for the second

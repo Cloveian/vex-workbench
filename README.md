@@ -47,7 +47,7 @@ The [usage guide](docs/using.md) goes through every tool.
 
 - **Bend**: click a hole and the metal folds there, across or along the part, by any angle, with VEX's 0.032" inside radius.
 - **Cut**: the same kind of line, cut to length or take a flange off. Plain sawn edge.
-- **Drill**: click a spot and a round hole goes through, snapped to the 0.25" grid (hold Shift for exactly where you clicked).
+- **Drill**: click a spot and a round hole goes through, snapped to a grid (0.25" to start, any size, and it can show a dot on every grid spot). Hold Shift for exactly where you clicked.
 - Only that one copy changes, and it still counts as the plain part in the parts list, since that's what you buy.
 
 ![bend](docs/img/bend.png)
