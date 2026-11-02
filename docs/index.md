@@ -2,10 +2,9 @@
 A FreeCAD workbench for building VEX V5 robots
 
 ## Why?
-Protobot is 'close enough' cad, and i want *real* cad, where a robot can be designed to exact tolerances and what's on screen is what gets built. the fusion library is the other option but it's fusion, and its files have no license on them.
+Protobot is 'close enough' cad, and i want *real* cad, where a robot can be designed to exact tolerances and what's on screen is what gets built. the fusion library is the other option but it's fusion, and that sucks on linux.
 
 ## How
-Meth.
 FreeCAD 1.1 already has an assembly workbench with joints built in, so the workbench only has to make the parts and give them good things to snap to
 
 ## What

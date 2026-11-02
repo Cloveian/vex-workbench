@@ -5,7 +5,7 @@ what cad, what does the assembling, how it gets packaged
 I need a cad that can do real solids to exact dimensions, and something that puts a robot together out of them
 
 ### Relevant constraints/nice to haves:
-- Free and open, so anyone on a team can use it without a license thing
+- Runs well on linux
 - Real B-rep solids (planes and cylinders, not meshes), so dimensions are exact and a hole is a hole
 - Joints that hold parts together and can move (shafts spin, arms swing)
 - Scriptable, the parts get made from numbers
@@ -17,7 +17,7 @@ I need a cad that can do real solids to exact dimensions, and something that put
 
 ### Gates
 
-1. free and open source
+1. free and open source (linux)
 2. real B-rep solids
 3. scriptable in something i can actually write
 

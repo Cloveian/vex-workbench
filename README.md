@@ -1,10 +1,12 @@
 # VEX Workbench
 
-A FreeCAD 1.1 workbench for designing VEX V5 robots in real CAD, with every part at its exact size instead of 'close enough'.
+A FreeCAD 1.1 workbench for designing VEX V5 robots in real CAD, with every part at its exact size instead of 'close enough' (*ahem protobot ahem*)
 
-![Two C-channels screwed to a plate with a V5 motor on the side, and the orange dots the screw tool puts on every hole](docs/img/hero.png)
+![hero](docs/img/hero.png)
 
-It makes the parts, lines them up hole to hole, and does the joints with FreeCAD's own Assembly workbench, so what's on screen is what gets built. Two channels joined hole to hole land exactly on top of each other, not a hair off d(๑˃ᴗ˂̵)b
+TODO: replace this ugly ah cover image.
+
+It makes the parts, lines them up hole to hole, and does the joints with FreeCAD's own Assembly workbench, so what's on screen is what gets built. Two channels joined hole to hole land exactly on top of each other d(๑˃ᴗ˂̵)b
 
 ## Quick start
 
@@ -30,14 +32,16 @@ The [usage guide](docs/using.md) goes through every tool.
 
 ### Putting a robot together
 
-- **Hole dots**: while a tool is open, every hole you can use gets a dot to click, on both sides of the metal. On motors, that's just the real mounting holes, not the vents.
+- **Hole dots**: while a tool is open, every hole you can use gets a dot to click, on both sides of the metal.
 - **Align**: click a hole on the part to move, then the hole it goes against. It keeps the way the part was turned (rounded to the angle step), and after that you can turn it by any angle or give it a gap. It can move a whole link array, or the whole sub-assembly a part is in.
 - **Screw**: two clicks and the shortest screw that reaches through the nut goes in, nut and all, or 3/8" into a threaded hole (a standoff, a motor) with no nut. Or pick the screw yourself and place it with one click.
 - **Spacers**: click two holes facing each other, like inside a boxed channel, and the gap fills with spacers and washers. The screw tool can fill its gaps too.
 - **Frame on hole**: a frame on a hole's exact center, for joining parts by hand in the Assembly workbench.
 - In an assembly, screws, nuts, spacers and aligned parts all get revolute joints, so they can still spin.
 
-![A C-channel lined up on a plate with Align, hole dots showing](docs/img/align.png)
+![crunchy align image](docs/img/align.png)
+
+(idk why so crunchy)
 
 ### Shop work
 
@@ -46,7 +50,7 @@ The [usage guide](docs/using.md) goes through every tool.
 - **Drill**: click a spot and a round hole goes through, snapped to the 0.25" grid (hold Shift for exactly where you clicked).
 - Only that one copy changes, and it still counts as the plain part in the parts list, since that's what you buy.
 
-![A 5x15 steel plate bent up 90 degrees at a hole row](docs/img/bend.png)
+![bend](docs/img/bend.png)
 
 ### Extras
 

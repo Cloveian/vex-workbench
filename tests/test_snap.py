@@ -1,4 +1,4 @@
-# hole frames + Fixed joints, shaft ends, the screw, spacer, align, bend, cut and drill tools, run with: python tests/test_snap.py (needs FreeCAD + vex-step/)
+# hole frames + Fixed joints, shaft ends, the screw, spacer, align, bend, cut and drill tools, run with: python tests/test_snap.py (needs FreeCAD)
 import math
 import sys
 from pathlib import Path

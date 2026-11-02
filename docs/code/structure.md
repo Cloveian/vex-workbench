@@ -21,11 +21,15 @@
 | `freecad/vex_workbench/partslist.py` | Parts list command, links counted by name into a spreadsheet         |
 | `freecad/vex_workbench/data/parts.toml` | the [catalog](../design-choices/catalog.md)                      |
 | `freecad/vex_workbench/resources/icons/` | the workbench and command icons                                 |
+| `freecad/vex_workbench/steps/` | the 209 vex steps that ship, gzipped. `catalog.step_file` unzips one into a temp file to read |
 | `package.xml`                      | addon manager metadata                                                |
 | `tests/`                           | `python tests/test_catalog.py` and so on, `test_gui.py` runs inside freecad (`env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py`) |
 | `tools/fetch_vex_cad.py`           | pulls every V5 step off vexrobotics.com, `uv run` it                  |
 | `tools/sort_vex_step.py`           | sorts the downloads into the fusion library folders, `--apply` moves them |
-| `vex-step/`                        | the 289 steps, gitignored                                             |
+| `tools/ship_steps.py`              | zips the shipped set out of `vex-step/` into the package, drops ones that stopped shipping |
+| `tools/render_shots.py`            | the README images, rendered with no window into `downloads/`          |
+| `vex-step/`                        | all 289 steps, gitignored. the tests' fixtures and anything that doesnt ship |
+| `LICENSE`                          | LGPL-2.1-or-later, the workbench only. vex's steps are theirs                  |
 | `downloads/`                       | raw downloads + `manifest.csv`, gitignored                            |
 | `docs/`                            | this                                                                  |
 

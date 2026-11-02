@@ -16,6 +16,8 @@
 - a bare Frame on hole comes along too now, but only onto a worked source just that copy uses. on a plain one it would turn up on every plate that size, placed later or not
 - refit wiped all the steps when even the plain part couldnt be made, then errored anyway. now it just errors. and a fresh clone with no vex-step/ gets told to go read the README instead of a path
 - freecad's own joint tool on a face or edge still breaks on any of this, faces get renumbered. only frames carry
+- the steps ship now. not all 912 MB of them (the clawbot alone is 119 MB, over github's 100 MB a file), just the bases and the V5 robot parts, gzipped: 209 files, 131 MB, the biggest a 6.7 MB omni wheel. they get unzipped into a temp file to read and it goes again right after. the browser hides the 80 that dont ship unless vex-step/ is there. a fresh clone in downloads/ placed a screw and a motor (13 colors and all) with no vex-step/ anywhere
+- LGPL-2.1-or-later like freecad, and the README says how to install it through the addon manager or by cloning into Mod, with the renders as its pictures
 
 ## 2026-10-31 - bending
 

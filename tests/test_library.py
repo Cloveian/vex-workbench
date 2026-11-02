@@ -1,4 +1,4 @@
-# placing parts in a document, run with: python tests/test_library.py (needs FreeCAD + vex-step/)
+# placing parts in a document, run with: python tests/test_library.py (needs FreeCAD)
 import sys
 from pathlib import Path
 
