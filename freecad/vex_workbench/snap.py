@@ -1,7 +1,6 @@
 # snap to hole: click holes on VEX parts, get a frame on each exact center for Assembly joints. plus the joints and the click panel the other tools use
 import FreeCAD as App
 import FreeCADGui as Gui
-import Part
 from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
 
@@ -12,6 +11,8 @@ OFF_AXIS = 0.01  # mm
 UNMARKED = ("Hardware/Screws", "Hardware/Nuts", "Motion/Spacers")  # what the tools put in
 MARK_SIZE = 9  # px
 PICK_SIZE = 14  # px, drawn over the orange one
+PICK_RADIUS = 14  # px from a dot that still clicks it
+SAME_SPOT = 3  # px, dots closer than this on screen (two sides of one hole) go to the one nearer the camera
 REFRESH = 100  # ms after the last change, the points get worked out again
 MOVES = ("Placement", "Visibility", "VisibilityList", "ElementCount", "LinkedObject", "Group")  # changes that move, hide or swap a part's holes. Group for one draged into another sub-assembly
 
@@ -29,6 +30,18 @@ def spot(root, sub, pt):
     path = "".join(name + "." for name in names[:n])
     plc = placement(root, path)
     return objs[k], plc.inverse().multVec(pt), plc, (root, path)
+
+
+def nearest(dots, at):
+    # index of the dot clicked at at, None for none. dots are (x, y, depth) on screen, px
+    def apart(a, b):
+        return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
+
+    close = [i for i, d in enumerate(dots) if apart(d, at) <= PICK_RADIUS]
+    if not close:
+        return None
+    best = dots[min(close, key=lambda i: apart(dots[i], at))]
+    return min((i for i in close if apart(dots[i], best) <= SAME_SPOT), key=lambda i: dots[i][2])
 
 
 def placement(root, path):
@@ -155,40 +168,54 @@ class Clicks:
         Gui.Selection.addObserver(self)
         App.addDocumentObserver(self)
 
-    def orange(self):
-        return Part.Compound([Part.Vertex(plc.multVec(c)) for _, c, plc, _ in self.spots])
+    @property
+    def points(self):
+        # world point of each orange dot, same order as spots
+        return [plc.multVec(c) for _, c, plc, _ in self.spots]
 
     def draw(self):
-        self.marks = self.dots("VexHoles", MARK_SIZE, (1.0, 0.35, 0.1))
-        self.marks.Shape = self.orange()
-        # the select highlight on these goes when the mouse leaves
-        self.lit = self.dots("VexPicked", PICK_SIZE, (0.1, 0.9, 0.2))
-        self.lit.Shape = Part.Compound([Part.Vertex(p) for p in self.picked])
-        if self.lit.ViewObject:
-            self.lit.ViewObject.Selectable = False  # clicks go through to the orange ones
+        # coin only, not in the document. SoAnnotation draws them last with no depth test, so through solids too
+        from pivy import coin
+        self.view = Gui.getDocument(self.doc.Name).ActiveView
+        self.overlay = coin.SoAnnotation()
+        self.marks = self.dots(self.overlay, MARK_SIZE, (1.0, 0.35, 0.1))
+        self.lit = self.dots(self.overlay, PICK_SIZE, (0.1, 0.9, 0.2))
+        self.view.getSceneGraph().addChild(self.overlay)
+        self.clicks = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.clicked)
+        self.show(self.marks, self.points)
 
     def undraw(self):
-        for o in (self.marks, self.lit):
-            self.doc.removeObject(o.Name)
-        self.marks = self.lit = None
-
-    def redraw(self):
-        if self.marks is None and self.doc is not None:
-            self.draw()
+        if self.view is None:
+            return  # its document went, the view with it
+        from pivy import coin
+        self.view.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.clicks)
+        self.view.getSceneGraph().removeChild(self.overlay)
+        self.view = None
 
     def refresh(self):
         # parts placed, moved, hidden or deleted with the panel open
-        if self.marks is not None and self.doc is not None:
+        if self.view is not None:
             self.mark()
-            self.marks.Shape = self.orange()
+            self.show(self.marks, self.points)
 
-    def dots(self, name, size, color):
-        o = self.doc.addObject("Part::Feature", name)
-        if o.ViewObject:
-            o.ViewObject.PointSize = size
-            o.ViewObject.PointColor = color
-            o.ViewObject.ShowInTree = False
-        return o
+    @staticmethod
+    def dots(parent, size, color):
+        from pivy import coin
+        sep = coin.SoSeparator()
+        sep.addChild(coin.SoBaseColor())
+        sep[0].rgb = color
+        sep.addChild(coin.SoDrawStyle())
+        sep[1].pointSize = size
+        sep.addChild(coin.SoCoordinate3())
+        sep.addChild(coin.SoPointSet())
+        parent.addChild(sep)
+        return sep[2]
+
+    @staticmethod
+    def show(coords, pts):
+        coords.point.setNum(len(pts))
+        if pts:
+            coords.point.setValues(0, len(pts), [(p.x, p.y, p.z) for p in pts])
 
     def light(self, spots):
         # picked holes in green till act() is done
@@ -198,10 +225,35 @@ class Clicks:
                 self.picked.append(plc.multVec(library.hole_at(link, pt)[0]))
             except ValueError:
                 pass  # part with no holes, act() says so
-        self.lit.Shape = Part.Compound([Part.Vertex(p) for p in self.picked])
+        self.show(self.lit, self.picked)
+
+    def on_screen(self, region):
+        # (x, y, depth) of every orange dot, px from the bottom left
+        from pivy import coin
+        cam = self.view.getCameraNode()
+        vv = cam.getViewVolume(region.getViewportAspectRatio())
+        w, h = region.getViewportSizePixels().getValue()
+        out = []
+        for p in self.points:
+            s = vv.projectToScreen(coin.SbVec3f(p.x, p.y, p.z)).getValue()
+            out.append((s[0] * w, s[1] * h, s[2]))
+        return out
+
+    def clicked(self, cb):
+        from pivy import coin
+        ev = cb.getEvent()
+        if ev.getButton() != coin.SoMouseButtonEvent.BUTTON1 or ev.getState() != coin.SoButtonEvent.DOWN:
+            return
+        region = cb.getAction().getViewportRegion()
+        w, h = region.getViewportSizePixels().getValue()
+        x, y = ev.getNormalizedPosition(region).getValue()
+        i = nearest(self.on_screen(region), (x * w, y * h))
+        if i is not None:
+            cb.setHandled()  # or FreeCAD selects the face under it too
+            self.take(self.spots[i])
 
     def mark(self):
-        # a point on every screw hole and stock end, Vertex<i+1> is spots[i]
+        # a point on every screw hole and stock end
         self.spots = []
         found = {}  # per source, copies share it
         for link, (root, path) in placed(self.doc):
@@ -219,12 +271,12 @@ class Clicks:
         self.status.setText(said + (self.ONE if self.one() else self.PROMPTS[self.first is not None]))
 
     def addSelection(self, doc, obj, sub, pnt):
-        if obj == self.marks.Name and sub.startswith("Vertex"):
-            s = self.spots[int(sub[6:]) - 1]
-        else:
-            s = spot(App.getDocument(doc).getObject(obj), sub, Vector(*pnt))
-        if s is None:
-            return
+        # a face click, the dots come in through clicked()
+        s = spot(App.getDocument(doc).getObject(obj), sub, Vector(*pnt))
+        if s is not None:
+            self.take(s)
+
+    def take(self, s):
         if self.one():
             self.first = None
             self.light([s])
@@ -235,7 +287,7 @@ class Clicks:
         else:
             a, self.first = self.first, None
             self.light([a, s])
-            # not inside the selection callback, it changes the doc
+            # not inside the click callback, it changes the doc
             QtCore.QTimer.singleShot(0, lambda: self.done(a, s))
         self.ask()
 
@@ -274,21 +326,10 @@ class Clicks:
         if obj.Document == self.doc:
             self.later.start()
 
-    # the points arent part of the robot, they stay out of the file
-    def slotStartSaveDocument(self, doc, path):
-        if doc == self.doc:
-            self.undraw()
-            # a failed save never sends the finish
-            QtCore.QTimer.singleShot(0, self.redraw)
-
-    def slotFinishSaveDocument(self, doc, path):
-        if doc == self.doc:
-            self.redraw()
-
     def slotDeletedDocument(self, doc):
         # closed with the panel still open, the points go with it
         if doc == self.doc:
-            self.doc = None
+            self.doc = self.view = None
             self.close()
 
 

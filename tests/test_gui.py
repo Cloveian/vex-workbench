@@ -4,7 +4,6 @@ import os
 import sys
 import time
 import traceback
-import zipfile
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -181,43 +180,25 @@ try:
     assert not fasteners & {s[0].Name for s in panel.spots}
 
     def mark(at):
-        return next(f"Vertex{k + 1}" for k, v in enumerate(panel.marks.Shape.Vertexes) if (v.Point - at).Length < 1e-6)
+        return next(k for k, p in enumerate(panel.points) if (p - at).Length < 1e-6)
+
+    def click(at):
+        # what clicked() does once its found the dot under the mouse
+        panel.take(panel.spots[mark(at)])
 
     before = set(doc.Objects)
     first = App.Vector(3.25, 0.25, 0.046) * IN
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(first))
-    # the picked one stays green, and goes once the screw is in
-    assert [(v.Point - first).Length < 1e-6 for v in panel.lit.Shape.Vertexes] == [True], panel.lit.Shape.Vertexes
-    # saving with the panel open leaves the points out of the file, and puts them back
-    n = len(panel.marks.Shape.Vertexes)
-    saved = os.path.join(os.path.dirname(__file__), "_points.FCStd")
-    try:
-        doc.saveAs(saved)
-        assert len(panel.marks.Shape.Vertexes) == n and len(panel.lit.Shape.Vertexes) == 1
-        # openDocument would just hand back doc, its open on that file now
-        with zipfile.ZipFile(saved) as z:
-            xml = z.read("Document.xml").decode()
-        assert "VexHoles" not in xml and "VexPicked" not in xml and 'name="VexPart"' in xml
-    finally:
-        os.remove(saved)
-    # a failed save gets them back too
-    ro = os.path.join(os.path.dirname(__file__), "_readonly")
-    os.makedirs(ro, exist_ok=True)
-    os.chmod(ro, 0o500)
-    try:
-        doc.saveAs(os.path.join(ro, "x.FCStd"))
-    except OSError:
-        pass
-    finally:
-        os.chmod(ro, 0o700)
-        os.rmdir(ro)
-    QtWidgets.QApplication.processEvents()
-    assert panel.marks and len(panel.marks.Shape.Vertexes) == n and len(panel.lit.Shape.Vertexes) == 1
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.25, 0.25, -0.046) * IN))
+    click(first)
+    # the picked one stays green, and goes once the screw is in. nothing of the dots in the document
+    assert [(p - first).Length < 1e-6 for p in panel.picked] == [True] and panel.lit.point.getNum() == 1, panel.picked
+    assert set(doc.Objects) == before
+    n = len(panel.points)
+    assert panel.marks.point.getNum() == n
+    click(App.Vector(3.25, 0.25, -0.046) * IN)
     QtWidgets.QApplication.processEvents()
     got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
     assert got == ["0.290 Torx (Star) Screw (8-32, Steel)", "Nylock Nut"], (got, panel.status.text())
-    assert not panel.lit.Shape.Vertexes
+    assert not panel.picked and panel.lit.point.getNum() == 0
 
     # parts placed or deleted with it open get their points sorted out
     def settle():
@@ -228,21 +209,41 @@ try:
     extra = library.place(doc, gen["5x10 Steel Plate"])
     extra.Placement.Base = App.Vector(10, 0, 0) * IN
     settle()
-    assert len(panel.marks.Shape.Vertexes) == n + len(library.screw_holes(extra)), len(panel.marks.Shape.Vertexes)
-    assert any((v.Point - App.Vector(10.25, 0.25, 0.046) * IN).Length < 1e-6 for v in panel.marks.Shape.Vertexes)
+    assert len(panel.points) == n + len(library.screw_holes(extra)) == panel.marks.point.getNum(), len(panel.points)
+    assert any((p - App.Vector(10.25, 0.25, 0.046) * IN).Length < 1e-6 for p in panel.points)
     doc.removeObject(extra.Name)
     settle()
-    assert len(panel.marks.Shape.Vertexes) == n
+    assert len(panel.points) == n
     # and hiding one element of an array
     arr.setElementVisible("0", False)
     assert panel.later.isActive()
     settle()
-    assert len(panel.marks.Shape.Vertexes) == n - len(library.screw_holes(arr)), len(panel.marks.Shape.Vertexes)
+    assert len(panel.points) == n - len(library.screw_holes(arr)), len(panel.points)
     arr.setElementVisible("0", True)
     settle()
-    dots = [panel.marks.Name, panel.lit.Name]
+    # looking staright down, a click on a hole gets its top dot not the one under it, and a miss gets nothing
+    view = Gui.ActiveDocument.ActiveView
+    view.viewTop()
+    view.fitAll()
+    region = view.getViewer().getSoRenderManager().getViewportRegion()
+    screen = panel.on_screen(region)
+    assert len({(round(x), round(y)) for x, y, _ in screen}) > 100, region.getViewportSizePixels().getValue()  # really spread out, not all on one px
+    k = mark(App.Vector(3.75, 0.25, 0.046) * IN)
+    assert panel.points[snap.nearest(screen, screen[mark(App.Vector(3.75, 0.25, 0) * IN)][:2])] == panel.points[k]
+    assert snap.nearest(screen, (-100, -100)) is None
+    # a real mouse press 2 px off that dot, through the viewer like a click would go
+    from pivy import coin
+    ev = coin.SoMouseButtonEvent()
+    ev.setButton(coin.SoMouseButtonEvent.BUTTON1)
+    ev.setState(coin.SoButtonEvent.DOWN)
+    ev.setPosition(coin.SbVec2s(round(screen[k][0]) + 2, round(screen[k][1])))
+    press = coin.SoHandleEventAction(region)
+    press.setEvent(ev)
+    press.apply(view.getViewer().getSoRenderManager().getSceneGraph())
+    assert press.isHandled() and [(p - panel.points[k]).Length < 1e-6 for p in panel.picked] == [True], panel.picked
+    overlay, root = panel.overlay, view.getSceneGraph()
     panel.reject()
-    assert not any(doc.getObject(n) for n in dots)
+    assert root.findChild(overlay) == -1
     # picked by hand: one click, that screw, no nut. shoulder screws only go in that way
     panel = screws.Panel()
     Gui.Control.showDialog(panel)
@@ -256,7 +257,7 @@ try:
             assert panel.mine.isChecked() and not panel.mine.isEnabled()
             panel.size.setCurrentText(name)
         before = set(doc.Objects)
-        Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(at, 0.25, 0.046) * IN))
+        click(App.Vector(at, 0.25, 0.046) * IN)
         QtWidgets.QApplication.processEvents()
         got = [library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link"]
         assert got == [name], (got, panel.status.text())
@@ -265,7 +266,7 @@ try:
     panel.mine.setChecked(False)
     panel.kind.setCurrentText("Shoulder")
     # and placing one doesnt save the forced tick over it
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(2.75, 0.25, 0.046) * IN))
+    click(App.Vector(2.75, 0.25, 0.046) * IN)
     QtWidgets.QApplication.processEvents()
     assert not App.ParamGet(ui.PARAMS).GetBool("ScrewMine", True)
     panel.kind.setCurrentText("Star")
@@ -293,8 +294,8 @@ try:
     panel.angle.setValue(45)
     below = App.Vector(1.25, 0.25, 0) * IN  # bottom face of p2, its own coords
     up = App.Vector(1.25, 0.25, 0.046) * IN  # top of p1, it sits at 0
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(p2.Placement.multVec(below)))
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(up))
+    click(p2.Placement.multVec(below))
+    click(up)
     QtWidgets.QApplication.processEvents()
     assert panel.last and "lined up" in panel.status.text(), panel.status.text()
 
@@ -333,7 +334,7 @@ try:
     panel.across.setCurrentText("Across")
     panel.off.setValue(0)
     panel.angle.setValue(90)
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(2.25 * IN, 300 + 0.25 * IN, 0.046 * IN)))
+    click(App.Vector(2.25 * IN, 300 + 0.25 * IN, 0.046 * IN))
     QtWidgets.QApplication.processEvents()
     assert panel.last == (sheet, 1) and len(library.steps(sheet)) == 1, panel.status.text()
     up = Part.getShape(sheet.LinkedObject).BoundBox.ZMax
@@ -353,7 +354,7 @@ try:
     Gui.Control.showDialog(panel)
     panel.across.setCurrentText("Across")
     panel.off.setValue(0)
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(3.75 * IN, 400 + 0.25 * IN, 0.046 * IN)))
+    click(App.Vector(3.75 * IN, 400 + 0.25 * IN, 0.046 * IN))
     QtWidgets.QApplication.processEvents()
     assert [s["do"] for s in library.steps(stock)] == ["cut"], panel.status.text()
     assert abs(Part.getShape(stock.LinkedObject).BoundBox.XMax - 3.75 * IN) < 0.01
@@ -378,7 +379,7 @@ try:
     Gui.Control.showDialog(panel)
     panel.across.setCurrentText("Along")
     panel.off.setValue(0)
-    Gui.Selection.addSelection(doc.Name, panel.marks.Name, mark(App.Vector(2.25 * IN, 500 + 0.25 * IN, 0)))
+    click(App.Vector(2.25 * IN, 500 + 0.25 * IN, 0))
     QtWidgets.QApplication.processEvents()
     # Off the hole slides along n x d, whichever way that points the web is +y. a wrong way would pop an error box nobody closes offscreen
     s = library.steps(chan)[0]

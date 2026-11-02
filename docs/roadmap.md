@@ -23,7 +23,7 @@ in build order, each one is something i can open and poke at
 	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032. the cross section at the line swept round, holes the line goes through stay open. cut on the same lines (to length, or a flange off flush), drill a round hole anywhere snapped to the 0.25 grid. all per copy, kept on the link in order and redone if its Holes change
 
 ## From actually using it
-- [ ] dots drawn on top of solids, and a bigger area to click them
+- [x] dots drawn on top of solids, and a bigger area to click them
 - [ ] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones
 - [ ] U-channel inner dots in a hair, to match where a c-channel's outer ones sit
 - [ ] dots on every click-to-do tool, and a "show more" grid with a size box (drill needs it most)
