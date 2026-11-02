@@ -272,26 +272,30 @@ motor = library.place(doc, steps["Electronics/V5 Smart Motor (5.5W) (276-4842).s
 doc.recompute()
 across, deep = screws.bore(motor, library.hole_frame(motor, App.Vector(0.01, -1.578, 0.124) * IN))
 assert screws.tapped(motor, across) and abs(deep / IN - 0.75) < 0.01, (across / IN, deep / IN)
-# hole points. just the front two on the 5.5W, and a frame on the point bores the same as a click on the face
-pts = sorted(library.screw_holes(motor), key=lambda c: c.z)
-assert [(round(c.y / IN, 3), round(c.z / IN, 3)) for c in pts] == [(-1.58, 0.124), (-1.58, 0.624)], pts
-assert screws.bore(motor, library.hole_frame(motor, pts[0])) == (across, deep)
+# hole points. the front two on the 5.5W and its output shaft hole, and a frame on the point bores the same as a click on the face
+pts = sorted(library.hole_dots(motor), key=lambda c: c.z)
+assert [(round(c.y / IN, 3), round(c.z / IN, 3)) for c in pts] == [(-0.797, -0.376), (-1.58, 0.124), (-1.58, 0.624)], pts
+assert screws.bore(motor, library.hole_frame(motor, pts[1])) == (across, deep)
+# a gear's shaft hole, both faces
+gear = library.place(doc, steps["Motion/Gears/Low Strength/36T Gear (276-2169-002).step"])
+doc.recompute()
+assert sorted(round(c.z / IN, 3) for c in library.hole_dots(gear)) == [-0.188, 0.188], library.hole_dots(gear)
 # 11W just its front two at z 1.768. none of the loops facing into it, none on the case screw holes with a head 0.05 down
 big = library.place(doc, steps["Electronics/V5 Smart Motor (276-4840).step"])
 doc.recompute()
-pts = library.screw_holes(big)
+pts = library.hole_dots(big)
 assert sorted((round(c.x / IN, 3), round(c.z / IN, 3)) for c in pts) == [(-0.5, 1.768), (0, 1.768)], pts
 # both sides of both flanges on a channel, the inside ones are where boxed channel spacers go
 ch = library.place(doc, gen["1x2x1x25 Steel C-Channel"])
 doc.recompute()
-assert len(library.screw_holes(ch)) == len(library.holes(Part.getShape(ch.LinkedObject))) == 248
+assert len(library.hole_dots(ch)) == len(library.holes(Part.getShape(ch.LinkedObject))) == 248
 
 # align a channel onto the (3.25, 0.25) top hole on p1, 0.25 off and turned 30. a Revolute joint holds the gap, solving moves nothing
 from freecad.vex_workbench import align  # noqa: E402
 
 bar = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
 doc.recompute()
-first = library.screw_holes(bar)[0]
+first = library.hole_dots(bar)[0]
 
 
 def where(link, pt, up=""):
@@ -395,7 +399,7 @@ assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.
 assert sheet.LinkedObject != flat.LinkedObject and sheet.LinkedObject.VexName == flat.LinkedObject.VexName == "5x10 Steel Plate"
 assert partslist.count(doc)["5x10 Steel Plate"][0] == plates
 # a second bend on the leg that now stands square to x, its length is the first bend's face normal. across it is still across
-up = max(library.screw_holes(sheet), key=lambda c: c.z)
+up = max(library.hole_dots(sheet), key=lambda c: c.z)
 b2 = shop.bend(sheet, up, True, 0, 90)
 assert abs(App.Vector(*b2["d"]).z) < 1e-9 and abs(abs(App.Vector(*b2["d"]).y) - 1) < 1e-9, b2["d"]
 library.rework(sheet, [b, b2])
@@ -404,7 +408,7 @@ assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.
 # a channel bends away from its flanges, folding the web into them gets refused
 ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
 doc.recompute()
-web = next(c for c in library.screw_holes(ch) if abs(c.z) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
+web = next(c for c in library.hole_dots(ch) if abs(c.z) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
 out = metal.fold(Part.getShape(ch.LinkedObject), shop.bend(ch, web, True, 0, 90))
 assert len(out.Solids) == 1, out
 try:
@@ -413,7 +417,7 @@ try:
 except ValueError:
     pass
 # folding a flange's tip along the length, the line's plane cuts the other flange too and that one stays put
-tip = next(c for c in library.screw_holes(ch) if abs(c.z) < 1e-6 and abs(c.y - 0.25 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
+tip = next(c for c in library.hole_dots(ch) if abs(c.z) < 1e-6 and abs(c.y - 0.25 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
 s = Part.getShape(ch.LinkedObject)
 out = metal.fold(s, shop.bend(ch, tip, False, 0, 90))
 far = [f for f in out.Faces if f.Surface.TypeId == "Part::GeomPlane" and abs(f.normalAt(0, 0).z - 1) < 1e-6 and f.BoundBox.ZMin > 0.9 * IN]
@@ -435,11 +439,11 @@ flush = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
 doc.recompute()
 done = []
 for z in (0, 1):
-    at = next(c for c in library.screw_holes(flush) if abs(c.z - z * IN) < 1e-6 and abs(c.y - 0.25 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
+    at = next(c for c in library.hole_dots(flush) if abs(c.z - z * IN) < 1e-6 and abs(c.y - 0.25 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
     s = next(s for s in (shop.cut(flush, at, False, o * IN) for o in (0.25, -0.25)) if abs(s["p"][1] - 0.5 * IN) < 1e-6)
     done.append(s)
     library.rework(flush, done)
-web = next(c for c in library.screw_holes(flush) if abs(c.y - 0.546 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
+web = next(c for c in library.hole_dots(flush) if abs(c.y - 0.546 * IN) < 1e-6 and abs(c.x - 2.25 * IN) < 1e-6)
 assert len(metal.fold(Part.getShape(flush.LinkedObject), shop.bend(flush, web, True, 0, -90)).Solids) == 1
 # taking the web side off instead would leave the two flanges as two pieces, that gets refused
 try:
@@ -455,6 +459,11 @@ assert (App.Vector(*shop.drill(plate, spot, 0.17 * IN, False)["c"]) - spot).Leng
 library.rework(plate, [h])
 new = [w for w, c, _ in library.holes(Part.getShape(plate.LinkedObject)) if (c - App.Vector(*h["c"])).Length < 1e-6]
 assert new and library.screwable(new[0]), new
+# a 1/4 one isnt an 8-32 but still gets dots, both sides
+wide = shop.drill(plate, App.Vector(3.5, 0.5, 0.046) * IN, 0.25 * IN, False)
+library.rework(plate, [h, wide])
+dots = [c for c in library.hole_dots(plate) if (c - App.Vector(3.5, 0.5, 0) * IN).Length < 0.05 * IN]
+assert len(dots) == 2, dots
 
 # a 1x2x1 c-channel inside a steel U-channel: the U's flange inside dots sit out in the 0.025 gap, outside ones stay on the metal
 u = library.place(doc, gen["2x2x2x10 Steel U-Channel"])
@@ -462,7 +471,7 @@ ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
 ch.Placement = App.Placement(App.Vector(0, 5, 3) * IN, App.Rotation())
 doc.recompute()
 side = (29 / 25.4 - 2 * 0.046 - 1) / 2
-zs = sorted({round(c.z / IN, 4) for c in library.screw_holes(u) if c.x < 0.3 * IN and abs(c.y / IN - 0.204) < 1e-3})
+zs = sorted({round(c.z / IN, 4) for c in library.hole_dots(u) if c.x < 0.3 * IN and abs(c.y / IN - 0.204) < 1e-3})
 assert zs == [0, round(0.046 + side, 4), round(29 / 25.4 - 0.046 - side, 4), round(29 / 25.4, 4)], zs
 inner = App.Vector(0.25, 0.204, 0.046) * IN
 assert abs(library.hole_frame(u, inner).Placement.Base.z / IN - 0.046 - side) < 1e-9

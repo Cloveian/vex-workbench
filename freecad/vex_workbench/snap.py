@@ -264,13 +264,13 @@ class Clicks:
         self.take(self.spots[i])
 
     def mark(self):
-        # a point on every screw hole and stock end
+        # a point on every dottable hole and stock end
         self.spots = []
         found = {}  # per source, copies share it
         for link, (root, path) in placed(self.doc):
             src = link.LinkedObject.Name
             if src not in found:
-                found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.screw_holes(link)
+                found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.hole_dots(link)
             plc = placement(root, path)
             self.spots += [(link, c, plc, (root, path)) for c in found[src]]
 

@@ -24,8 +24,8 @@ in build order, each one is something i can open and poke at
 
 ## From actually using it
 - [x] dots drawn on top of solids, and a bigger area to click them
-- [ ] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones
-- [ ] U-channel inner dots in a hair, to match where a c-channel's outer ones sit
+- [x] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones. the 11W's output doesnt get one yet, its opening isnt a plain round or square loop
+- [x] U-channel inner dots in a hair, to match where a c-channel's outer ones sit. out in the gap, 0.025 a side on steel
 - [ ] dots on every click-to-do tool, and a "show more" grid with a size box (drill needs it most)
 - [ ] screw tool takes several holes on one face, then the ones across. with "auto finish" on, one click across does them all, off and its a click across for each
 - [ ] cut tool. click two points for a line, doesnt have to go all the way across (slots, notches), more pairs for more cuts. plus a sketch-it button for anything fancier

@@ -209,7 +209,7 @@ try:
     extra = library.place(doc, gen["5x10 Steel Plate"])
     extra.Placement.Base = App.Vector(10, 0, 0) * IN
     settle()
-    assert len(panel.points) == n + len(library.screw_holes(extra)) == panel.marks.point.getNum(), len(panel.points)
+    assert len(panel.points) == n + len(library.hole_dots(extra)) == panel.marks.point.getNum(), len(panel.points)
     assert any((p - App.Vector(10.25, 0.25, 0.046) * IN).Length < 1e-6 for p in panel.points)
     doc.removeObject(extra.Name)
     settle()
@@ -218,7 +218,7 @@ try:
     arr.setElementVisible("0", False)
     assert panel.later.isActive()
     settle()
-    assert len(panel.points) == n - len(library.screw_holes(arr)), len(panel.points)
+    assert len(panel.points) == n - len(library.hole_dots(arr)), len(panel.points)
     arr.setElementVisible("0", True)
     settle()
     # looking staright down, a click on a hole gets its top dot not the one under it, and a miss gets nothing
@@ -326,7 +326,7 @@ try:
     assert abs(got.Rotation.multVec(App.Vector(1, 0, 0)).dot(x0) - math.cos(math.radians(45))) < 1e-9
     panel.reject()
     # a link array moves whole, so the hole on element 1 (100 over in the array) lands
-    hole = library.screw_holes(arr)[0]
+    hole = library.hole_dots(arr)[0]
 
     def elem():
         return (arr, hole, arr.getSubObject("1.", retType=3), (arr, "1."))
@@ -432,7 +432,7 @@ try:
     Gui.Control.showDialog(panel)
     panel.angle.setValue(90)
     panel.gap.setValue(0)
-    hole = library.screw_holes(swing)[0]
+    hole = library.hole_dots(swing)[0]
     panel.act((swing, hole, asm.getSubObject(swing.Name + ".", retType=3), (asm, swing.Name + ".")),
               (p1, App.Vector(3.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
     yaw = swing.Placement.Rotation.toEuler()[0]

@@ -16,6 +16,7 @@ HOLE_MIN, HOLE_MAX = 0.1 * metal.IN, 0.5 * metal.IN
 # mm, what a screw goes in. 8-32 round from the 5.5W 0.132 thread up to clearance, square like the metal's 0.182
 ROUND = 0.125 * metal.IN, 0.2 * metal.IN
 SQUARE = 0.17 * metal.IN, 0.2 * metal.IN
+SHAFT = [(0.12 * metal.IN, 0.14 * metal.IN), (0.25 * metal.IN, 0.3 * metal.IN)]  # mm, LS 1/8 and HS 1/4 shaft holes on steps
 OUT = 0.001 * metal.IN  # mm, the open-to-outside ray starts this far off the face
 MIN_THREAD = 0.25 * metal.IN  # mm, least a screw takes in a thread
 SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
@@ -352,18 +353,31 @@ def screwable(w):
     return len(sides) == 4 and len(radii) in (0, 4) and SQUARE[0] <= sides[0] + 2 * sum(radii[:1]) <= SQUARE[1]
 
 
-def screw_holes(link):
-    # centers of the holes a screw goes in from outside, link coords. shafts and standoffs by their ends
+def dottable(w, step):
+    # screw holes, and round ones any size on generated metal (drilled, bigger holes). on vex's steps the 1/8 and 1/4 shaft holes, keyed or rouned corners, no slots or lightening holes
+    if screwable(w):
+        return True
+    curves = [e.Curve.TypeId for e in w.Edges]
+    if not step:
+        return all(c == "Part::GeomCircle" for c in curves)
+    b = w.BoundBox
+    narrow, wide = sorted([b.XLength, b.YLength, b.ZLength])[1:]
+    shaft = any(lo <= wide <= hi for lo, hi in SHAFT)
+    return shaft and narrow > 0.95 * wide and all(c in ("Part::GeomLine", "Part::GeomCircle") for c in curves)
+
+
+def hole_dots(link):
+    # centers of dottable holes open to the outside, link coords. shafts and standoffs by their ends
     src = link.LinkedObject
     if getattr(link, "VexFamily", None) in stock.FAMILIES:
         return [c for c, _ in ends(Part.getShape(src))]
     # kept on the source, the 11W's rays take a while
-    if not hasattr(src, "VexScrewHoles"):
-        src.addProperty("App::PropertyVectorList", "VexScrewHoles", "VEX")
-        src.setPropertyStatus("VexScrewHoles", "Hidden")
-        src.VexScrewHoles = outermost(Part.getShape(src), hasattr(link, "VexStep"))
+    if not hasattr(src, "VexHoleDots"):
+        src.addProperty("App::PropertyVectorList", "VexHoleDots", "VEX")
+        src.setPropertyStatus("VexHoleDots", "Hidden")
+        src.VexHoleDots = outermost(Part.getShape(src), hasattr(link, "VexStep"))
     gap = u_gap(link)
-    return [into_gap(c, gap) for c in src.VexScrewHoles]
+    return [into_gap(c, gap) for c in src.VexHoleDots]
 
 
 def outermost(shape, rays):
@@ -372,10 +386,10 @@ def outermost(shape, rays):
     faces = boxed(shape) if rays else []
     kept = {}  # axis and side -> centers
     for w, c, n in sorted(holes(shape), key=lambda h: -h[1].dot(h[2])):
-        if not screwable(w) or rays and hits(faces, c + n * OUT, n, far):
+        if not dottable(w, rays) or rays and hits(faces, c + n * OUT, n, far):
             continue
-        if rays:
-            # most of the rays down it stopping short means somethings in it, the 11W's case screw heads are 0.05 down
+        if rays and screwable(w):
+            # most of the rays down it stopping short means somethings in it, the 11W's case screw heads are 0.05 down. a shaft socket is meant to be short
             half = across(w) / 2
             short = [t for t in down(faces, c - n * OUT, n, half / 2, far) if t is not None and t < MIN_THREAD]
             if len(short) >= 3:
