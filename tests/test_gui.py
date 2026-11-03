@@ -199,6 +199,30 @@ try:
     got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
     assert got == ["0.290 Torx (Star) Screw (8-32, Steel)", "Nylock Nut"], (got, panel.status.text())
     assert not panel.picked and panel.lit.point.getNum() == 0
+    # a few on one face, again unpicks. auto finish does all of them off one click across
+    panel.auto.setChecked(True)
+    before = set(doc.Objects)
+    for x in (4.25, 4.75, 3.75, 3.75):
+        click(App.Vector(x, 0.75, 0.046) * IN)
+    assert len(panel.picked) == 2 and panel.status.text().startswith("2 picked"), panel.status.text()
+    click(App.Vector(4.75, 0.75, -0.046) * IN)
+    QtWidgets.QApplication.processEvents()
+    got = sorted(library.part_of(o)["name"] for o in set(doc.Objects) - before if o.TypeId == "App::Link")
+    assert got == ["0.290 Torx (Star) Screw (8-32, Steel)"] * 2 + ["Nylock Nut"] * 2, (got, panel.status.text())
+    assert panel.status.text().startswith("put in 2 screws") and not panel.picked, panel.status.text()
+    # off, a click across for each. one thats not under any of them does nothing
+    panel.auto.setChecked(False)
+    before = set(doc.Objects)
+    for x in (4.25, 4.75):
+        click(App.Vector(x, 1.25, 0.046) * IN)
+    click(App.Vector(4.75, 1.25, -0.046) * IN)
+    QtWidgets.QApplication.processEvents()
+    assert "1 still picked" in panel.status.text() and len(panel.picked) == 1, panel.status.text()
+    click(App.Vector(3.25, 1.25, -0.046) * IN)
+    assert panel.status.text().startswith("none of them"), panel.status.text()
+    click(App.Vector(4.25, 1.25, -0.046) * IN)
+    QtWidgets.QApplication.processEvents()
+    assert len([o for o in set(doc.Objects) - before if o.TypeId == "App::Link"]) == 4 and not panel.picked, panel.status.text()
 
     # parts placed or deleted with it open get their points sorted out
     def settle():

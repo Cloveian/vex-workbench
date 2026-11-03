@@ -1,8 +1,9 @@
-# screw tool. click a hole on the head side, then one on the nut side, it puts in the shortest screw that makes it through the nut or into a thread. or one picked by hand, one click
+# screw tool. click a hole (or a few on one face) on the head side, then across on the nut side, it puts in the shortest screw that makes it through the nut or into a thread. or one picked by hand, one click
 import FreeCAD as App
+import FreeCADGui as Gui
 import Part
 from FreeCAD import Vector
-from PySide import QtWidgets
+from PySide import QtCore, QtWidgets
 
 from . import derived, library, snap, spacers, stock, ui
 from .metal import IN
@@ -96,6 +97,23 @@ def gaps(head, tail, a, gap, across):
     return out
 
 
+def facing(s):
+    # world (center, normal) of the hole at spot s
+    link, pt, plc, _ = s
+    c, n = library.hole_spot(link, pt)
+    return plc.multVec(c), plc.Rotation.multVec(n)
+
+
+def flush(a, b):
+    # two facing()s on the same face
+    return a[1].dot(b[1]) > 1 - 1e-6 and abs((b[0] - a[0]).dot(a[1])) < snap.OFF_AXIS
+
+
+def on_axis(a, p):
+    # world point p on hole a's axis
+    return (p - a[0]).cross(a[1]).Length < snap.OFF_AXIS
+
+
 def seat(src):
     # plain face of the nut at z = 0 and its hieght. vex step nuts come in however they were drawn
     shape = Part.getShape(src)
@@ -149,11 +167,15 @@ def drop(doc, head, screw, parent=None):
 
 
 class Panel(snap.Clicks):
-    PROMPTS = ("click a hole on the head side", "now the hole on the nut side, or the one it screws into")
+    PROMPTS = ("click a hole on the head side, or a few on one face",
+               "more on that face (again to unpick), or the hole on the nut side / the one it screws into")
     ONE = "click the hole it goes in, the head lands on that face"
 
     def __init__(self):
         p = App.ParamGet(ui.PARAMS)
+        self.heads = []  # (spot, facing()) picked on the head side, waiting for a hole across
+        self.auto = QtWidgets.QCheckBox("Auto finish, one click across does them all")
+        self.auto.setChecked(p.GetBool("ScrewAuto", True))
         self.kind = QtWidgets.QComboBox()
         self.kind.addItems(list(KINDS))
         self.kind.setCurrentText(p.GetString("Screw", "Star"))
@@ -169,7 +191,7 @@ class Panel(snap.Clicks):
         self.od = spacers.od_box()
         self.kind.currentTextChanged.connect(self.relist)
         self.mine.toggled.connect(self.modes)
-        super().__init__("VEX screw", [("Screw", self.kind), (self.mine, self.size), ("Nut", self.nut), (self.fill, self.od)])
+        super().__init__("VEX screw", [("Screw", self.kind), (self.mine, self.size), ("Nut", self.nut), (self.fill, self.od), (self.auto,)])
         self.relist()
         self.size.setCurrentText(p.GetString("ScrewPick"))
 
@@ -187,39 +209,94 @@ class Panel(snap.Clicks):
         self.modes()
 
     def modes(self):
-        for w in (self.nut, self.fill, self.od):
+        for w in (self.nut, self.fill, self.od, self.auto):
             w.setEnabled(not self.mine.isChecked())
         self.size.setEnabled(self.mine.isChecked())
+        if self.one():
+            self.heads, self.first = [], None
+            self.light([])
         self.ask()
 
     def one(self):
         return self.mine.isChecked()
 
-    def act(self, head, tail):
+    def take(self, s):
+        if self.one():
+            self.light([s])
+            QtCore.QTimer.singleShot(0, lambda: self.done([(s, None)]))
+            return
+        try:
+            at = facing(s)
+        except ValueError as e:
+            self.ask(f"{e}\n")
+            return
+        if not self.heads or flush(self.heads[0][1], at):
+            again = [h for h in self.heads if (h[1][0] - at[0]).Length < snap.OFF_AXIS]
+            if again:
+                self.heads.remove(again[0])
+            else:
+                self.heads.append((s, at))
+            self.first = self.heads[0][0] if self.heads else None
+            self.light([h[0] for h in self.heads])
+            self.ask(f"{len(self.heads)} picked\n" if len(self.heads) > 1 else "")
+            return
+        if self.auto.isChecked():
+            # every dot on the face clicked, then the one under each head
+            there = [(d, p) for d, p in zip(self.spots, self.points) if abs((p - at[0]).dot(at[1])) < snap.OFF_AXIS]
+            pairs = []
+            for h, ha in self.heads:
+                if on_axis(ha, at[0]):
+                    pairs.append((h, s))
+                    continue
+                under = next((d for d, p in there if on_axis(ha, p) and flush(at, facing(d))), None)
+                if under:
+                    pairs.append((h, under))
+        else:
+            pairs = [(h, s) for h, ha in self.heads if on_axis(ha, at[0])][:1]
+        if not pairs:
+            self.ask("none of them line up with a hole there\n")
+            return
+        self.light([x for pair in pairs for x in pair])
+        QtCore.QTimer.singleShot(0, lambda: self.done(pairs))
+
+    def done(self, pairs):
+        said = self.act(pairs)
+        if said:
+            # the rest wait for a click across
+            self.heads = [h for h in self.heads if all(h[0] is not a for a, _ in pairs)]
+            self.first = self.heads[0][0] if self.heads else None
+            self.ask(said + (f", {len(self.heads)} still picked" if self.heads else "") + "\n")
+        Gui.Selection.clearSelection()
+        self.light([h[0] for h in self.heads])
+
+    def act(self, pairs):
+        # (head, tail) spots, tail None for one picked by hand
         import UtilsAssembly
         p = App.ParamGet(ui.PARAMS)
         p.SetString("Screw", self.kind.currentText())
         p.SetBool("ScrewMine", self.mine.isChecked() if self.mine.isEnabled() else self.before)  # not the forced one shoulder screws get
-        doc = head[0].Document
+        doc = pairs[0][0][0].Document
         active = UtilsAssembly.activePartOrAssembly()
-        if tail is None:
+        if pairs[0][1] is None:
             p.SetString("ScrewPick", self.size.currentText())
             pick = library.index()[1][self.size.currentText()]
-            put = ui.run("Place VEX screw", lambda: (drop(doc, head, pick, active), None, []))
+            put = ui.run("Place VEX screw", lambda: [(drop(doc, pairs[0][0], pick, active), None, [])])
         else:
             p.SetString("Nut", self.nut.currentText())
             p.SetBool("Fill", self.fill.isChecked())
+            p.SetBool("ScrewAuto", self.auto.isChecked())
             family = KINDS[self.kind.currentText()]
             nut = None if self.nut.currentText() == NO_NUT else nuts()[self.nut.currentText()]
             od = spacers.od_from(self.od) if self.fill.isChecked() else None
-            put = ui.run("Place VEX screw", lambda: fasten(doc, head, tail, family, nut, active, od))
+            put = ui.run("Place VEX screw", lambda: [fasten(doc, h, t, family, nut, active, od) for h, t in pairs])
         if not put:
             return None
         doc.recompute()
-        screw, _, extra = put
-        return f"put in a {screw.Label}" + (f" + {len(extra)} spacers and washers" if extra else "")
+        extra = sum(len(x) for _, _, x in put)
+        said = f"put in a {put[0][0].Label}" if len(put) == 1 else f"put in {len(put)} screws"
+        return said + (f" + {extra} spacers and washers" if extra else "")
 
 
 SCREW = ui.Command(Panel, "vex-screw.svg", "Screw",
                    "Click a hole on the head side, then the one on the nut side. Puts in the shortest screw that makes it through the nut, "
-                   "or gets 3/8\" into a threaded hole (1/4\" if that's all there is). Or pick the screw yourself and place it with one click")
+                   "or gets 3/8\" into a threaded hole (1/4\" if that's all there is). Pick a few holes on one face first and one click across does the lot. Or pick the screw yourself and place it with one click")

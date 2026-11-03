@@ -35,6 +35,8 @@ All the clicking tools (Align, Screw, Spacers, Bend, Cut, Drill) put an orange d
 
 Pick No nut, or click a threaded hole second (standoffs, and anything under 0.164 across like the motors), and the second click is the face the screw goes *into*. it aims for 3/8 of thread, takes 1/4 if the hole is shallower, and never goes past the bottom. Spacers in gaps fills every gap between the two clicked parts.
 
+For a row of them, click a few holes on the head side first (all on one face, a second click on one unpicks it), then across. with **Auto finish** on, one click on the far face does every hole that has one lined up under it, off and its a click across for each. any without a hole across stay picked.
+
 Tick **Pick the screw myself** and pick one from the list next to it, then its one click: the hole it goes in, head on that face, no nut and no spacers. Shoulder screws only go in this way, the shoulder length is your call.
 
 **Spacers** does just the filling: click holes on two faces across from each other, fewest spacers + washers within 1/64 under the gap, never over. spacer OD is a setting, 0.375 to start.

@@ -34,7 +34,7 @@ The [usage guide](docs/using.md) goes through every tool.
 
 - **Hole dots**: while a tool is open, every hole you can use gets a dot to click, on both sides of the metal.
 - **Align**: click a hole on the part to move, then the hole it goes against. It keeps the way the part was turned (rounded to the angle step), and after that you can turn it by any angle or give it a gap. It can move a whole link array, or the whole sub-assembly a part is in.
-- **Screw**: two clicks and the shortest screw that reaches through the nut goes in, nut and all, or 3/8" into a threaded hole (a standoff, a motor) with no nut. Or pick the screw yourself and place it with one click.
+- **Screw**: two clicks and the shortest screw that reaches through the nut goes in, nut and all, or 3/8" into a threaded hole (a standoff, a motor) with no nut. Pick a few holes on one face first and one click across does the lot. Or pick the screw yourself and place it with one click.
 - **Spacers**: click two holes facing each other, like inside a boxed channel, and the gap fills with spacers and washers. The screw tool can fill its gaps too.
 - **Frame on hole**: a frame on a hole's exact center, for joining parts by hand in the Assembly workbench.
 - In an assembly, screws, nuts, spacers and aligned parts all get revolute joints, so they can still spin.
