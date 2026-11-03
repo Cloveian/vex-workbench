@@ -391,6 +391,7 @@ try:
     doc.recompute()
     panel = shop.CutPanel()
     Gui.Control.showDialog(panel)
+    panel.mode.setCurrentIndex(0)
     panel.across.setCurrentText("Across")
     panel.off.setValue(0)
     click(App.Vector(3.75 * IN, 400 + 0.25 * IN, 0.046 * IN))
@@ -440,6 +441,7 @@ try:
     plain = Part.getShape(chan.LinkedObject).Volume
     panel = shop.CutPanel()
     Gui.Control.showDialog(panel)
+    panel.mode.setCurrentIndex(0)
     panel.across.setCurrentText("Along")
     panel.off.setValue(0)
     click(App.Vector(2.25 * IN, 500 + 0.25 * IN, 0))
@@ -458,6 +460,26 @@ try:
     finally:
         QtWidgets.QMessageBox.warning = warning
     assert said and "more than one piece" in said[0] and library.steps(chan)[0]["side"] == side and panel.flipped == 1, (said, panel.flipped)
+    # two points, edge dot to edge dot across a plate is cut to length. the button keeps the short end, the kerf box redoes it
+    saw = library.place(doc, gen["5x10 Steel Plate"])
+    saw.Placement.Base = App.Vector(0, 600, 0)
+    doc.recompute()
+    panel.mode.setCurrentIndex(1)
+    panel.kerf.setValue(0.04)
+    panel.show_grid.setChecked(False)
+    assert not panel.across.isEnabled() and panel.status.text().startswith("click where the cut starts")
+    click(App.Vector(3.75 * IN, 600, 0.046 * IN))
+    click(App.Vector(3.75 * IN, 600 + 2.5 * IN, 0.046 * IN))
+    QtWidgets.QApplication.processEvents()
+    assert [s["do"] for s in library.steps(saw)] == ["slot"], panel.status.text()
+    assert abs(Part.getShape(saw.LinkedObject).BoundBox.XMax - 3.73 * IN) < 1e-6
+    next(w for w in panel.form.findChildren(QtWidgets.QPushButton) if w.text() == "Keep the other side").click()
+    assert abs(Part.getShape(saw.LinkedObject).BoundBox.XMin - 3.77 * IN) < 1e-6
+    panel.kerf.setValue(0.06)
+    assert abs(Part.getShape(saw.LinkedObject).BoundBox.XMin - 3.78 * IN) < 1e-6 and len(library.steps(saw)) == 1
+    # a face click snaps to the grid on its own click
+    assert (panel.snapped(saw, App.Vector(4.07, 0.29, 0.046) * IN) - App.Vector(4, 0.25, 0.046) * IN).Length < 1e-6
+    panel.mode.setCurrentIndex(0)
     panel.reject()
     # same in an assembly gets joints, with their view providers
     asm = doc.addObject("Assembly::AssemblyObject", "Assembly")

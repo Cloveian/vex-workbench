@@ -487,6 +487,29 @@ assert sorted(round(abs(d) / w, 6) for d in (a.XMin - b.XMin, a.XMax - b.XMax)) 
 assert all(len(x.Solids) == 1 and x.isValid() for x in (next_to, centered, sharp))
 assert "centered" not in s and shop.bend(flat, at, True, 0, 90, centered=True)["centered"]
 
+# slots: one between two holes is just a slit. edge dots on the grid, three cuts in off the edge drop a 1x1 notch out
+kerf = 0.04 * IN
+s = shop.slot(flat, App.Vector(1.25, 0.25, 0.046) * IN, App.Vector(1.75, 0.25, 0.046) * IN, kerf)
+out = metal.slot(shape, s)
+assert len(out.Solids) == 1 and shape.Volume - out.Volume > 1 and "keep" not in s and s["out"] == [False, False], s
+# whole and half inches have a count notch, its dot is down at the tip
+edges = shop.edge_spots(flat, 0.25 * IN)
+assert not [p for p in edges if 0.1 * IN < p.y < 2.4 * IN and 0.1 * IN < p.x < 4.9 * IN], len(edges)
+start = [min((p for p in edges if abs(p.x - x * IN) < 1e-6 and p.z > 0.04 * IN), key=lambda p: p.y) for x in (2, 3)]
+assert all(0 < p.y < 0.1 * IN for p in start), start
+done = [shop.slot(flat, p, App.Vector(p.x, 1 * IN, 0.046 * IN), kerf) for p in start]
+assert all(d["out"] == [True, False] for d in done), done
+library.rework(flat, done)
+done.append(shop.slot(flat, App.Vector(2, 1, 0.046) * IN, App.Vector(3, 1, 0.046) * IN, kerf))
+library.rework(flat, done)
+out = Part.getShape(flat.LinkedObject)
+assert len(out.Solids) == 1 and not out.isInside(App.Vector(2.5, 0.1, 0.02) * IN, 1e-6, True) and out.isInside(App.Vector(2.5, 1.1, 0.02) * IN, 1e-6, True)
+# edge to edge is cut to length, the long side stays, or the short one
+s = shop.slot(flat, App.Vector(3.75, 0, 0.046) * IN, App.Vector(3.75, 2.5, 0.046) * IN, kerf)
+assert abs(metal.slot(out, s).BoundBox.XMax - 3.75 * IN + kerf / 2) < 1e-6, metal.slot(out, s).BoundBox
+shop.keeping(out, s, -1)
+assert abs(metal.slot(out, s).BoundBox.XMin - 3.75 * IN - kerf / 2) < 1e-6, metal.slot(out, s).BoundBox
+
 # a 1x2x1 c-channel inside a steel U-channel: the U's flange inside dots sit out in the 0.025 gap, outside ones stay on the metal
 u = library.place(doc, gen["2x2x2x10 Steel U-Channel"])
 ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])

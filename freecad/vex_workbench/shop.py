@@ -1,4 +1,6 @@
-# shop work on placed metal, bend or cut on a line through a hole or drill one anywhere. kept on that one copy as steps
+# shop work on placed metal, bend or cut on a line through a hole, saw a slot, or drill a hole anywhere. kept on that one copy as steps
+import math
+
 import FreeCAD as App
 import Part
 from FreeCAD import Vector
@@ -8,6 +10,13 @@ from . import library, metal, snap, ui
 from .metal import IN, X
 
 GRID = 0.25 * IN  # mm, drill's grid to start, half the hole pitch
+KERF = 0.04 * IN  # mm, saw cut to start, my guess at a cutoff wheel
+EDGE = 0.1 * IN  # mm, an edge face is the metal's thickness, 0.063 at most
+
+
+def shifted():
+    # Shift held, for right where i clicked
+    return bool(QtWidgets.QApplication.queryKeyboardModifiers() & QtCore.Qt.ShiftModifier)
 
 
 def wall(link, center, n):
@@ -65,6 +74,47 @@ def cut(link, pt, across, off):
     return lined(link, pt, across, off, "cut")
 
 
+def slot(link, a, b, kerf):
+    # a saw cut kerf mm wide from a to b (link coords) through the wall theyre on. doesnt have to go all the way across
+    shape = Part.getShape(link.LinkedObject)
+    fa, a, t, _ = at_face(link, shape, a)
+    fb, b, _, _ = at_face(link, shape, b)
+    n = fa.normalAt(0, 0)
+    if fb.normalAt(0, 0).dot(n) < 1 - 1e-6 or abs(n.dot(b - a)) > 1e-6:
+        raise ValueError("both ends have to be on the same side of the same wall")
+    if (b - a).Length < kerf:
+        raise ValueError("that cut's shorter than the saw is wide")
+    # an end on an outside edge runs off it
+    out = [any(e.distToShape(Part.Vertex(p))[0] < 1e-6 for e in free(shape, f)) for f, p in ((fa, a), (fb, b))]
+    s = {"do": "slot", "a": list(a), "b": list(b), "n": list(n), "t": t, "kerf": kerf, "out": out}
+    keeping(shape, s, 1)
+    return s
+
+
+def keeping(shape, s, side):
+    # if the slot cuts bits loose, the biggest stays (side -1 the smalest). kept as a point on it so a Holes change keeps the same one
+    s.pop("keep", None)
+    pieces = metal.kerf(shape, s).Solids
+    if len(pieces) > 1:
+        stays = (max if side > 0 else min)(pieces, key=lambda x: x.Volume)
+        mid = Part.Vertex((Vector(*s["a"]) + Vector(*s["b"])) * 0.5)
+        s["keep"] = list(stays.distToShape(mid)[1][0][0])
+
+
+def free(shape, face):
+    # edges round face that are a sawn or stampped edge of the metal, not a bend or a hole
+    n = face.normalAt(0, 0)
+    out = []
+    for e in face.OuterWire.Edges:
+        side = [f for f in shape.ancestorsOfType(e, Part.Face) if not f.isSame(face)]
+        if not side or side[0].Surface.TypeId != "Part::GeomPlane" or abs(side[0].normalAt(0, 0).dot(n)) > 1e-6:
+            continue
+        deep = [n.dot(x.Point) for x in side[0].Vertexes]
+        if max(deep) - min(deep) < EDGE:  # wider is the other leg round a 0 radius bend
+            out.append(e)
+    return out
+
+
 def on_face(src, n, p):
     # hole centers on the plane through p, facing n
     return [h for _, h, m in library.cached(src, library.holes) if m.dot(n) > 1 - 1e-6 and abs(n.dot(h - p)) < 1e-6]
@@ -85,44 +135,56 @@ def gridded(c, grid, anchor, e1, e2):
     return anchor + e1 * round((c - anchor).dot(e1) / grid) * grid + e2 * round((c - anchor).dot(e2) / grid) * grid
 
 
-def drill(link, pt, dia, grid=GRID):
-    # a hole at pt (link coords) through the wall its on. snapped onto that face's lattice(), grid mm, 0 or False for right there
+def at_face(link, shape, pt):
+    # (face, pt on it, wall there, hole centers on it) for the flat face of shape (source of link) pt is on, link coords
     src = link.LinkedObject
-    shape = Part.getShape(src)
     v = Part.Vertex(pt)
     # the face whose plane its on first. a click on a hole's dot is as far from the hole's own wall as from the face round it
-    face = min((f for f in shape.Faces if f.Surface.TypeId == "Part::GeomPlane"),
-               key=lambda f: (abs(f.normalAt(0, 0).dot(pt - f.Vertexes[0].Point)) > 1e-6, f.distToShape(v)[0]))
+    keyed = [((abs(f.normalAt(0, 0).dot(pt - f.Vertexes[0].Point)) > 1e-6, round(f.distToShape(v)[0], 6)), f)
+             for f in shape.Faces if f.Surface.TypeId == "Part::GeomPlane"]
+    best = min(k for k, _ in keyed)
+    ties = [f for k, f in keyed if k == best]
+    # an edge dot is right on the edge face too, the one with holes wins
+    face = next((f for f in ties if on_face(src, f.normalAt(0, 0), f.Vertexes[0].Point)), ties[0])
     n = face.normalAt(0, 0)
     c = pt - n * n.dot(pt - face.Vertexes[0].Point)
     near = on_face(src, n, c)
     if near:
-        t = wall(link, min(near, key=lambda h: (h - c).Length), n)  # off a hole, a plate's grid spots are small holes already so a ray there finds nothing
-        if grid:
-            c = gridded(c, grid, *lattice(near, n, library.steps(link)))
-    else:
-        # no hole on that face, a ray in to the first face it leaves through
-        hits = library.hits(library.cached(src, library.boxed), c + n * library.OUT, -n, shape.BoundBox.DiagonalLength)
-        if len(hits) < 2:
-            raise ValueError("can't find the other side of the wall there")
-        t = hits[1] - hits[0]
+        return face, c, wall(link, min(near, key=lambda h: (h - c).Length), n), near  # off a hole, a plate's grid spots are small holes already so a ray there finds nothing
+    # no hole on that face, a ray in to the first face it leaves through
+    hits = library.hits(library.cached(src, library.boxed), c + n * library.OUT, -n, shape.BoundBox.DiagonalLength)
+    if len(hits) < 2:
+        raise ValueError("can't find the other side of the wall there")
+    return face, c, hits[1] - hits[0], near
+
+
+def drill(link, pt, dia, grid=GRID):
+    # a hole at pt (link coords) through the wall its on. snapped onto that face's lattice(), grid mm, 0 or False for right there
+    face, c, t, near = at_face(link, Part.getShape(link.LinkedObject), pt)
+    n = face.normalAt(0, 0)
+    if near and grid:
+        c = gridded(c, grid, *lattice(near, n, library.steps(link)))
     return {"do": "drill", "c": list(c), "n": list(n), "dia": dia, "t": t}
 
 
-def grid_spots(link, grid):
-    # every spot drill() would snap to on link, link coords, grid mm. on the metal only, holes and edges left out
+def latticed(link, shape):
+    # (face, normal, its lattice()) for every flat face of shape with holes on it
     src = link.LinkedObject
     before = library.steps(link)
-    loops = [(w.BoundBox, m) for w, _, m in library.cached(src, library.holes)]
-    out, seen = [], set()
-    for face in Part.getShape(src).Faces:
+    for face in shape.Faces:
         if face.Surface.TypeId != "Part::GeomPlane":
             continue
         n = face.normalAt(0, 0)
         near = on_face(src, n, face.Vertexes[0].Point)
-        if not near:
-            continue
-        anchor, e1, e2 = lattice(near, n, before)
+        if near:
+            yield face, n, lattice(near, n, before)
+
+
+def grid_spots(link, grid):
+    # every spot drill() would snap to on link, link coords, grid mm. on the metal only, holes and edges left out
+    loops = [(w.BoundBox, m) for w, _, m in library.cached(link.LinkedObject, library.holes)]
+    out, seen = [], set()
+    for face, n, (anchor, e1, e2) in latticed(link, Part.getShape(link.LinkedObject)):
         b = face.BoundBox
         corners = [Vector(x, y, z) for x in (b.XMin, b.XMax) for y in (b.YMin, b.YMax) for z in (b.ZMin, b.ZMax)]
         span = [[round((p - anchor).dot(e) / grid) for p in corners] for e in (e1, e2)]
@@ -149,6 +211,29 @@ def grid_spots(link, grid):
     return out
 
 
+def edge_spots(link, grid):
+    # where the grid lines cross the outside edges, for a slot to run off at. link coords, grid mm
+    shape = Part.getShape(link.LinkedObject)
+    out, seen = [], set()
+    for face, _, (anchor, e1, e2) in latticed(link, shape):
+        for e in free(shape, face):
+            if e.Curve.TypeId != "Part::GeomLine":
+                continue
+            p0 = e.Vertexes[0].Point
+            d = e.Vertexes[-1].Point - p0
+            for g in (e1, e2):
+                if abs(d.dot(g)) < 1e-6:
+                    continue  # runs along those grid lines
+                at = sorted(((p0 - anchor).dot(g), (p0 + d - anchor).dot(g)))
+                for i in range(math.ceil(at[0] / grid - 1e-6), math.floor(at[1] / grid + 1e-6) + 1):
+                    p = p0 + d * ((i * grid - (p0 - anchor).dot(g)) / d.dot(g))
+                    key = tuple(round(x, 6) for x in p)
+                    if key not in seen:
+                        seen.add(key)
+                        out.append(p)
+    return out
+
+
 class Clicked(snap.Clicks):
     # one click makes a step on that copy, then the boxes (and the button, side -1) redo the last one. step() builds it, tweak() puts the boxes in
     UNDO = "Rework VEX part"
@@ -170,13 +255,14 @@ class Clicked(snap.Clicks):
     def one(self):
         return True
 
-    def act(self, spot, _):
+    def act(self, spot, other):
+        # other: the second click, for a panel thats two clicks right now
         link = spot[0]
 
         def go():
             if library.part_of(link).get("family") not in metal.PROFILES:
                 raise ValueError(f"{link.Label} isn't VEX metal, only metal gets worked")
-            library.rework(link, library.steps(link) + [self.step(link, spot[1])])
+            library.rework(link, library.steps(link) + [self.step(link, spot[1], other)])
             return True
         if not ui.run(self.UNDO, go):
             return None
@@ -207,13 +293,13 @@ class Lined(Clicked):
     # bend and cut, a line through the hole across or along, slid over
     ONE = "click a hole the line goes through"
 
-    def __init__(self, title, rows, button):
+    def __init__(self, title, rows, button, other=()):
         p = App.ParamGet(ui.PARAMS)
         self.across = QtWidgets.QComboBox()
         self.across.addItems(["Across", "Along"])
         self.across.setCurrentText(p.GetString("ShopLine", "Across"))
         self.off = ui.number(-12, 12, " in", step=0.25, decimals=3)
-        super().__init__(title, [("Line", self.across), ("Off the hole", self.off)] + rows, button)
+        super().__init__(title, [("Line", self.across), ("Off the hole", self.off)] + rows, button, other)
 
     def where(self):
         App.ParamGet(ui.PARAMS).SetString("ShopLine", self.across.currentText())
@@ -243,7 +329,7 @@ class BendPanel(Lined):
         rows = [("Angle", self.angle), ("Inside radius", self.radius), ("Bend sits", self.sits)]
         super().__init__("VEX bend", rows, "Other side turns")
 
-    def step(self, link, pt):
+    def step(self, link, pt, _):
         prefs = App.ParamGet(ui.PARAMS)
         prefs.SetFloat("BendAngle", self.angle.value())
         prefs.SetFloat("BendRadius", self.radius.value())
@@ -259,55 +345,127 @@ class BendPanel(Lined):
             s["centered"] = True
 
 
-class CutPanel(Lined):
-    DID = "cut"
+class Gridded:
+    # Grid and Show the grid rows for a panel, the grid dots go in through extra(). prefix starts the prefs names
+    def grid_rows(self, prefix):
+        prefs = App.ParamGet(ui.PARAMS)
+        self.prefix = prefix
+        self.grid = ui.number(0.05, 1, " in", prefs.GetFloat(prefix + "Grid", GRID / IN), step=0.05, decimals=3)
+        self.grid.setKeyboardTracking(False)  # one regrid per typed number
+        self.show_grid = QtWidgets.QCheckBox("Show the grid")
+        self.show_grid.setChecked(prefs.GetBool(prefix + "ShowGrid", False))
+        self.grids = {}  # (finder, source, grid) -> spots, worked sources get new names
+        self.grid.valueChanged.connect(self.regrid)
+        self.show_grid.toggled.connect(self.regrid)
+        return [("Grid", self.grid), (self.show_grid,)]
 
-    def __init__(self):
-        super().__init__("VEX cut", [], "Keep the other side")
+    def regrid(self, *_):
+        prefs = App.ParamGet(ui.PARAMS)
+        prefs.SetFloat(self.prefix + "Grid", self.grid.value())
+        prefs.SetBool(self.prefix + "ShowGrid", self.show_grid.isChecked())
+        self.refresh()
 
-    def step(self, link, pt):
-        return cut(link, pt, *self.where())
+    def found(self, find, link):
+        # find(link, grid mm), once per source and grid
+        key = (find, link.LinkedObject.Name, self.grid.value())
+        if key not in self.grids:
+            self.grids[key] = find(link, self.grid.value() * IN)
+        return self.grids[key]
+
+    def extra(self, link):
+        if not self.show_grid.isChecked() or library.part_of(link).get("family") not in metal.PROFILES:
+            return []
+        return self.found(grid_spots, link)
 
 
-class DrillPanel(Clicked):
+class DrillPanel(Gridded, Clicked):
     DID = "drilled"
     ONE = "click where the hole goes, it snaps to the grid. hold Shift for right where you click"
 
     def __init__(self):
         prefs = App.ParamGet(ui.PARAMS)
         self.size = ui.number(0.05, 1, " in", prefs.GetFloat("DrillSize", 0.17), step=0.005, decimals=3)
-        self.grid = ui.number(0.05, 1, " in", prefs.GetFloat("DrillGrid", GRID / IN), step=0.05, decimals=3)
-        self.grid.setKeyboardTracking(False)  # one regrid per typed number
-        self.show_grid = QtWidgets.QCheckBox("Show the grid")
-        self.show_grid.setChecked(prefs.GetBool("DrillShowGrid", False))
-        self.grids = {}  # (source, grid) -> spots, worked sources get new names
-        super().__init__("VEX drill", [("Size", self.size)], other=[("Grid", self.grid), (self.show_grid,)])
-        self.grid.valueChanged.connect(self.regrid)
-        self.show_grid.toggled.connect(self.regrid)
+        super().__init__("VEX drill", [("Size", self.size)], other=self.grid_rows("Drill"))
 
-    def regrid(self, *_):
-        prefs = App.ParamGet(ui.PARAMS)
-        prefs.SetFloat("DrillGrid", self.grid.value())
-        prefs.SetBool("DrillShowGrid", self.show_grid.isChecked())
-        self.refresh()
-
-    def extra(self, link):
-        if not self.show_grid.isChecked() or library.part_of(link).get("family") not in metal.PROFILES:
-            return []
-        key = (link.LinkedObject.Name, self.grid.value())
-        if key not in self.grids:
-            self.grids[key] = grid_spots(link, self.grid.value() * IN)
-        return self.grids[key]
-
-    def step(self, link, pt):
+    def step(self, link, pt, _):
         App.ParamGet(ui.PARAMS).SetFloat("DrillSize", self.size.value())
-        shift = QtWidgets.QApplication.queryKeyboardModifiers() & QtCore.Qt.ShiftModifier
-        return drill(link, pt, self.size.value() * IN, 0 if shift else self.grid.value() * IN)
+        return drill(link, pt, self.size.value() * IN, 0 if shifted() else self.grid.value() * IN)
 
     def tweak(self, link, s, before):
         s["dia"] = self.size.value() * IN
 
 
+class CutPanel(Gridded, Lined):
+    DID = "cut"
+    MODES = ["Line through a hole", "Two points"]
+    PROMPTS = ("click where the cut starts, holes, edges and the grid all work", "now where it ends, on the same face")
+
+    def __init__(self):
+        prefs = App.ParamGet(ui.PARAMS)
+        self.mode = QtWidgets.QComboBox()
+        self.mode.addItems(self.MODES)
+        self.mode.setCurrentIndex(prefs.GetInt("CutMode", 0))
+        self.kerf = ui.number(0.005, 0.25, " in", prefs.GetFloat("CutKerf", KERF / IN), step=0.005, decimals=3)
+        super().__init__("VEX cut", [("Kerf", self.kerf)], "Keep the other side", self.grid_rows("Cut"))
+        self.form.layout().insertRow(0, "Cut", self.mode)  # up top, and out of the rows so it doesnt redo
+        self.mode.currentIndexChanged.connect(self.modes)
+        self.boxes()
+
+    def one(self):
+        return self.mode.currentIndex() == 0
+
+    def boxes(self):
+        for w in (self.across, self.off):
+            w.setEnabled(self.one())
+        for w in (self.kerf, self.grid, self.show_grid):
+            w.setEnabled(not self.one())
+
+    def modes(self, *_):
+        App.ParamGet(ui.PARAMS).SetInt("CutMode", self.mode.currentIndex())
+        self.boxes()
+        self.first = None
+        self.light([])
+        self.refresh()
+        self.ask()
+
+    def extra(self, link):
+        if self.one() or library.part_of(link).get("family") not in metal.PROFILES:
+            return []
+        return self.found(edge_spots, link) + super().extra(link)
+
+    def snapped(self, link, pt):
+        # a face click onto the grid, a dot (edge ones are off it) or Shift right there
+        if shifted() or any(dot is link and (c - pt).Length < 1e-6 for dot, c, _, _ in self.spots):
+            return pt
+        face, c, _, near = at_face(link, Part.getShape(link.LinkedObject), pt)
+        return gridded(c, self.grid.value() * IN, *lattice(near, face.normalAt(0, 0), library.steps(link))) if near else c
+
+    def take(self, s):
+        # snapped on the click, Shift is per click and act() only runs after the second
+        if not self.one():
+            try:
+                s = (s[0], self.snapped(s[0], s[1]), *s[2:])
+            except ValueError as e:
+                self.ask(f"{e}\n")
+                return
+        super().take(s)
+
+    def step(self, link, pt, other):
+        if other is None:
+            return cut(link, pt, *self.where())
+        if other[0] is not link:
+            raise ValueError("both ends have to be on the same part")
+        App.ParamGet(ui.PARAMS).SetFloat("CutKerf", self.kerf.value())
+        return slot(link, pt, other[1], self.kerf.value() * IN)
+
+    def tweak(self, link, s, before):
+        if s["do"] != "slot":
+            return super().tweak(link, s, before)
+        s["kerf"] = self.kerf.value() * IN
+        keeping(library.worked(link.Document, library.part_of(link), before), s, self.flipped)
+
+
 BEND = ui.Command(BendPanel, "vex-bend.svg", "Bend", "Click a hole the bend goes through. It folds there by the angle, then change the line, angle or which side turns")
-CUT = ui.Command(CutPanel, "vex-cut.svg", "Cut", "Click a hole the cut goes through, across or along the part. The smaller side goes, or keep that one instead")
+CUT = ui.Command(CutPanel, "vex-cut.svg", "Cut", "Click a hole the cut goes through, across or along the part. The smaller side goes, or keep that one instead. "
+                 "Or set it to two points for a saw cut that stops wherever you want, for slots and notches")
 DRILL = ui.Command(DrillPanel, "vex-drill.svg", "Drill", "Click a spot on the metal and a round hole goes through there, snapped to the grid. Hold Shift to skip the snap")

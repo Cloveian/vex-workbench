@@ -232,7 +232,7 @@ def half(at, u, n, lo):
 
 def work(shape, step):
     # one step off a placed copy's list
-    return {"fold": fold, "cut": cut, "drill": drill}[step["do"]](shape, step)
+    return {"fold": fold, "cut": cut, "slot": slot, "drill": drill}[step["do"]](shape, step)
 
 
 def line(step):
@@ -265,6 +265,33 @@ def cut(shape, c):
     out = keep.fuse(stays).removeSplitter() if stays else keep
     if len(out.Solids) != 1:
         raise ValueError("that cut would leave it in more than one piece")
+    return out
+
+
+def kerf(shape, s):
+    # shape less a saw cut s["kerf"] wide from a to b through the wall, nothing taken off yet
+    a, b, n = (Vector(*s[key]) for key in ("a", "b", "n"))
+    d = b - a
+    long = d.Length
+    d.normalize()
+    w = n.cross(d)
+    poke = EPS * IN
+    past = [2 * s["kerf"] + poke if out else 0 for out in s["out"]]  # off an edge, far enough to clear it on a slanted cut too
+    box = Part.makeBox(long + sum(past), s["kerf"], s["t"] + 2 * poke)
+    box.Placement = Placement(a - d * past[0] - w * (s["kerf"] / 2) - n * (s["t"] + poke), Rotation(d, w, n, "ZXY"))
+    return shape.cut(box)
+
+
+def slot(shape, s):
+    # kerf(), and whatever it cut loose gone. the piece nearest "keep" stays
+    out = kerf(shape, s)
+    if shape.Volume - out.Volume < 1e-6:
+        raise ValueError("nothing to cut there")
+    if len(out.Solids) > 1:
+        if "keep" in s:
+            keep = Part.Vertex(Vector(*s["keep"]))
+            return min(out.Solids, key=lambda x: x.distToShape(keep)[0])
+        return max(out.Solids, key=lambda x: x.Volume)  # was only a slit when it was made, a Holes change can do that
     return out
 
 
