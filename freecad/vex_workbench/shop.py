@@ -168,8 +168,12 @@ def drill(link, pt, dia, grid=GRID):
     return {"do": "drill", "c": list(c), "n": list(n), "dia": dia, "t": t}
 
 
+def is_metal(link):
+    return library.part_of(link).get("family") in metal.PROFILES
+
+
 def metal_only(link):
-    if library.part_of(link).get("family") not in metal.PROFILES:
+    if not is_metal(link):
         raise ValueError(f"{link.Label} isn't VEX metal, only metal gets worked")
 
 
@@ -465,7 +469,7 @@ class Gridded:
         return self.grids[key]
 
     def extra(self, link):
-        if not self.show_grid.isChecked() or library.part_of(link).get("family") not in metal.PROFILES:
+        if not self.show_grid.isChecked() or not is_metal(link):
             return []
         return self.found(grid_spots, link)
 
@@ -490,6 +494,7 @@ class DrillPanel(Gridded, Clicked):
 class CutPanel(Gridded, Lined):
     DID = "cut"
     MODES = ["Line through a hole", "Two points", "Sketch it"]
+    LINE, POINTS, SKETCHING = range(3)
     PROMPTS = ("click where the cut starts, holes, edges and the grid all work", "now where it ends, on the same face")
     SKETCH = "click the face to sketch on, the sketch starts there. close it and whatever's closed in it gets cut out"
 
@@ -504,19 +509,22 @@ class CutPanel(Gridded, Lined):
         self.mode.currentIndexChanged.connect(self.modes)
         self.boxes()
 
-    def one(self):
-        return self.mode.currentIndex() != 1
+    def at(self, mode):
+        return self.mode.currentIndex() == mode
 
-    def by_line(self):
-        return self.mode.currentIndex() == 0
+    def one(self):
+        return not self.at(self.POINTS)
+
+    @property
+    def ONE(self):
+        return self.SKETCH if self.at(self.SKETCHING) else Lined.ONE
 
     def boxes(self):
         for w in (self.across, self.off):
-            w.setEnabled(self.by_line())
+            w.setEnabled(self.at(self.LINE))
         for w in (self.grid, self.show_grid):
-            w.setEnabled(not self.by_line())
-        self.kerf.setEnabled(self.mode.currentIndex() == 1)
-        self.ONE = self.SKETCH if self.mode.currentIndex() == 2 else Lined.ONE
+            w.setEnabled(not self.at(self.LINE))
+        self.kerf.setEnabled(self.at(self.POINTS))
 
     def modes(self, *_):
         App.ParamGet(ui.PARAMS).SetInt("CutMode", self.mode.currentIndex())
@@ -527,7 +535,7 @@ class CutPanel(Gridded, Lined):
         self.ask()
 
     def extra(self, link):
-        if self.by_line() or library.part_of(link).get("family") not in metal.PROFILES:
+        if self.at(self.LINE) or not is_metal(link):
             return []
         return self.found(edge_spots, link) + super().extra(link)
 
@@ -540,7 +548,7 @@ class CutPanel(Gridded, Lined):
 
     def take(self, s):
         # snapped on the click, Shift is per click and act() only runs after the second
-        if not self.by_line():
+        if not self.at(self.LINE):
             try:
                 s = (s[0], self.snapped(s[0], s[1]), *s[2:])
             except ValueError as e:
@@ -549,7 +557,7 @@ class CutPanel(Gridded, Lined):
         super().take(s)
 
     def act(self, spot, other):
-        if self.mode.currentIndex() != 2:
+        if not self.at(self.SKETCHING):
             return super().act(spot, other)
         sk = ui.run(Sketches.UNDO, lambda: sketch_on(*spot[:2]))
         if sk is not None:

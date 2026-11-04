@@ -537,8 +537,10 @@ try:
     doc.removeObject(sk.Name)
     QtWidgets.QApplication.processEvents()
     assert library.steps(pocket) == [] and abs(Part.getShape(pocket.LinkedObject).Volume - plain) < 1e-6
+    # opened again it comes up in sketch mode, prompt and all
     panel = shop.CutPanel()
     Gui.Control.showDialog(panel)
+    assert panel.status.text().startswith("click the face to sketch on"), panel.status.text()
     panel.mode.setCurrentIndex(0)
     panel.reject()
     # same in an assembly gets joints, with their view providers
