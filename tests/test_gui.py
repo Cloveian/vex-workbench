@@ -115,6 +115,11 @@ try:
     w.place()
     got = Gui.Selection.getSelection()[0]
     assert got.Label == "2\" Mecanum Wheel- Right" and got.VexStep.endswith("(217-7400).step"), got.Label
+    # it has the boxes too, a new Type swaps it in place and the boxes under narrow to match
+    assert (got.Type, got.Size, got.Kind) == ("Mecanum", "2", "V1, Right") and got.getEnumerationsOfProperty("Size") == ["2", "4"]
+    got.Type = "Omni"
+    assert got.Label == "2” Omni-Directional Wheel" and got.getEnumerationsOfProperty("Kind") == ["Standard"], got.Label
+    assert got.LinkedObject.VexName == got.Label
     w.search.setText("hs bore 18t")
     sprockets = w.tree.findItems("Sprockets", QtCore.Qt.MatchExactly)[0]
     assert not sprockets.isHidden()

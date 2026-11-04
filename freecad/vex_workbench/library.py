@@ -22,6 +22,7 @@ MIN_THREAD = 0.25 * metal.IN  # mm, least a screw takes in a thread
 SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 CACHE = {}
+BUSY = set()  # (doc, link) names getting their menu boxes refilled
 
 
 @functools.cache
@@ -176,6 +177,13 @@ def place(doc, part, parent=None):
     if "file" in part:
         link.addProperty("App::PropertyString", "VexStep", "VEX")
         link.VexStep = f"{part['folder']}/{part['file']}"
+        menu = next((m for m in menus().values() if any(p["key"] == link.VexStep for p in m["parts"])), None)
+        if menu:
+            # a wheel from the folders gets the boxes too
+            boxes(link, menu, next(p for p in menu["parts"] if p["key"] == link.VexStep))
+            link.addProperty("App::PropertyString", "VexMenu", "VEX")
+            link.VexMenu = menu["id"]
+            link.setPropertyStatus("VexMenu", "ReadOnly")
     else:
         family = index()[0][part["family"]]
         now = picks(family, part)
@@ -189,6 +197,31 @@ def place(doc, part, parent=None):
         link.setPropertyStatus("VexFamily", "ReadOnly")
     retarget(link)
     return link
+
+
+def boxes(link, menu, part):
+    # a menu's axes as properties on a placed copy, each with just the choises that go with the ones above it
+    for axis, choices in catalog.narrowed(menu, part)[0]:
+        if not hasattr(link, axis):
+            link.addProperty("App::PropertyEnumeration", axis, "VEX")
+        setattr(link, axis, choices)
+        setattr(link, axis, part[axis])
+
+
+def remenu(link):
+    # a box changed on a menu part, onto the part the boxes land on now
+    menu = menus()[link.VexMenu]
+    part = catalog.narrowed(menu, {a: getattr(link, a) for a in menu["axes"]})[1]
+    BUSY.add((link.Document.Name, link.Name))
+    try:
+        boxes(link, menu, part)  # setting a list jumps it to the first choice, the observer would chase that
+    finally:
+        BUSY.discard((link.Document.Name, link.Name))
+    if part["key"] != link.VexStep:
+        was = link.LinkedObject
+        link.VexStep = part["key"]
+        retarget(link)
+        carry(link, was)
 
 
 def variant(family, picked):
@@ -478,11 +511,15 @@ def frame(link, plc, name="Hole"):
 
 
 class Observer:
-    # a VEX param changed on a placed copy -> point it at that variant
+    # a VEX param or menu box changed on a placed copy -> point it at that variant
     def slotChangedObject(self, obj, prop):
         doc = obj.Document
         # undo / redo puts LinkedObject back itself, retargetting made a second source
-        if doc.Restoring or doc.Transacting or not hasattr(obj, "VexFamily"):
+        if doc.Restoring or doc.Transacting:
+            return
+        if hasattr(obj, "VexMenu") and prop in menus()[obj.VexMenu]["axes"] and (doc.Name, obj.Name) not in BUSY:
+            remenu(obj)
+        if not hasattr(obj, "VexFamily"):
             return
         if prop == "VexSteps":
             retarget(obj)  # rework() / refit() already checked them

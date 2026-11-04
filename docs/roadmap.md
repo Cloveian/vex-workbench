@@ -32,7 +32,7 @@ in build order, each one is something i can open and poke at
 	two points is in (Cut > Two points), kerf wide, edge dots to run off at, loose bits go. Sketch it starts a live sketch on the face, closing it cuts out whats closed in it
 - [x] bend: centered on the line or next to it, and an inside radius box (vice and hammer bends are way tighter than 0.032)
 - [x] place menu for wheels, gears and anything else with a pile of variants, same as the c-channel one (family, then type / size / whatever), only combos that exist
-	Wheels, Gears and Sprockets, a `[[menu]]` in `parts.toml` each. the boxes arent on a placed one's properties yet, so it cant swap to another wheel in place
+	Wheels, Gears and Sprockets, a `[[menu]]` in `parts.toml` each. a placed one gets the boxes as properties too and swaps in place
 - [ ] simple joint tool: spin on a hole, slide along a line, and drag a part to see it move
 - [ ] duplicate a sub-assembly, mirrorred across a plane or turned about an axis. parts get turned, not mirrored, so they stay real parts
 - [ ] real colors and materials on every vex part
