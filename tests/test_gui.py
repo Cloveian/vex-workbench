@@ -8,6 +8,7 @@ import traceback
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
+import Sketcher
 from PySide import QtCore, QtWidgets
 
 
@@ -479,6 +480,44 @@ try:
     assert abs(Part.getShape(saw.LinkedObject).BoundBox.XMin - 3.78 * IN) < 1e-6 and len(library.steps(saw)) == 1
     # a face click snaps to the grid on its own click
     assert (panel.snapped(saw, App.Vector(4.07, 0.29, 0.046) * IN) - App.Vector(4, 0.25, 0.046) * IN).Length < 1e-6
+    # sketch it, a click on a hole starts a sketch there and closes the panel. closing the sketch cuts its circle out
+    pocket = library.place(doc, gen["5x10 Steel Plate"])
+    pocket.Placement.Base = App.Vector(0, 700, 0)
+    doc.recompute()
+    plain = Part.getShape(pocket.LinkedObject).Volume
+    panel.mode.setCurrentIndex(2)
+    assert panel.status.text().startswith("click the face to sketch on") and not panel.kerf.isEnabled()
+    click(App.Vector(2.25 * IN, 700 + 0.75 * IN, 0.046 * IN))
+    QtWidgets.QApplication.processEvents()
+    QtWidgets.QApplication.processEvents()
+    sk = next(o for o in doc.Objects if getattr(o, "VexCut", None) == pocket)
+    assert Gui.ActiveDocument.getInEdit() == sk.ViewObject and Gui.Control.activeDialog()
+    assert (sk.Placement.Base - App.Vector(2.25 * IN, 700 + 0.75 * IN, 0.046 * IN)).Length < 1e-6, sk.Placement
+    circle = sk.addGeometry(Part.Circle(App.Vector(), App.Vector(0, 0, 1), 0.3 * IN))
+
+    def closing():
+        Gui.ActiveDocument.resetEdit()
+        for _ in range(3):
+            QtWidgets.QApplication.processEvents()
+    closing()
+    lost = plain - Part.getShape(pocket.LinkedObject).Volume
+    assert [s["do"] for s in library.steps(pocket)] == ["sketch"] and not sk.Visibility, library.steps(pocket)
+    assert 0 < lost < math.pi * (0.3 * IN) ** 2 * 0.046 * IN, lost  # the holes in it were already gone
+    # edit it again, same step a size bigger
+    Gui.ActiveDocument.setEdit(sk)
+    QtWidgets.QApplication.processEvents()
+    sk.setDatum(sk.addConstraint(Sketcher.Constraint("Radius", circle, 0.3 * IN)), App.Units.Quantity(0.45 * IN, App.Units.Length))
+    closing()
+    assert len(library.steps(pocket)) == 1 and plain - Part.getShape(pocket.LinkedObject).Volume > lost * 1.5
+    # it follows the copy, and deleteing it puts the metal back
+    pocket.Placement.Base = App.Vector(0, 800, 0)
+    doc.recompute()
+    assert abs(sk.Placement.Base.y - 800 - 0.75 * IN) < 1e-6, sk.Placement
+    doc.removeObject(sk.Name)
+    QtWidgets.QApplication.processEvents()
+    assert library.steps(pocket) == [] and abs(Part.getShape(pocket.LinkedObject).Volume - plain) < 1e-6
+    panel = shop.CutPanel()
+    Gui.Control.showDialog(panel)
     panel.mode.setCurrentIndex(0)
     panel.reject()
     # same in an assembly gets joints, with their view providers

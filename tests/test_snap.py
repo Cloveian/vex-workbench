@@ -509,6 +509,20 @@ s = shop.slot(flat, App.Vector(3.75, 0, 0.046) * IN, App.Vector(3.75, 2.5, 0.046
 assert abs(metal.slot(out, s).BoundBox.XMax - 3.75 * IN + kerf / 2) < 1e-6, metal.slot(out, s).BoundBox
 shop.keeping(out, s, -1)
 assert abs(metal.slot(out, s).BoundBox.XMin - 3.75 * IN - kerf / 2) < 1e-6, metal.slot(out, s).BoundBox
+# a sketched ring cuts out a disc, the island in the middle goes too
+ring = library.place(doc, gen["5x10 Steel Plate"])
+doc.recompute()
+sk = shop.sketch_on(ring, App.Vector(2.25, 1.25, 0.046) * IN)
+for r in (0.4, 0.6):
+    sk.addGeometry(Part.Circle(App.Vector(), App.Vector(0, 0, 1), r * IN))
+doc.recompute()
+assert shop.recut(sk) and "keep" in library.steps(ring)[0], library.steps(ring)
+out = Part.getShape(ring.LinkedObject)
+assert len(out.Solids) == 1 and not out.isInside(App.Vector(2.55, 1.25, 0.02) * IN, 1e-6, True) and out.isInside(App.Vector(2.25, 2.1, 0.02) * IN, 1e-6, True)
+# nothing closed left drops it
+sk.delGeometries([0, 1])
+doc.recompute()
+assert not shop.recut(sk) and library.steps(ring) == []
 
 # a 1x2x1 c-channel inside a steel U-channel: the U's flange inside dots sit out in the 0.025 gap, outside ones stay on the metal
 u = library.place(doc, gen["2x2x2x10 Steel U-Channel"])

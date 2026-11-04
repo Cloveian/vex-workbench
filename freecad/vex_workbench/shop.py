@@ -1,7 +1,8 @@
-# shop work on placed metal, bend or cut on a line through a hole, saw a slot, or drill a hole anywhere. kept on that one copy as steps
+# shop work on placed metal, bend or cut on a line through a hole, saw a slot, cut out a sketch, or drill a hole anywhere. kept on that one copy as steps
 import math
 
 import FreeCAD as App
+import FreeCADGui as Gui
 import Part
 from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
@@ -92,12 +93,12 @@ def slot(link, a, b, kerf):
 
 
 def keeping(shape, s, side):
-    # if the slot cuts bits loose, the biggest stays (side -1 the smalest). kept as a point on it so a Holes change keeps the same one
+    # if a slot or sketch cuts bits loose, the biggest stays (side -1 the smalest). kept as a point on it so a Holes change keeps the same one
     s.pop("keep", None)
-    pieces = metal.kerf(shape, s).Solids
+    pieces = metal.through(shape, s).Solids
     if len(pieces) > 1:
         stays = (max if side > 0 else min)(pieces, key=lambda x: x.Volume)
-        mid = Part.Vertex((Vector(*s["a"]) + Vector(*s["b"])) * 0.5)
+        mid = Part.Vertex(metal.TOOLS[s["do"]](s).BoundBox.Center)  # next to the cut, the far end can go on a Holes change
         s["keep"] = list(stays.distToShape(mid)[1][0][0])
 
 
@@ -165,6 +166,98 @@ def drill(link, pt, dia, grid=GRID):
     if near and grid:
         c = gridded(c, grid, *lattice(near, n, library.steps(link)))
     return {"do": "drill", "c": list(c), "n": list(n), "dia": dia, "t": t}
+
+
+def metal_only(link):
+    if library.part_of(link).get("family") not in metal.PROFILES:
+        raise ValueError(f"{link.Label} isn't VEX metal, only metal gets worked")
+
+
+def sketch_on(link, pt):
+    # a sketch on the face pt is on, origin at pt and x along the length
+    metal_only(link)
+    face, c, t, _ = at_face(link, Part.getShape(link.LinkedObject), pt)
+    n = face.normalAt(0, 0)
+    x = length(n, library.steps(link))
+    sk = link.Document.addObject("Sketcher::SketchObject", "CutSketch")
+    parent = link.getParentGeoFeatureGroup()
+    if parent:
+        parent.addObject(sk)  # attaching works in the coords of whatever its in
+    sk.AttachmentSupport = [(link, "")]
+    sk.MapMode = "ObjectXY"
+    sk.AttachmentOffset = App.Placement(c, App.Rotation(x, n.cross(x), n, "ZXY"))
+    sk.addProperty("App::PropertyLink", "VexCut", "VEX")
+    sk.VexCut = link
+    sk.addProperty("App::PropertyFloat", "VexWall", "VEX")
+    sk.VexWall = t  # mm
+    sk.Label = f"{link.Label} cut"
+    return sk
+
+
+def sketched(sk, shape):
+    # step cutting the closed shapes in sk through shape, its copy with the steps before this one done
+    s = sk.Shape.copy()
+    s.Placement = sk.AttachmentOffset  # sketch coords -> the copy's
+    wires = [w for w in s.Wires if w.isClosed()]
+    if not wires:
+        return None
+    try:
+        face = Part.makeFace(wires, "Part::FaceMakerBullseye")  # one inside another is a hole in it
+    except Part.OCCError:
+        raise ValueError(f"the shapes in {sk.Label} cross each other, can't tell what to cut out") from None
+    n = sk.AttachmentOffset.Rotation.multVec(Vector(0, 0, 1))
+    step = {"do": "sketch", "sketch": sk.Name, "face": face.exportBrepToString(), "n": list(n), "t": sk.VexWall}
+    keeping(shape, step, 1)
+    return step
+
+
+def recut(sk):
+    # step for sk redone where it was in its copy's list, on the end the first time, gone once nothing in it is closed. True if theres a cut now
+    link = sk.VexCut
+    done = library.steps(link)
+    at = next((i for i, s in enumerate(done) if s.get("sketch") == sk.Name), len(done))
+    s = sketched(sk, library.worked(link.Document, library.part_of(link), done[:at]))
+    now = done[:at] + ([s] if s else []) + done[at + 1:]
+    if now != done:
+        library.rework(link, now)
+    return s is not None
+
+
+def uncut(link, name):
+    # the step for sketch name off link, the sketch is already deleted
+    done = library.steps(link)
+    now = [s for s in done if s.get("sketch") != name]
+    if now != done:
+        library.rework(link, now)
+
+
+class Sketches:
+    # closing a cut sketch redoes its cut, deleting it drops it. a gui and a document observer both
+    UNDO = "VEX sketch cut"
+
+    def slotResetEdit(self, vp):
+        sk = vp.Object
+        if getattr(sk, "VexCut", None):
+            QtCore.QTimer.singleShot(0, lambda: self.closed(sk))  # sketcher still tidying up its edit
+
+    def closed(self, sk):
+        # hidden once its cut, like a pocket's sketch. one with nothing closed or an error stays up
+        sk.Document.recompute()  # its Shape, edits only went to the solver
+        sk.Visibility = not ui.run(self.UNDO, lambda: recut(sk))
+        sk.Document.recompute()
+
+    def slotDeletedObject(self, obj):
+        link = getattr(obj, "VexCut", None)
+        if link is None or obj.Document.Transacting:  # undoing the sketch, undo gets the steps back itself
+            return
+        doc, name, of = obj.Document, obj.Name, link.Name
+
+        def drop():
+            link = doc.getObject(of)  # gone with it, nothing to drop
+            if link is not None:
+                ui.run(self.UNDO, lambda: uncut(link, name))
+                doc.recompute()
+        QtCore.QTimer.singleShot(0, drop)
 
 
 def latticed(link, shape):
@@ -260,8 +353,7 @@ class Clicked(snap.Clicks):
         link = spot[0]
 
         def go():
-            if library.part_of(link).get("family") not in metal.PROFILES:
-                raise ValueError(f"{link.Label} isn't VEX metal, only metal gets worked")
+            metal_only(link)
             library.rework(link, library.steps(link) + [self.step(link, spot[1], other)])
             return True
         if not ui.run(self.UNDO, go):
@@ -397,8 +489,9 @@ class DrillPanel(Gridded, Clicked):
 
 class CutPanel(Gridded, Lined):
     DID = "cut"
-    MODES = ["Line through a hole", "Two points"]
+    MODES = ["Line through a hole", "Two points", "Sketch it"]
     PROMPTS = ("click where the cut starts, holes, edges and the grid all work", "now where it ends, on the same face")
+    SKETCH = "click the face to sketch on, the sketch starts there. close it and whatever's closed in it gets cut out"
 
     def __init__(self):
         prefs = App.ParamGet(ui.PARAMS)
@@ -412,13 +505,18 @@ class CutPanel(Gridded, Lined):
         self.boxes()
 
     def one(self):
+        return self.mode.currentIndex() != 1
+
+    def by_line(self):
         return self.mode.currentIndex() == 0
 
     def boxes(self):
         for w in (self.across, self.off):
-            w.setEnabled(self.one())
-        for w in (self.kerf, self.grid, self.show_grid):
-            w.setEnabled(not self.one())
+            w.setEnabled(self.by_line())
+        for w in (self.grid, self.show_grid):
+            w.setEnabled(not self.by_line())
+        self.kerf.setEnabled(self.mode.currentIndex() == 1)
+        self.ONE = self.SKETCH if self.mode.currentIndex() == 2 else Lined.ONE
 
     def modes(self, *_):
         App.ParamGet(ui.PARAMS).SetInt("CutMode", self.mode.currentIndex())
@@ -429,7 +527,7 @@ class CutPanel(Gridded, Lined):
         self.ask()
 
     def extra(self, link):
-        if self.one() or library.part_of(link).get("family") not in metal.PROFILES:
+        if self.by_line() or library.part_of(link).get("family") not in metal.PROFILES:
             return []
         return self.found(edge_spots, link) + super().extra(link)
 
@@ -442,13 +540,21 @@ class CutPanel(Gridded, Lined):
 
     def take(self, s):
         # snapped on the click, Shift is per click and act() only runs after the second
-        if not self.one():
+        if not self.by_line():
             try:
                 s = (s[0], self.snapped(s[0], s[1]), *s[2:])
             except ValueError as e:
                 self.ask(f"{e}\n")
                 return
         super().take(s)
+
+    def act(self, spot, other):
+        if self.mode.currentIndex() != 2:
+            return super().act(spot, other)
+        sk = ui.run(Sketches.UNDO, lambda: sketch_on(*spot[:2]))
+        if sk is not None:
+            self.reject()
+            QtCore.QTimer.singleShot(0, lambda: Gui.ActiveDocument.setEdit(sk))  # once the panel is gone, one task dialog at a time
 
     def step(self, link, pt, other):
         if other is None:
@@ -467,5 +573,5 @@ class CutPanel(Gridded, Lined):
 
 BEND = ui.Command(BendPanel, "vex-bend.svg", "Bend", "Click a hole the bend goes through. It folds there by the angle, then change the line, angle or which side turns")
 CUT = ui.Command(CutPanel, "vex-cut.svg", "Cut", "Click a hole the cut goes through, across or along the part. The smaller side goes, or keep that one instead. "
-                 "Or set it to two points for a saw cut that stops wherever you want, for slots and notches")
+                 "Or set it to two points for a saw cut that stops wherever you want, for slots and notches, or sketch it for any shape")
 DRILL = ui.Command(DrillPanel, "vex-drill.svg", "Drill", "Click a spot on the metal and a round hole goes through there, snapped to the grid. Hold Shift to skip the snap")

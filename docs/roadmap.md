@@ -28,8 +28,8 @@ in build order, each one is something i can open and poke at
 - [x] U-channel inner dots in a hair, to match where a c-channel's outer ones sit. out in the gap, 0.025 a side on steel
 - [x] dots on every click-to-do tool, and a "show more" grid with a size box (drill needs it most). all six tools had dots already, drill gets Grid + Show the grid
 - [x] screw tool takes several holes on one face, then the ones across. with "auto finish" on, one click across does them all, off and its a click across for each
-- [ ] cut tool. click two points for a line, doesnt have to go all the way across (slots, notches), more pairs for more cuts. plus a sketch-it button for anything fancier
-	two points is in (Cut > Two points), kerf wide, edge dots to run off at, loose bits go. sketch it isnt yet
+- [x] cut tool. click two points for a line, doesnt have to go all the way across (slots, notches), more pairs for more cuts. plus a sketch-it button for anything fancier
+	two points is in (Cut > Two points), kerf wide, edge dots to run off at, loose bits go. Sketch it starts a live sketch on the face, closing it cuts out whats closed in it
 - [x] bend: centered on the line or next to it, and an inside radius box (vice and hammer bends are way tighter than 0.032)
 - [ ] place menu for wheels, gears and anything else with a pile of variants, same as the c-channel one (family, then type / size / whatever), only combos that exist
 - [ ] simple joint tool: spin on a hole, slide along a line, and drag a part to see it move

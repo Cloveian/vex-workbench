@@ -4,7 +4,7 @@ import os
 import FreeCAD as App
 import FreeCADGui as Gui
 
-from . import library
+from . import library, shop
 
 ICONS = os.path.join(os.path.dirname(__file__), "resources", "icons")
 
@@ -31,3 +31,6 @@ Gui.addIconPath(ICONS)
 Gui.addWorkbench(VexWorkbench())
 # at startup, placed parts in an opened file have to follow their params before the workbench is ever picked
 App.addDocumentObserver(library.Observer())
+SKETCHES = shop.Sketches()
+App.addDocumentObserver(SKETCHES)
+Gui.addDocumentObserver(SKETCHES)

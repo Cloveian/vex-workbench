@@ -46,7 +46,7 @@ The [usage guide](docs/using.md) goes through every tool.
 ### Shop work
 
 - **Bend**: click a hole and the metal folds there, across or along the part, by any angle, with VEX's 0.032" inside radius to start (down to 0 for a vise and hammer bend), next to the line or centered on it.
-- **Cut**: the same kind of line, cut to length or take a flange off. Or click two points for a saw cut that stops wherever you want, for slots and notches. Plain sawn edge.
+- **Cut**: the same kind of line, cut to length or take a flange off. Or click two points for a saw cut that stops wherever you want, for slots and notches. Or sketch any shape on the face and it's cut out, and stays editable. Plain sawn edge.
 - **Drill**: click a spot and a round hole goes through, snapped to a grid (0.25" to start, any size, and it can show a dot on every grid spot). Hold Shift for exactly where you clicked.
 - Only that one copy changes, and it still counts as the plain part in the parts list, since that's what you buy.
 
