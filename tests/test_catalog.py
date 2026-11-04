@@ -78,4 +78,17 @@ with catalog.step_file(base_steps[0]) as path:
         assert f.read(12) == b"ISO-10303-21", path
 assert not path.exists(), path
 
+# place menus: every part is one step part, shipped, with a value on every axis and no two the same
+names = [p["name"] for p in steps]
+for m in cat["menu"]:
+    picks = [tuple(p[a] for a in m["axes"]) for p in m["parts"]]
+    assert len(set(picks)) == len(picks) and all(len(set(p) - {"part"}) == len(m["axes"]) for p in m["parts"]), m["id"]
+    for p in m["parts"]:
+        assert names.count(p["part"]) == 1 and catalog.shipped(steps[names.index(p["part"])]).is_file(), p["part"]
+# the boxes only offer what goes with the picks above, a pick that doesnt fit anymore goes to the first
+wheels = next(m for m in cat["menu"] if m["id"] == "wheels")
+rows, part = catalog.narrowed(wheels, {"Type": "Mecanum", "Size": "2.75", "Kind": "V1, Right"})
+assert rows == [("Type", ["Omni", "Traction", "Mecanum"]), ("Size", ["2", "4"]), ("Kind", ["V2, Left", "V2, Right", "V1, Left", "V1, Right"])], rows
+assert part["part"] == "2\" Mecanum Wheel- Right", part
+
 print(f"ok, {len(gen)} generated, {len(steps)} step parts")

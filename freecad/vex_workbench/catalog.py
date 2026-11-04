@@ -84,6 +84,17 @@ def step_parts(cat):
     return [{**p, "folder": g["folder"]} for g in cat["group"] for p in g["parts"]]
 
 
+def narrowed(menu, picked):
+    # each axis's choices from the parts matching the picks above it, a pick that isnt in them goes to the first
+    rows, left = [], menu["parts"]
+    for axis in menu["axes"]:
+        choices = list(dict.fromkeys(p[axis] for p in left))
+        now = picked.get(axis) if picked.get(axis) in choices else choices[0]
+        rows.append((axis, choices))
+        left = [p for p in left if p[axis] == now]
+    return rows, left[0]
+
+
 def shipped(step):
     return SHIPPED / step["folder"] / (step["file"] + ".gz")
 

@@ -395,6 +395,78 @@ sizes = [
 ]
 # todo hole pattern
 
+# --- place menus ---
+# vex's own step parts picked down a few boxes, like a family but only the combos listed. part = its name in the groups below
+
+[[menu]]
+id = "wheels"
+title = "Wheels"
+axes = ["Type", "Size", "Kind"]
+parts = [
+  { Type = "Omni", Size = "2", Kind = "Standard", part = "2” Omni-Directional Wheel" },
+  { Type = "Omni", Size = "2.75", Kind = "Anti-Static", part = "2.75\" (220mm Travel) Omni-Directional Anti-Static Wheel" },
+  { Type = "Omni", Size = "3.25", Kind = "Anti-Static", part = "3.25\" (260mm Travel) Omni-Directional Anti-Static Wheel" },
+  { Type = "Omni", Size = "4", Kind = "Anti-Static", part = "4\" (320mm Travel) Omni-Directional Anti-Static Wheel" },
+  { Type = "Traction", Size = "2.75", Kind = "Anti-Static", part = "2.75\" (220mm Travel) Anti-Static Wheel" },
+  { Type = "Traction", Size = "2.75", Kind = "Legacy", part = "2.75\" Wheel" },
+  { Type = "Traction", Size = "3.25", Kind = "Anti-Static", part = "3.25\" (260mm Travel) Anti-Static Wheel" },
+  { Type = "Traction", Size = "4", Kind = "Anti-Static", part = "4\" (320mm Travel) Anti-Static Wheel (2-Pack)" },
+  { Type = "Traction", Size = "4", Kind = "Legacy", part = "4\" Wheel" },
+  { Type = "Traction", Size = "4", Kind = "Legacy, HS Bore", part = "4\" Wheel (High Strength Bore)" },
+  { Type = "Mecanum", Size = "2", Kind = "V2, Left", part = "2” Mecanum Wheels V2 (Left)" },
+  { Type = "Mecanum", Size = "2", Kind = "V2, Right", part = "2” Mecanum Wheels V2 (Right)" },
+  { Type = "Mecanum", Size = "2", Kind = "V1, Left", part = "2\" Mecanum Wheel- Left" },
+  { Type = "Mecanum", Size = "2", Kind = "V1, Right", part = "2\" Mecanum Wheel- Right" },
+  { Type = "Mecanum", Size = "4", Kind = "Standard", part = "4\" Mecanum Wheel" },
+]
+
+[[menu]]
+id = "gears"
+title = "Gears"
+axes = ["Type", "Teeth"]
+parts = [
+  { Type = "High Strength v2", Teeth = "24", part = "24T High Strength Gear v2" },
+  { Type = "High Strength v2", Teeth = "36", part = "36T High Strength Gear v2 (8-pack)" },
+  { Type = "High Strength v2", Teeth = "48", part = "48T High Strength Gear v2 (8-Pack)" },
+  { Type = "High Strength v2", Teeth = "60", part = "60T High Strength Gear v2 (8-pack)" },
+  { Type = "High Strength v2", Teeth = "72", part = "72T High Strength Gear v2 (6-Pack)" },
+  { Type = "High Strength v2", Teeth = "84", part = "84T High Strength Gear v2 (4-pack)" },
+  { Type = "High Strength v1", Teeth = "12", part = "12T High Strength Metal Pinion" },
+  { Type = "High Strength v1", Teeth = "36", part = "36T High Strength Gear" },
+  { Type = "High Strength v1", Teeth = "60", part = "60T High Strength Gear" },
+  { Type = "High Strength v1", Teeth = "84", part = "84T High Strength Gear" },
+  { Type = "Low Strength", Teeth = "12", part = "12T Gear" },
+  { Type = "Low Strength", Teeth = "12, Metal", part = "12T Metal Gear" },
+  { Type = "Low Strength", Teeth = "36", part = "36T Gear" },
+  { Type = "Low Strength", Teeth = "60", part = "60T Gear" },
+  { Type = "Low Strength", Teeth = "84", part = "84T Gear" },
+  { Type = "Bevel", Teeth = "16", part = "16t Bevel Gear" },
+  { Type = "Bevel", Teeth = "24", part = "24T Bevel Gear" },
+  { Type = "Bevel", Teeth = "32", part = "32t Bevel Gear" },
+]
+
+[[menu]]
+id = "sprockets"
+title = "Sprockets"
+axes = ["Chain", "Teeth", "Bore"]
+parts = [
+  { Chain = "6P", Teeth = "8", Bore = "Standard", part = "8T Sprocket, 6P" },
+  { Chain = "6P", Teeth = "16", Bore = "Standard", part = "16T Sprocket, 6P" },
+  { Chain = "6P", Teeth = "24", Bore = "Standard", part = "24T Sprocket, 6P" },
+  { Chain = "6P", Teeth = "32", Bore = "Standard", part = "32T Sprocket, 6P" },
+  { Chain = "6P", Teeth = "40", Bore = "Standard", part = "40T Sprocket, 6P" },
+  { Chain = "9P (High Strength)", Teeth = "6", Bore = "Standard", part = "6T High Strength Sprocket" },
+  { Chain = "9P (High Strength)", Teeth = "6", Bore = "HS", part = "6T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "12", Bore = "Standard", part = "12T High Strength Sprocket" },
+  { Chain = "9P (High Strength)", Teeth = "12", Bore = "HS", part = "12T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "18", Bore = "Standard", part = "18T High Strength Sprocket" },
+  { Chain = "9P (High Strength)", Teeth = "18", Bore = "HS", part = "18T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "24", Bore = "Standard", part = "24T High Strength Sprocket" },
+  { Chain = "9P (High Strength)", Teeth = "24", Bore = "HS", part = "24T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "30", Bore = "Standard", part = "30T High Strength Sprocket" },
+  { Chain = "9P (High Strength)", Teeth = "30", Bore = "HS", part = "30T High Strength Sprocket (HS Bore)" },
+]
+
 # --- step parts ---
 # vex-step/{folder}/{file}, one [[group]] per folder
 

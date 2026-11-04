@@ -38,6 +38,18 @@ def index():
     return families, generated, steps
 
 
+@functools.cache
+def menus():
+    # id -> [[menu]], just the parts whose step is here, each with its folder/file key
+    steps = index()[2]
+    named = {p["name"]: k for k, p in steps.items()}
+    out = {}
+    for m in cat()["menu"]:
+        here = [dict(p, key=named[p["part"]]) for p in m["parts"]]
+        out[m["id"]] = dict(m, parts=[p for p in here if catalog.has(steps[p["key"]])])
+    return out
+
+
 def label(choice):
     vals = []
     for v in choice.values():

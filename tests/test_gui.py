@@ -105,6 +105,22 @@ try:
     w.tree.setCurrentItem(fam)
     got = {p: b.currentText() for p, b in w.combos.items()}
     assert got == {"Material": "Steel", "Size": "2", "Holes": "25"}, got
+    # a menu, picking Mecanum leaves just its sizes and kinds. a search starts on the part it finds
+    w.search.setText("")
+    wheels = w.tree.findItems("Wheels", QtCore.Qt.MatchExactly)[0]
+    w.tree.setCurrentItem(wheels)
+    w.combos["Type"].setCurrentText("Mecanum")
+    assert [w.combos["Size"].itemText(i) for i in range(w.combos["Size"].count())] == ["2", "4"]
+    w.combos["Kind"].setCurrentText("V1, Right")
+    w.place()
+    got = Gui.Selection.getSelection()[0]
+    assert got.Label == "2\" Mecanum Wheel- Right" and got.VexStep.endswith("(217-7400).step"), got.Label
+    w.search.setText("hs bore 18t")
+    sprockets = w.tree.findItems("Sprockets", QtCore.Qt.MatchExactly)[0]
+    assert not sprockets.isHidden()
+    w.tree.setCurrentItem(sprockets)
+    got = {p: b.currentText() for p, b in w.combos.items()}
+    assert got == {"Chain": "9P (High Strength)", "Teeth": "18", "Bore": "HS"}, got
     w.search.setText("")
 
     # a click on the second element of a link array lands on that element's hole
