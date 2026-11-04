@@ -177,13 +177,16 @@ def place(doc, part, parent=None):
     if "file" in part:
         link.addProperty("App::PropertyString", "VexStep", "VEX")
         link.VexStep = f"{part['folder']}/{part['file']}"
-        menu = next((m for m in menus().values() if any(p["key"] == link.VexStep for p in m["parts"])), None)
-        if menu:
-            # a wheel from the folders gets the boxes too
-            boxes(link, menu, next(p for p in menu["parts"] if p["key"] == link.VexStep))
+        # a wheel from the folders gets the boxes too
+        for menu in menus().values():
+            mine = [p for p in menu["parts"] if p["key"] == link.VexStep]
+            if not mine:
+                continue
+            boxes(link, menu, mine[0])
             link.addProperty("App::PropertyString", "VexMenu", "VEX")
             link.VexMenu = menu["id"]
             link.setPropertyStatus("VexMenu", "ReadOnly")
+            break
     else:
         family = index()[0][part["family"]]
         now = picks(family, part)

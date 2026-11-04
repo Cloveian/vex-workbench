@@ -27,7 +27,7 @@ The [usage guide](docs/using.md) goes through every tool.
   - C-channel, U-channel, angles (including 1x1s cut down from 3x channel), plates and bars, every length up to 35 holes (20 for U-channel), with the bends, count notches and bend reliefs
   - LS, HS and pitch shafts, standoffs, spacers and washers
   - star (Torx) and hex screws from 0.25 to 2.5 in, Robosource shoulder screws, the thin nylock, and nuts in other materials
-- **VEX's own STEP files** for everything else (motors, wheels, gears, sensors, electronics), with their colors. They ship with the workbench. Wheels, gears and sprockets also get a pick-down menu (type, size, teeth and so on) that only offers parts that exist.
+- **VEX's own STEP files** for everything else (motors, wheels, gears, sensors, electronics), with their colors. They ship with the workbench. Wheels, gears and sprockets also get a pick-down menu (type, size, teeth and so on) that only offers parts that exist, and a placed one can swap to another in place.
 - **Editable placed parts**: change Holes or Size on a placed part and only that one changes. The same part placed 40 times is one model and 40 links.
 
 ### Putting a robot together
