@@ -240,27 +240,37 @@ def place(doc, part, parent=None):
 
 def boxes(link, menu, part):
     # a menu's axes as properties on a placed copy, each with just the choises that go with the ones above it
-    for axis, choices in catalog.narrowed(menu, part)[0]:
-        if not hasattr(link, axis):
-            link.addProperty("App::PropertyEnumeration", axis, "VEX")
-        setattr(link, axis, choices)
-        setattr(link, axis, part[axis])
+    BUSY.add((link.Document.Name, link.Name))  # setting a list jumps it to the first choice, the observer would chase that
+    try:
+        for axis, choices in catalog.narrowed(menu, part)[0]:
+            if not hasattr(link, axis):
+                link.addProperty("App::PropertyEnumeration", axis, "VEX")
+            setattr(link, axis, choices)
+            setattr(link, axis, part[axis])
+    finally:
+        BUSY.discard((link.Document.Name, link.Name))
 
 
 def remenu(link):
     # a box changed on a menu part, onto the part the boxes land on now
     menu = menus()[link.VexMenu]
     part = catalog.narrowed(menu, {a: getattr(link, a) for a in menu["axes"]})[1]
-    BUSY.add((link.Document.Name, link.Name))
-    try:
-        boxes(link, menu, part)  # setting a list jumps it to the first choice, the observer would chase that
-    finally:
-        BUSY.discard((link.Document.Name, link.Name))
     if part["key"] != link.VexStep:
-        was = link.LinkedObject
-        link.VexStep = part["key"]
-        retarget(link)
-        carry(link, was)
+        restep(link, part["key"])  # boxes and all
+    else:
+        boxes(link, menu, part)
+
+
+def restep(link, key):
+    # a placed step part onto another step, frames and joints carried over, its menu boxes along
+    was = link.LinkedObject
+    link.VexStep = key
+    retarget(link)
+    carry(link, was)
+    menu = menus().get(getattr(link, "VexMenu", ""))
+    part = menu and next((p for p in menu["parts"] if p["key"] == key), None)
+    if part:
+        boxes(link, menu, part)
 
 
 def variant(family, picked):

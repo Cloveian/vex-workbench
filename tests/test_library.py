@@ -202,7 +202,7 @@ side.Placement = App.Placement(App.Vector(0, 4, 0) * IN, App.Rotation(15, 0, 0))
 doc.recompute()
 before = set(doc.Objects)
 m = duplicate.reflection(App.Vector(IN, 0, 0), App.Vector(1, 0, 0))
-assert duplicate.duplicate([side], mirror=m) == []
+assert duplicate.duplicate([side], mirror=m) == ([], [])
 new = [o for o in doc.Objects if o not in before]
 assert not any(o.TypeId == "App::Part" and hasattr(o, "VexName") for o in new), "copied a source"
 copy = next(o for o in new if o.TypeId == "App::Part")
@@ -217,10 +217,18 @@ duplicate.duplicate([ch], turn=turn)
 cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
 want = sorted(tuple(round(x, 3) for x in turn.multVec(App.Vector(*p))) for p in corners(ch))
 assert corners(cp) == want and cp.getParentGeoFeatureGroup() == side
-# a mecanum is handed, it comes back named
-mec = library.place(doc, steps["Motion/Wheels/Mecanum Wheels/2 Inch/V1/Right/2 Mecanum Wheel- Right (217-7400).step"])
+# a V2 mecanum's copy is the other hand, right where its mirror image is. a motor has no other hand, its only turned
+mec = library.place(doc, next(p for p in steps.values() if p["name"] == "2” Mecanum Wheels V2 (Left)"))
+mec.Placement = App.Placement(App.Vector(4, 2, 1) * IN, App.Rotation(40, 0, 70))
+motor = library.place(doc, steps["Electronics/V5 Smart Motor (276-4840).step"])
 doc.recompute()
-assert duplicate.duplicate([mec], mirror=m) == [mec.Label]
+before = set(doc.Objects)
+assert duplicate.duplicate([mec, motor], mirror=m) == ([mec.Label], [motor.Label])
+cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o) and "Mecanum" in o.Label)
+assert cp.Label == "2” Mecanum Wheels V2 (Right)" and cp.Kind == "V2, Right", (cp.Label, cp.Kind)
+have = [App.Vector(*p) for p in corners(cp)]
+off = max(min((m.multVec(App.Vector(*p)) - q).Length for q in have) for p in corners(mec))
+assert off < 0.01, off  # mm
 
 App.closeDocument(doc.Name)
 print("ok")

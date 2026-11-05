@@ -1,4 +1,6 @@
 # duplicate tool. a copy of the picked parts or groups, mirrored across a plane or turned about an axis. parts only ever get turned, so they stay real parts
+import re
+
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
@@ -52,6 +54,23 @@ def under(obj):
     return out
 
 
+def other_hand(link):
+    # step key of a Left part's Right one or the other way, None for anything else
+    if not hasattr(link, "VexStep"):
+        return None
+    steps = library.index()[2]
+    name = steps[link.VexStep]["name"]
+    flip = re.sub("Left|Right", lambda m: "Right" if m[0] == "Left" else "Left", name)
+    return next((k for k, p in steps.items() if p["name"] == flip and flip != name), None)
+
+
+def hands(a, b):
+    # reflection taking hand a onto hand b, across the plane square to the axle halfway between them. exact on the V2 mecanums, vex's V1 ones dont quiet match
+    box = a.BoundBox
+    size = [box.XLength, box.YLength, box.ZLength]
+    return reflection((box.Center + b.BoundBox.Center) * 0.5, list(AXES.values())[size.index(min(size))])
+
+
 def frame(o):
     # world placement of what ever o sits in
     p = o.getParentGeoFeatureGroup()
@@ -59,9 +78,10 @@ def frame(o):
 
 
 def duplicate(objs, mirror=None, turn=None):
-    # copies of objs next to them, every vex part mirrored with mirror (a reflection matrix) or turned with turn (a placement). labels of the handed ones back
+    # copies of objs next to them, every vex part mirrored with mirror (a reflection matrix) or turned with turn (a placement)
+    # labels back of the handed ones that went to their other hand, and the ones with none that only got turned
     doc = objs[0].Document
-    handed = []
+    swapped, handed = [], []
     objs = [o for o in objs if not any(up in objs for up in o.InListRecursive)]  # a part in a picked group comes with it
     for obj in objs:
         if not (vex(obj) or obj.TypeId in GROUPS):
@@ -80,7 +100,12 @@ def duplicate(objs, mirror=None, turn=None):
                 continue
             src = was.LinkedObject
             own = library.cached(src, own_mirror)
-            if own is None:
+            flip = own is None and other_hand(was)
+            if flip:
+                library.restep(cp, flip)
+                swapped.append(was.Label)
+                own = hands(Part.getShape(src), Part.getShape(cp.LinkedObject))
+            elif own is None:
                 handed.append(was.Label)
                 own = reflection(Part.getShape(src).BoundBox.Center, AXES["Z"])  # turned to where the mirror would be, still the same hand
             # two reflections make a turn, so the part comes out real and in the mirror spot
@@ -88,7 +113,7 @@ def duplicate(objs, mirror=None, turn=None):
             if cp.ElementCount:
                 cp.PlacementList = [Placement(own.multiply(e.toMatrix()).multiply(own)) for e in was.PlacementList]
     doc.recompute()
-    return handed
+    return swapped, handed
 
 
 class Panel:
@@ -140,10 +165,13 @@ class Panel:
         if got is None:
             return
         Gui.Selection.clearSelection()
-        said = f"copied {len(objs)}"
-        if got:
-            said += f". {', '.join(got)} {'is' if len(got) == 1 else 'are'} handed, so turned into place but not mirrored"
-        self.status.setText(said)
+        swapped, handed = got
+        said = [f"copied {len(objs)}"]
+        if swapped:
+            said.append(f"{', '.join(swapped)} went to the other hand")
+        if handed:
+            said.append(f"{', '.join(handed)} only turned into place, there's no other hand of {'it' if len(handed) == 1 else 'them'}")
+        self.status.setText(". ".join(said))
 
     def getStandardButtons(self):
         return QtWidgets.QDialogButtonBox.Close

@@ -36,7 +36,7 @@ in build order, each one is something i can open and poke at
 - [ ] simple joint tool: spin on a hole, slide along a line, and drag a part to see it move
 	spin is Align's Revolute, slide is Align > Slide along to another hole (a Slider, length limits on the two holes). drag is the assembly's own. a plain solve ignores the limits, still need to see if a real drag stops on them
 - [x] duplicate a sub-assembly, mirrorred across a plane or turned about an axis. parts get turned, not mirrored, so they stay real parts
-	Duplicate tool. each part goes through world mirror x placement x a mirror across one of its own middle planes (found off its vertices), two reflections = a turn. handed ones (mecanum, motors) get named, not swapped. joints dont come along
+	Duplicate tool. each part goes through world mirror x placement x a mirror across one of its own middle planes (found off its vertices), two reflections = a turn. mecanums swap to the other hand, other handed ones (motors) get turned and named. joints dont come along
 - [ ] real colors and materials on every vex part
 	wheels repainted off vex's library photos (hub / rim), FreeCAD material cards on everything with a material, 24T HS gear is steel per the store. left: the 2" omni and V2 2" mecanum colors, and wheel materials, the store's wheels page has no material tab
 - [x] weight for the step parts too, vex's listed mass where there is one, an estimate where there isnt
