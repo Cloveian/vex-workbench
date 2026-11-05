@@ -9,6 +9,18 @@
 - Duplicate: mirror or turn a copy. a mirror is world reflection \* placement \* the part's own middle-plane reflection, two reflections = a turn, so a channel lands exactly on its mirror image and is still a channel. the own plane comes off the vertices. mecanums swap to the other hand, the V2s exactly, vex's V1 left and right models arent even mirrors of each other so those are close-ish. motors just get named
 - a link forwards getattr to what it links, so `hasattr(link, "VexName")` is true on every copy. bit a test, *bleh*
 
+## 2026-11-02 to 11-04 - the list from actually using it
+
+- hole dots are their own ovirlay, drawn over solids, with my own picking: anything within about 14 px of a dot gets it, the one facing you wins. freecad selects on the mouse release, which my callback never sees, so every dot click also picked the edge under it. any selection right after a dot press gets thrown out now. hidpi and a spreadsheet tab in front of the 3d view sorted too
+- round holes get dots (shaft holes on gears, wheels, sprockets, the 5.5W output, bigger round holes in metal, drilled ones). screw_holes stopped being true, so its hole_dots
+- U-channel inner dots sit out in the gap, so a c-channel aligned in there lands centered. half the tests were quietly testing my addon manager install and not the repo
+- parts.toml takes "5/16" and "29 mm". aluminum is 0.062 in some places and 0.063 in others, and past_bend could come off the thickness, both left for later
+- drill grid any size, with a dot on every grid spot if you want. the front and back faces had different grids so a hole from the back didnt match one from the front
+- bends get an inside radius box (down to 0, vice and hammer) and can sit next to the line or centered on it
+- screw a row: pick holes on the head side, one click across does them all with auto finish on
+- cut: two points for a kerf wide cut that stops anywhere (slots, notches), the count notches tried to eat the edge dots. and Sketch it, a live sketch on the face that cuts out whats closed in it, edit it and the cut redoes, delete it and the metal comes back. only one task dialog at a time, so the cut panel closes itself first
+- place menus for wheels, gears and sprockets (`[[menu]]`), only combos that exist, and a placed one keeps the boxes and swaps in place. a box reset the boxes under it which changed the part again, BUSY stops it chasing its tail
+
 ## 2026-11-01 - cutting, drilling, presentable
 
 - Cut works on the same lines as Bend: through a hole, across or along, slid over. metal.cut() is fold() without the fold, the same split (only whats cut off the clicked wall goes, a far flange the plane slices stays). sawn edge, no notches. slide 0.25 from a flange's hole row onto the web and the flange comes off flush, do both flanges and the web finally folds toward where they were
