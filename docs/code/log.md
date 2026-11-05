@@ -1,5 +1,14 @@
 # Log
 
+## 2026-11-04 - weights, slides, wheels, mirrors
+
+- step parts weigh something now. 20 off vex's listed masses (motors 155 g, brain 285 g, the pneumatic cylinders), the rest volume \* density off a material per folder (`[step_material]`) and a ~ in the parts list. vex's product pages 403 anything that isnt a person, playwright included, so the numbers came out of search snippets and the materials off pages saved by hand. the battery is 0.62 lb off the store, the KB says 350 g which is just the controller's number copy pasted
+- Align > Slide along to another hole: a third click down the rail and the Revolute becimes a Slider, frames turned so z runs hole to hole, length limits on both holes. a plain `asm.solve()` ignores the limits completely (bar went 6" up a 2" rail), so whether a real drag stops on them is still a ?
+- wheels repainted off the photos in vex's library article, most of their steps had no color and a couple were cad green and red. rim = solids there are 3+ of or out past half the radius, hub the rest. the 2" mecanum also has 2 loose shells of 4000 specks of faces that the solids didnt cover. rendered offscreen with `LIBGL_ALWAYS_SOFTWARE=1` and they look right
+- FreeCAD material cards on everything with a material (Steel-Generic, Aluminum-6061-T6, PA6, POM, PTFE), set before the colors and they dont touch them
+- Duplicate: mirror or turn a copy. a mirror is world reflection \* placement \* the part's own middle-plane reflection, two reflections = a turn, so a channel lands exactly on its mirror image and is still a channel. the own plane comes off the vertices. mecanums swap to the other hand, the V2s exactly, vex's V1 left and right models arent even mirrors of each other so those are close-ish. motors just get named
+- a link forwards getattr to what it links, so `hasattr(link, "VexName")` is true on every copy. bit a test, *bleh*
+
 ## 2026-11-01 - cutting, drilling, presentable
 
 - Cut works on the same lines as Bend: through a hole, across or along, slid over. metal.cut() is fold() without the fold, the same split (only whats cut off the clicked wall goes, a far flange the plane slices stays). sawn edge, no notches. slide 0.25 from a flange's hole row onto the web and the flange comes off flush, do both flanges and the web finally folds toward where they were
