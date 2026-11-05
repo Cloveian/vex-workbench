@@ -37,6 +37,7 @@ in build order, each one is something i can open and poke at
 	spin is Align's Revolute, slide is Align > Slide along to another hole (a Slider, length limits on the two holes). drag is the assembly's own. a plain solve ignores the limits, still need to see if a real drag stops on them
 - [ ] duplicate a sub-assembly, mirrorred across a plane or turned about an axis. parts get turned, not mirrored, so they stay real parts
 - [ ] real colors and materials on every vex part
+	wheels repainted off vex's library photos (hub / rim), FreeCAD material cards on everything with a material, 24T HS gear is steel per the store. left: the 2" omni and V2 2" mecanum colors, and wheel materials, the store's wheels page has no material tab
 - [x] weight for the step parts too, vex's listed mass where there is one, an estimate where there isnt
 	20 listed (electronics, flywheel weight, pneumatics), the rest off a material per folder from vex's store pages. wheels, inserts, kits and the small pneumatic fittings still a ?
 

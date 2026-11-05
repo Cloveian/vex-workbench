@@ -24,6 +24,12 @@ Steel = [0.55, 0.57, 0.60]
 Nylon = [0.93, 0.92, 0.86]
 Red = [0.80, 0.10, 0.12]
 Blue = [0.10, 0.25, 0.75]
+# wheels, off the photos in vex's library article on v5 wheels
+Black = [0.13, 0.13, 0.14]
+"Dark Grey" = [0.25, 0.26, 0.27]
+Grey = [0.47, 0.48, 0.49]
+"Light Grey" = [0.82, 0.82, 0.80]
+"Dark Green" = [0.20, 0.36, 0.22]
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -32,6 +38,15 @@ Nylon = 1.14
 Acetal = 1.41
 "Glass-Filled Nylon" = 1.37
 PTFE = 2.20
+
+# uuid of FreeCAD's closest standard material card for each, theres no PA66 or glass filled one. weights still go off [density]
+[freecad_material]
+Aluminum = "68b152b2-fd5e-4f10-8db0-1a2df3fe0fda" # Aluminum-6061-T6
+Steel = "90bbd8ef-8623-4d78-b3bf-e0bdb9b74dd3" # Steel-Generic
+Nylon = "9d59dc3b-ce66-4bec-82c9-b962082e7c9e" # PA6-Generic
+Acetal = "6d31c041-f189-4715-9911-f52e6de00bef" # POM-Copolymer-Generic
+"Glass-Filled Nylon" = "9d59dc3b-ce66-4bec-82c9-b962082e7c9e" # PA6-Generic
+PTFE = "8ce226db-43ef-4471-93f1-07e7276aa276" # PTFE-Generic
 
 # step parts with no listed mass get volume * density off this, longest folder wins. materials off vex's store pages and robosource, "plastic" counts as nylon
 # no wheels, inserts or electronics, theyre more than one thing. those get a mass = "..." on the row or a ?
@@ -58,6 +73,18 @@ PTFE = 2.20
 "Structure/Brackets" = "Steel"
 "Structure/Gussets" = "Steel"
 "Structure/Steel" = "Steel"
+
+# wheels repainted over their step colors (none, or green and red cad colors). rim = tread and rollers, hub the rest
+# no 2" omni (no photo of it) or V2 2" mecanum, thats one solid
+[step_paint]
+"Motion/Wheels/Mecanum Wheels/2 Inch/V1" = { hub = "Black", rim = "Light Grey" }
+"Motion/Wheels/Mecanum Wheels/4 Inch" = { hub = "Dark Grey", rim = "Dark Green" }
+"Motion/Wheels/Omni Wheels/2.75 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }
+"Motion/Wheels/Omni Wheels/3.25 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }
+"Motion/Wheels/Omni Wheels/4 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }
+"Motion/Wheels/Traction Wheels/2.75 Inch/Antistatic" = { hub = "Black", rim = "Grey" }
+"Motion/Wheels/Traction Wheels/3.25 Inch/Antistatic" = { hub = "Black", rim = "Grey" }
+"Motion/Wheels/Traction Wheels/4 Inch/Antistatic" = { hub = "Black", rim = "Grey" }
 
 # generated parts
 

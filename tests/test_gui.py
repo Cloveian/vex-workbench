@@ -116,6 +116,9 @@ try:
     w.place()
     got = Gui.Selection.getSelection()[0]
     assert got.Label == "2\" Mecanum Wheel- Right" and got.VexStep.endswith("(217-7400).step"), got.Label
+    # repainted over its step colors, light grey rollers on black
+    shades = {tuple(round(v, 2) for v in c[:3]) for c in got.LinkedObject.Group[0].ViewObject.DiffuseColor}
+    assert shades == {(0.13, 0.13, 0.14), (0.82, 0.82, 0.8)}, shades
     # it has the boxes too, a new Type swaps it in place and the boxes under narrow to match
     assert (got.Type, got.Size, got.Kind) == ("Mecanum", "2", "V1, Right") and got.getEnumerationsOfProperty("Size") == ["2", "4"]
     got.Type = "Omni"

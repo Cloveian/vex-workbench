@@ -55,6 +55,7 @@ how its laid out:
 - `[[family]]` for each generated thing. `title` is what the browser shows, `name` and `folder` are templates filled from the params (`"1x{width}x1x{holes} {material} C-Channel"`). a param is a list or a `{ from, to, step }` range, every combo is a part. a list of tables is rows, one part each (the washers, the drilled gears). `fixtures` = the vex steps it has to match. `base` = a step it's made out of (the thin nylock is the vex nylock with the plain end shaved down to 11/64)
 - `[[menu]]` after the families, for step parts with a pile of variants (wheels, gears, sprockets). `axes` are the boxes in order, and each row in `parts` has a value for every axis plus `part`, the step part's name. no cross product, just the rows, so only real parts show up
 - after `# --- step parts ---`, one `[[group]]` per folder with `{ sku, name, file }` rows, plus vex's listed `mass` or a `material` on the ones that have one. the 15 pneumatics parts have no sku. `[step_material]` up top gives the rest a material by folder, longest folder wins
+- `[step_paint]` repaints wheels the same way by folder, `{ hub, rim }` color names. rim is any solid there are 3+ of (rollers) or one sitting out past half the radius (a tread). `[freecad_material]` maps each material to the uuid of FreeCAD's closest standard card
 
 `size` is a shaft's width, `length` is a length (the shoulder screws have `[screw length, shoulder length]` pairs), `sizes` is rows, `from` is only ever a range start
 

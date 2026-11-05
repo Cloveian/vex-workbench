@@ -1,4 +1,5 @@
 # vex parts in a document. one hidden source per variant, every placed copy is a plain App::Link to it
+import collections
 import functools
 import json
 
@@ -102,6 +103,27 @@ def colored(path):
             App.setActiveDocument(active.Name)
 
 
+def painted(s, paint, faces):
+    # face colors for a wheel off its hub and rim, over the step's own faces (or None)
+    b = s.BoundBox
+    size = [b.XLength, b.YLength, b.ZLength]
+    k = size.index(min(size))  # thin way through it = the axle
+    axis = Vector(*(float(i == k) for i in range(3)))
+    line = Part.makeLine(b.Center - axis * size[k], b.Center + axis * size[k])
+    pieces = list(s.Solids)
+    inside = {f.hashCode() for x in pieces for f in x.Faces}
+    pieces += [sh for sh in s.Shells if sh.Faces[0].hashCode() not in inside]  # the 2" mecanum has 2 loose ones, 4000 specks of faces
+    copies = collections.Counter(round(x.Volume, 1) for x in pieces)
+    rgb = {}
+    for x in pieces:
+        # rollers come 3+ alike, a tread is one piece but out past half the raduis. mecanum rollers lean in too far for that
+        rim = copies[round(x.Volume, 1)] >= 3 or x.distToShape(line)[0] > max(size) / 4
+        c = tuple(cat()["colors"][paint["rim" if rim else "hub"]])
+        rgb.update((f.hashCode(), c) for f in x.Faces)
+    faces = faces or [(0.8, 0.8, 0.8)] * len(s.Faces)
+    return [rgb.get(f.hashCode(), old) for f, old in zip(s.Faces, faces)]
+
+
 def group(doc):
     g = doc.getObject(GROUP)
     if g is None:
@@ -128,6 +150,8 @@ def source(doc, part, steps=()):
         s, faces = worked(doc, part, steps), None  # vex's face colors dont survive the steps
     else:
         s, faces = shape(part)  # first, or no generator leaves an empty source behind
+        if part.get("paint") and App.GuiUp:
+            faces = painted(s, part["paint"], faces)
     src = doc.addObject("App::Part", "VexPart")
     src.Label = f"{name} source" + (", worked" if steps else "")  # the placed copies get the plain name
     src.addProperty("App::PropertyString", "VexName", "VEX")
@@ -149,6 +173,10 @@ def source(doc, part, steps=()):
             # one density for a whole step part
             src.addProperty("App::PropertyBool", "VexGuess", "VEX")
             src.VexGuess = True
+    if made in cat()["freecad_material"]:
+        # before the colors, a material can bring its own look
+        import Materials
+        solid.ShapeMaterial = Materials.MaterialManager().getMaterial(cat()["freecad_material"][made])
     color = cat()["colors"].get(p.get("color", p.get("material")))
     paint = "heads" in p and p["heads"].get(f"{p['length']:.3f}")
     if paint:

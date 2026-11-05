@@ -101,7 +101,15 @@ for p in steps:
     assert re.fullmatch(r"\d+(\.\d+)? (g|lb)", p.get("mass", "0 g")), p["name"]
 by_name = {p["name"]: p for p in steps}
 assert by_name["Star Drive Shaft Collar"]["material"] == "Steel" and by_name["Rubber Shaft Collar"]["material"] is None
-assert catalog.made_of(cat, "Motion/Sprockets/6P/8T") == "Steel" and catalog.made_of(cat, "Motion/Sprockets/9P/12T") == "Acetal"
-assert catalog.made_of(cat, "Motion/Wheels") is None
+assert set(cat["freecad_material"]) == set(cat["density"]) and all(re.fullmatch(r"[0-9a-f-]{36}", u) for u in cat["freecad_material"].values())
+mat = cat["step_material"]
+assert catalog.by_folder(mat, "Motion/Sprockets/6P/8T") == "Steel" and catalog.by_folder(mat, "Motion/Sprockets/9P/12T") == "Acetal"
+assert catalog.by_folder(mat, "Motion/Wheels") is None
+
+# wheel paint: every [step_paint] folder has parts, its hub and rim are colors
+for f, paint in cat["step_paint"].items():
+    assert any(g == f or g.startswith(f + "/") for g in folders) and set(paint) == {"hub", "rim"}, (f, paint)
+    assert all(c in cat["colors"] for c in paint.values()), (f, paint)
+assert by_name["4\" Mecanum Wheel"]["paint"] == {"hub": "Dark Grey", "rim": "Dark Green"}, by_name["4\" Mecanum Wheel"]["paint"]
 
 print(f"ok, {len(gen)} generated, {len(steps)} step parts")

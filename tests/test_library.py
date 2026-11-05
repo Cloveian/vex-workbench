@@ -126,6 +126,18 @@ collar = library.place(doc, steps["Motion/Collars/Rubber Shaft Collar (228-3510)
 doc.recompute()
 assert Part.getShape(w).Volume > 0
 
+# wheels repainted: omni rollers light grey on a black hub, a traction tread grey
+colors = library.cat()["colors"]
+for f, hub, rim in [("Omni Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Omni-Directional Anti-Static Wheel (276-8106).step", "Black", "Light Grey"),
+                    ("Traction Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Anti-Static Wheel (276-8098).step", "Black", "Grey")]:
+    wheel = steps["Motion/Wheels/" + f]
+    s, _ = library.shape(wheel)
+    got = dict(zip((x.hashCode() for x in s.Faces), library.painted(s, wheel["paint"], None)))
+    big = max(s.Solids, key=lambda x: x.Volume)
+    biggest = hub if "Omni" in f else rim  # the omni hub outweighs a roller, a traction tread outweighs its hub
+    assert {got[x.hashCode()] for x in big.Faces} == {tuple(colors[biggest])}, f
+    assert {got[x.hashCode()] for x in s.Faces} == {tuple(colors[hub]), tuple(colors[rim])}, f
+
 # weights and the parts list. step parts get vex's listed mass, a guess off the folder's material, or nothing
 from freecad.vex_workbench import partslist  # noqa: E402
 
@@ -136,6 +148,9 @@ washer = w.LinkedObject
 assert washer.VexGuess and abs(washer.VexMass.getValueAs("g").Value - Part.getShape(washer).Volume * 7.85 / 1000) < 1e-6
 assert radio.LinkedObject.VexMass.getValueAs("g").Value == 25 and not hasattr(radio.LinkedObject, "VexGuess")
 assert not hasattr(collar.LinkedObject, "VexMass")
+# and FreeCAD's own material card, the one off its density table name
+assert [o.LinkedObject.Group[0].ShapeMaterial.Name for o in (a, w)] == ["Steel-Generic", "Steel-Generic"]
+assert collar.LinkedObject.Group[0].ShapeMaterial.Name == "Default"
 counts = partslist.count(doc)
 assert [row[0] for row in counts.values()] == [1] * 6 and counts[collar.Label][1] is None, counts
 sheet = partslist.fill(doc)
