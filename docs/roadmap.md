@@ -34,6 +34,7 @@ in build order, each one is something i can open and poke at
 - [x] place menu for wheels, gears and anything else with a pile of variants, same as the c-channel one (family, then type / size / whatever), only combos that exist
 	Wheels, Gears and Sprockets, a `[[menu]]` in `parts.toml` each. a placed one gets the boxes as properties too and swaps in place
 - [ ] simple joint tool: spin on a hole, slide along a line, and drag a part to see it move
+	spin is Align's Revolute, slide is Align > Slide along to another hole (a Slider, length limits on the two holes). drag is the assembly's own. a plain solve ignores the limits, still need to see if a real drag stops on them
 - [ ] duplicate a sub-assembly, mirrorred across a plane or turned about an axis. parts get turned, not mirrored, so they stay real parts
 - [ ] real colors and materials on every vex part
 - [x] weight for the step parts too, vex's listed mass where there is one, an estimate where there isnt

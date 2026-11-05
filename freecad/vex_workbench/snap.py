@@ -120,19 +120,24 @@ def inside(parent):
     return local, parent if parent and parent.isDerivedFrom("Assembly::AssemblyObject") else None
 
 
-def revolute(asm, r1, r2, gap=0, spin=0):
-    # spins on the hole axis, r2 frame held gap mm back from r1 and turned spin deg
+def joint(asm, kind, r1, r2, off1=App.Placement(), off2=App.Placement()):
+    # kind like "Revolute" or "Slider". offsets go in before the conectors or the presolve misses them
     import JointObject
     import UtilsAssembly
     if r1 is None or r2 is None:
         return None
     j = UtilsAssembly.getJointGroup(asm).newObject("App::FeaturePython", "Joint")
-    JointObject.Joint(j, JointObject.JointTypes.index("Revolute"))
+    JointObject.Joint(j, JointObject.JointTypes.index(kind))
     if j.ViewObject:
         JointObject.ViewProviderJoint(j.ViewObject)
-    j.Offset2 = offset(gap, spin)
+    j.Offset1, j.Offset2 = off1, off2
     j.Proxy.setJointConnectors(j, [r1, r2])
     return j
+
+
+def revolute(asm, r1, r2, gap=0, spin=0):
+    # spins on the hole axis, r2 frame held gap mm back from r1 and turned spin deg
+    return joint(asm, "Revolute", r1, r2, off2=offset(gap, spin))
 
 
 def offset(gap, spin):

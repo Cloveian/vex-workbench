@@ -336,13 +336,44 @@ h = App.Placement(App.Vector(), align.FLIP.multiply(App.Rotation(App.Vector(0, 0
 assert [round(align.spun(h, App.Placement(), s), 6) for s in (0, 90, 45)] == [80, 90, 90]
 # lined up again somewhere else, its old align joint goes
 target = where(p1, App.Vector(2.75, 1.25, 0.046) * IN)
-align.align(where(bar, first), target, 0, asm)
+s = align.align(where(bar, first), target, 0, asm)
 doc.recompute()
 mine = [j for j in joints.Group if getattr(j, "VexAlign", False) and j.Reference2[0] == bar]
 assert len(mine) == 1, mine
 got = moved([p1, p2, bar])
 assert not got, got
 assert (snap.hole(where(bar, first))[1].Base - snap.hole(target)[1].Base).Length < 1e-9
+
+# slide from there along to (4.75, 1.25). a Slider in place of the Revolute, stops on both holes
+for wrong in (target, where(p1, App.Vector(4.75, 1.25, 0) * IN), where(p2, App.Vector(0.25, 0.25, 0.046) * IN)):
+    try:
+        align.slide(s, wrong)
+        raise AssertionError(wrong)
+    except ValueError:
+        pass
+end = where(p1, App.Vector(4.75, 1.25, 0.046) * IN)
+k = align.slide(s, end)
+doc.recompute()
+mine = [j for j in joints.Group if getattr(j, "VexAlign", False) and j.Reference2[0] == bar]
+assert mine == [k] and k.JointType == "Slider", mine
+got = moved([p1, p2, bar])
+assert not got, got
+a, b = snap.hole(target)[1].Base, snap.hole(end)[1].Base
+up = (b - a).normalize()
+
+
+def bar_at(nudge):
+    # bar pushed nudge mm up the rail and solved, how far up its hole is after
+    bar.Placement = App.Placement(bar.Placement.Base + up * nudge, bar.Placement.Rotation)
+    assert asm.solve() == 0
+    doc.recompute()
+    h = snap.hole(where(bar, first))[1].Base - a
+    assert h.cross(up).Length < 1e-6, h
+    return h.dot(up)
+
+
+assert abs(bar_at(1 * IN) - 1 * IN) < 1e-6 and abs(bar_at(-0.5 * IN) - 0.5 * IN) < 1e-6
+assert k.EnableLengthMin and k.EnableLengthMax and abs(k.LengthMax.Value - 2 * IN) < 1e-9, k.LengthMax
 # a gap under 0 pushes a shaft end down through the hole, its axis on the hole axis
 sh = library.place(doc, gen["2.000 LS Shaft"])
 doc.recompute()

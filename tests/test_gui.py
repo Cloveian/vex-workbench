@@ -581,6 +581,19 @@ try:
     assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 225) < 1e-6, (yaw, swing.Placement)
     assert abs(panel.gap.value() - 0.125) < 1e-9 and abs(j.Offset2.Base.z - 0.125 * IN) < 1e-9, (panel.gap.value(), j.Offset2)
     panel.reject()
+    # Slide on: lined up on (2.25, 1.25), it asks for the end, (4.25, 1.25) makes its joint a Slider
+    panel = align.Panel()
+    Gui.Control.showDialog(panel)
+    panel.slides.setChecked(True)
+    panel.done((swing, hole, asm.getSubObject(swing.Name + ".", retType=3), (asm, swing.Name + ".")),
+               (p1, App.Vector(2.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
+    assert panel.rail and panel.status.text().endswith(panel.END), panel.status.text()
+    panel.slid((p1, App.Vector(4.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
+    mine = [j for j in UtilsAssembly.getJointGroup(asm).Group if getattr(j, "VexAlign", False) and j.Reference2[0] == swing]
+    assert [j.JointType for j in mine] == ["Slider"] and panel.rail is None and panel.last is None, mine
+    assert "slides along" in panel.status.text(), panel.status.text()
+    panel.slides.setChecked(False)
+    panel.reject()
     say("ok")
     failed = False
 except Exception:

@@ -2,8 +2,9 @@
 import math
 
 import FreeCAD as App
+import FreeCADGui as Gui
 from FreeCAD import Placement, Rotation, Vector
-from PySide import QtWidgets
+from PySide import QtCore, QtWidgets
 
 from . import snap, ui
 from .metal import IN
@@ -12,10 +13,14 @@ FLIP = Rotation(Vector(1, 0, 0), 180)  # z against z, face to face
 X, Y = Vector(1, 0, 0), Vector(0, 1, 0)
 
 
+def landed(at, gap, spin):
+    # world placement of the moved hole frame, faces together on at, gap mm apart and spin deg around the hole
+    return at.multiply(Placement(Vector(0, 0, gap), FLIP)).multiply(Placement(Vector(), Rotation(Vector(0, 0, 1), spin)))
+
+
 def put(link, frame, parent, at, gap, spin):
-    # link placed so frame (link coords) sits on world frame at, faces together, gap mm apart and spin deg around the hole
-    want = at.multiply(Placement(Vector(0, 0, gap), FLIP)).multiply(Placement(Vector(), Rotation(Vector(0, 0, 1), spin)))
-    link.Placement = parent.inverse().multiply(want).multiply(frame.inverse())
+    # link placed so frame (link coords) lands on at
+    link.Placement = parent.inverse().multiply(landed(at, gap, spin)).multiply(frame.inverse())
 
 
 def moving(mover, active, whole):
@@ -53,7 +58,7 @@ def align(mover, target, gap, active=None, whole=False, step=0):
     spin = spun(hole, at, step)
     put(obj, frame, parent, at, gap, spin)
     joint = asm and rejoint(asm, snap.ref(asm, target, ft), snap.ref(asm, mover, fm), gap, spin)
-    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": spin, "joint": joint}
+    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": spin, "joint": joint, "target": target}
 
 
 def turn(s, gap):
@@ -72,17 +77,45 @@ def rejoint(asm, r1, r2, gap, spin):
         for j in UtilsAssembly.getJointGroup(asm).Group:
             if getattr(j, "VexAlign", False) and j.Reference2 and j.Reference2[0] == r2[0]:
                 asm.Document.removeObject(j.Name)
-    j = snap.revolute(asm, r1, r2, gap, spin)
+    return ours(snap.revolute(asm, r1, r2, gap, spin))
+
+
+def ours(j):
     if j:
         j.addProperty("App::PropertyBool", "VexAlign", "VEX")
         j.VexAlign = True
     return j
 
 
+def slide(s, end):
+    # s from align(), its Revolute swapped for a Slider from the hole it went on to end, stopping at both
+    j = s["joint"]
+    if not j or j not in s["moved"].Document.Objects:
+        raise ValueError("sliding needs an active assembly to joint in")
+    at = s["at"]
+    b = snap.hole(end)[1]
+    along = b.Base - at.Base
+    z = at.Rotation.multVec(snap.Z)
+    if end[3] != s["target"][3] or along.Length < snap.OFF_AXIS or abs(along.dot(z)) > snap.OFF_AXIS:
+        raise ValueError(f"click another hole on the same face of {s['target'][0].Label}")
+    rail = Placement(at.Base, Rotation(z, along.cross(z), along, "ZXY"))  # z down the rail, x out of the face
+    moved = landed(at, snap.gap(j), snap.spin(j))
+    asm = j.Proxy.getAssembly(j)
+    refs = [[r[0], list(r[1])] for r in (j.Reference1, j.Reference2)]
+    asm.Document.removeObject(j.Name)
+    k = ours(snap.joint(asm, "Slider", *refs, at.inverse().multiply(rail), moved.inverse().multiply(rail)))
+    k.EnableLengthMin = k.EnableLengthMax = True
+    k.LengthMin, k.LengthMax = 0, along.Length
+    s["joint"] = k
+    return k
+
+
 class Panel(snap.Clicks):
     PROMPTS = ("click a hole on the part to move", "now the hole it goes against")
+    END = "now another hole on that face, it slides between the two"
 
     def __init__(self):
+        self.rail = None  # align() state waiting on the slide's end click
         p = App.ParamGet(ui.PARAMS)
         self.angle = ui.number(-360, 360, " deg", p.GetFloat("AlignAngle", 90))
         back, ahead = QtWidgets.QPushButton("Rotate -"), QtWidgets.QPushButton("Rotate +")
@@ -98,8 +131,44 @@ class Panel(snap.Clicks):
         self.gap.valueChanged.connect(lambda: self.turn(0))
         self.whole = QtWidgets.QCheckBox("Move its whole group")
         self.whole.setChecked(p.GetBool("AlignWhole", False))
+        self.slides = QtWidgets.QCheckBox("Slide along to another hole")
+        self.slides.setToolTip("In an assembly, a third click on the same face makes it a slider between the two holes. Drag it to see it move")
+        self.slides.setChecked(p.GetBool("AlignSlide", False))
+        self.slides.toggled.connect(self.unslide)
         self.last = None  # the last one aligned, what the buttons and the gap move
-        super().__init__("VEX align", [("Turn", turns), ("Gap", self.gap), (self.whole,)])
+        super().__init__("VEX align", [("Turn", turns), ("Gap", self.gap), (self.whole,), (self.slides,)])
+
+    def unslide(self, on):
+        App.ParamGet(ui.PARAMS).SetBool("AlignSlide", on)
+        if not on and self.rail:
+            self.rail = None
+            self.light([])
+            self.ask()
+
+    def ask(self, said=""):
+        if self.rail:
+            self.status.setText(said + self.END)
+        else:
+            super().ask(said)
+
+    def take(self, s):
+        if not self.rail:
+            return super().take(s)
+        self.light([s])
+        QtCore.QTimer.singleShot(0, lambda: self.slid(s))
+
+    def slid(self, end):
+        s, self.rail = self.rail, None
+        got = ui.run("Slide VEX part", lambda: slide(s, end))
+        Gui.Selection.clearSelection()
+        self.light([])
+        if got is None:
+            self.rail = s  # wrong hole, try again
+            self.ask()
+            return
+        self.last = None  # the buttons would turn it off the rail
+        s["moved"].Document.recompute()
+        self.ask(f"{s['moved'].Label} slides along {s['target'][0].Label} now\n")
 
     def act(self, mover, target):
         import UtilsAssembly
@@ -111,6 +180,10 @@ class Panel(snap.Clicks):
             return None
         self.last = got
         got["moved"].Document.recompute()
+        if self.slides.isChecked() and got["joint"]:
+            self.rail = got
+        elif self.slides.isChecked():
+            return f"{got['moved'].Label} lined up on {target[0].Label}, but sliding needs an active assembly"
         return f"{got['moved'].Label} lined up on {target[0].Label}, the buttons and gap move it"
 
     def turn(self, way):
