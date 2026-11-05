@@ -44,6 +44,7 @@ PTFE = 2.20
 "Motion/Chain Links" = "Acetal"
 "Motion/Gears" = "Acetal"
 "Motion/Gears/High Strength (v1)/12T" = "Steel"
+"Motion/Gears/High Strength (v2)/24T" = "Steel"
 "Motion/HS Shafts" = "Steel"
 "Motion/LS Shafts" = "Steel"
 "Motion/Lock Bars" = "Steel"
