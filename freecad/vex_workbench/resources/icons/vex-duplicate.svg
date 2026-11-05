@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="8" fill="#c8102e"/>
+  <!-- a bracket and its mirror image across the dashed line -->
+  <path d="M10 14 h16 v8 h-8 v28 h-8 z" fill="#d9dde1" stroke="#3a3f45" stroke-width="1.5"/>
+  <path d="M54 14 h-16 v8 h8 v28 h8 z" fill="#d9dde1" stroke="#3a3f45" stroke-width="1.5"/>
+  <line x1="32" y1="8" x2="32" y2="56" stroke="#ffffff" stroke-width="2" stroke-dasharray="4 3"/>
+</svg>

@@ -37,7 +37,7 @@ try:
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
-    assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Bend", "Cut", "Drill", "Parts list"], tools
+    assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Bend", "Cut", "Drill", "Duplicate", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
     _, gen, steps = library.index()
@@ -596,6 +596,20 @@ try:
     assert [j.JointType for j in mine] == ["Slider"] and panel.rail is None and panel.last is None, mine
     assert "slides along" in panel.status.text(), panel.status.text()
     panel.slides.setChecked(False)
+    panel.reject()
+    # duplicate panel, the swinging channel mirrored across the assembly's YZ plane lands in it with the same source
+    from freecad.vex_workbench import duplicate
+    panel = duplicate.Panel()
+    Gui.Control.showDialog(panel)
+    panel.how.setCurrentText("Mirror")
+    panel.axis.setCurrentText("X")
+    had = set(doc.Objects)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(swing)
+    panel.go()
+    cp = [o for o in doc.Objects if o not in had and duplicate.vex(o)]
+    assert len(cp) == 1 and cp[0].LinkedObject == swing.LinkedObject and cp[0] in asm.Group, cp
+    assert panel.status.text() == "copied 1", panel.status.text()
     panel.reject()
     say("ok")
     failed = False

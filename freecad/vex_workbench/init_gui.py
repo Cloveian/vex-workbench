@@ -11,13 +11,14 @@ ICONS = os.path.join(os.path.dirname(__file__), "resources", "icons")
 
 class VexWorkbench(Gui.Workbench):
     MenuText = "VEX"
-    ToolTip = "VEX V5 parts, with screw, spacer, align, bend, cut and drill tools"
+    ToolTip = "VEX V5 parts, with screw, spacer, align, bend, cut, drill and duplicate tools"
     Icon = os.path.join(ICONS, "vex.svg")
 
     def Initialize(self):
-        from . import align, browser, partslist, screws, shop, snap, spacers
+        from . import align, browser, duplicate, partslist, screws, shop, snap, spacers
         cmds = {"Vex_Browser": browser.ShowBrowser(), "Vex_HoleFrame": snap.HoleFrame(), "Vex_Align": align.ALIGN, "Vex_Screw": screws.SCREW,
-                "Vex_Spacers": spacers.SPACERS, "Vex_Bend": shop.BEND, "Vex_Cut": shop.CUT, "Vex_Drill": shop.DRILL, "Vex_PartsList": partslist.PartsList()}
+                "Vex_Spacers": spacers.SPACERS, "Vex_Bend": shop.BEND, "Vex_Cut": shop.CUT, "Vex_Drill": shop.DRILL, "Vex_Duplicate": duplicate.DUPLICATE,
+                "Vex_PartsList": partslist.PartsList()}
         for name, cmd in cmds.items():
             Gui.addCommand(name, cmd)
         self.appendToolbar("VEX", list(cmds))

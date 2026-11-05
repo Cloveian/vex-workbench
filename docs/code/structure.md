@@ -15,7 +15,8 @@
 | `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`. plus the joint bits and the click panel (orange hole points, green picked ones) the screw, spacer, align and shop tools build on |
 | `freecad/vex_workbench/screws.py`  | Screw command, two hole clicks -> shortest screw + nut (or into a thread), jointed in an assembly |
 | `freecad/vex_workbench/spacers.py` | Spacers command, fills a gap between two holes with spacers + washers |
-| `freecad/vex_workbench/align.py`   | Align command, hole on one part onto a hole on another, faces together, then turned or gapped, Revolute joint in an assembly |
+| `freecad/vex_workbench/align.py`   | Align command, hole on one part onto a hole on another, faces together, then turned or gapped, Revolute joint in an assembly (or a Slider to a third hole) |
+| `freecad/vex_workbench/duplicate.py` | Duplicate command, copies of links and groups mirrored or turned. a mirror is world reflection x placement x the part's own middle-plane reflection, so its a turn |
 | `freecad/vex_workbench/shop.py`    | Bend, Cut and Drill commands, kept on the link as VexSteps in order. the geometry is `metal.work` (fold, cut, slot, sketch, drill). a cut sketch stays in the doc attached to its link, `shop.Sketches` redoes its step when sketch edit closes |
 | `freecad/vex_workbench/ui.py`      | undo step, wait cursor and error box around building parts, number boxes for the panels, and the toolbar buttons that open them |
 | `freecad/vex_workbench/partslist.py` | Parts list command, links counted by name into a spreadsheet         |

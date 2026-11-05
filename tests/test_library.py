@@ -182,5 +182,45 @@ bent, half = (o.LinkedObject.VexMass.getValueAs("g").Value for o in (p1, p2))
 n, each, total, _ = partslist.count(doc)["5x10 Steel Plate"]
 assert n == 2 and each == plain and abs(total - bent - half) < 1e-6 and half < plain < bent, (n, each, total, plain, bent, half)
 
+# duplicate: mirrored across x = 1 in, each copy is exactly where the reflection of the original is, and still a real part
+from freecad.vex_workbench import duplicate  # noqa: E402
+
+
+def corners(link):
+    # world vertices, rounded to a micron. through the parent, getShape alone stops at the link's own placement
+    up = link.getParentGeoFeatureGroup()
+    s = Part.getShape(up, link.Name + ".") if up else Part.getShape(link)
+    return sorted((round(v.X, 3), round(v.Y, 3), round(v.Z, 3)) for v in s.Vertexes)
+
+
+side = doc.addObject("App::Part", "Side")
+ch = library.place(doc, gen["1x2x1x7 Steel C-Channel"], side)
+ch.Placement = App.Placement(App.Vector(3, 1, 2) * IN, App.Rotation(30, 20, 10))
+pl = library.place(doc, gen["5x10 Steel Plate"], side)
+pl.Placement = App.Placement(App.Vector(-2, 0, 1) * IN, App.Rotation(0, 90, 0))
+side.Placement = App.Placement(App.Vector(0, 4, 0) * IN, App.Rotation(15, 0, 0))
+doc.recompute()
+before = set(doc.Objects)
+m = duplicate.reflection(App.Vector(IN, 0, 0), App.Vector(1, 0, 0))
+assert duplicate.duplicate([side], mirror=m) == []
+new = [o for o in doc.Objects if o not in before]
+assert not any(o.TypeId == "App::Part" and hasattr(o, "VexName") for o in new), "copied a source"
+copy = next(o for o in new if o.TypeId == "App::Part")
+assert copy.getParentGroup() is None and len([o for o in copy.Group if duplicate.vex(o)]) == 2
+for was, cp in zip((ch, pl), [o for o in copy.Group if duplicate.vex(o)]):
+    want = sorted(tuple(round(x, 3) for x in m.multVec(App.Vector(*p))) for p in corners(was))
+    assert cp.LinkedObject == was.LinkedObject and corners(cp) == want, was.Label
+# turned 90 about z, the copy moves whole
+before = set(doc.Objects)
+turn = App.Placement(App.Vector(), App.Rotation(App.Vector(0, 0, 1), 90))
+duplicate.duplicate([ch], turn=turn)
+cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
+want = sorted(tuple(round(x, 3) for x in turn.multVec(App.Vector(*p))) for p in corners(ch))
+assert corners(cp) == want and cp.getParentGeoFeatureGroup() == side
+# a mecanum is handed, it comes back named
+mec = library.place(doc, steps["Motion/Wheels/Mecanum Wheels/2 Inch/V1/Right/2 Mecanum Wheel- Right (217-7400).step"])
+doc.recompute()
+assert duplicate.duplicate([mec], mirror=m) == [mec.Label]
+
 App.closeDocument(doc.Name)
 print("ok")
