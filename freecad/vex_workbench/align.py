@@ -91,7 +91,7 @@ def slide(s, end):
     # s from align(), its Revolute swapped for a Slider from the hole it went on to end, stopping at both
     j = s["joint"]
     if not j or j not in s["moved"].Document.Objects:
-        raise ValueError("sliding needs an active assembly to joint in")
+        raise ValueError("no align joint to turn into a slider, line it up again with an assembly active")
     at = s["at"]
     b = snap.hole(end)[1]
     along = b.Base - at.Base
