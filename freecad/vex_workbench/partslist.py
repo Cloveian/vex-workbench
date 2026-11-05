@@ -12,7 +12,7 @@ def weight(src):
 
 
 def count(doc):
-    # name -> [count, g each, g all of them]. grams None without a material, step parts and license plates
+    # name -> [count, g each, g all of them, guessed]. grams None with no listed mass or material, like the wheels and license plates
     out = {}
 
     def walk(o, n):
@@ -21,7 +21,7 @@ def count(doc):
             src = o.LinkedObject
             if hasattr(src, "VexName"):
                 g = weight(src)
-                row = out.setdefault(src.VexName, [0, g, None if g is None else 0])
+                row = out.setdefault(src.VexName, [0, g, None if g is None else 0, getattr(src, "VexGuess", False)])
                 row[0] += n
                 if g is not None:
                     row[1] = max(row[1], g)  # heaviest copy, a worked one with its holes changed has no plain source
@@ -46,9 +46,9 @@ def fill(doc):
     sheet.clearAll()
     for col, head in zip("ABCD", ("Part", "Count", "Each (g)", "Total (g)")):
         sheet.set(f"{col}1", head)
-    grams = parts = unknown = 0
+    grams = parts = unknown = guessed = 0
     rows = sorted(count(doc).items())
-    for row, (name, (n, each, total)) in enumerate(rows, 2):
+    for row, (name, (n, each, total, guess)) in enumerate(rows, 2):
         sheet.set(f"A{row}", name)
         sheet.set(f"B{row}", str(n))
         parts += n
@@ -56,11 +56,14 @@ def fill(doc):
             sheet.set(f"C{row}", "?")
             unknown += n
             continue
-        sheet.set(f"C{row}", f"{each:.2f}")
-        sheet.set(f"D{row}", f"{total:.2f}")
+        ish = "~" if guess else ""
+        sheet.set(f"C{row}", f"{ish}{each:.2f}")
+        sheet.set(f"D{row}", f"{ish}{total:.2f}")
         grams += total
+        guessed += n if guess else 0
     end = len(rows) + 3
     note = f", {unknown} without a weight" if unknown else ""
+    note += f", {guessed} guessed (~)" if guessed else ""
     sheet.set(f"A{end}", f"Total, {parts} parts{note}")
     sheet.set(f"D{end}", f"{grams:.1f}")
     sheet.recompute()

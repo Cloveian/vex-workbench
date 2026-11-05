@@ -1,4 +1,5 @@
 # catalog checks, run with: python tests/test_catalog.py
+import re
 import sys
 from collections import Counter
 from pathlib import Path
@@ -90,5 +91,17 @@ wheels = next(m for m in cat["menu"] if m["id"] == "wheels")
 rows, part = catalog.narrowed(wheels, {"Type": "Mecanum", "Size": "2.75", "Kind": "V1, Right"})
 assert rows == [("Type", ["Omni", "Traction", "Mecanum"]), ("Size", ["2", "4"]), ("Kind", ["V2, Left", "V2, Right", "V1, Left", "V1, Right"])], rows
 assert part["part"] == "2\" Mecanum Wheel- Right", part
+
+# step weights: every [step_material] folder has parts under it, every material has a density, listed ones are g or lb
+folders = [g["folder"] for g in cat["group"]]
+for f, m in cat["step_material"].items():
+    assert any(g == f or g.startswith(f + "/") for g in folders) and m in cat["density"], (f, m)
+for p in steps:
+    assert p["material"] is None or p["material"] in cat["density"], p["name"]
+    assert re.fullmatch(r"\d+(\.\d+)? (g|lb)", p.get("mass", "0 g")), p["name"]
+by_name = {p["name"]: p for p in steps}
+assert by_name["Star Drive Shaft Collar"]["material"] == "Steel" and by_name["Rubber Shaft Collar"]["material"] is None
+assert catalog.made_of(cat, "Motion/Sprockets/6P/8T") == "Steel" and catalog.made_of(cat, "Motion/Sprockets/9P/12T") == "Acetal"
+assert catalog.made_of(cat, "Motion/Wheels") is None
 
 print(f"ok, {len(gen)} generated, {len(steps)} step parts")

@@ -54,7 +54,7 @@ The [usage guide](docs/using.md) goes through every tool.
 
 ### Extras
 
-- **Colors and weights** per material, and star screw heads in VEX's color code for their length.
+- **Colors and weights** per material, and star screw heads in VEX's color code for their length. VEX's own parts use VEX's listed weight where there is one, or an estimate from what they're made of.
 - **Parts list** counts every placed part into a spreadsheet, with the weight of each and the total.
 
 ## Installing

@@ -50,7 +50,7 @@ B. each variant is an `App::Part` with the generated solid (a `Part::FeaturePyth
 
 Where the sources live isn't settled. my default is a hidden group inside the same document, so a robot is still one `.FCStd` and nothing breaks when the file moves. a separate library file would share them between robots but then every robot depends on it being there
 
-Color and weight sit on the source too, so every link has them: a color per material (or per color, for the license plates, and vex's own colors on step parts) and `VexMass` = volume \* density. only generated parts with a material get a weight, a motor isnt one block of anything. the parts list counts links by name into a spreadsheet in the document. also my defaults, not settled
+Color and weight sit on the source too, so every link has them: a color per material (or per color, for the license plates, and vex's own colors on step parts) and `VexMass` = volume \* density. a step part takes vex's listed mass (`mass = "155 g"` on its row) first, then a material on its row or off `[step_material]` by folder (`VexGuess`, a ~ in the list), and a wheel or a sensor with neither gets nothing, it isnt one block of anything. the parts list counts links by name into a spreadsheet in the document. also my defaults, not settled
 
 ---
 Back to [design choices](index.md) | [goals](../goals.md)

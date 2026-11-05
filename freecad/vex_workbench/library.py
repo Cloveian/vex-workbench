@@ -138,9 +138,17 @@ def source(doc, part, steps=()):
     solid = doc.addObject("Part::Feature", "Solid")
     solid.Shape = s
     p = part.get("params", {})
-    if p.get("material") in cat()["density"]:
+    made = p.get("material", part.get("material"))
+    if "mass" in part and not steps:
         src.addProperty("App::PropertyMass", "VexMass", "VEX")
-        src.VexMass = f"{s.Volume * cat()['density'][p['material']] / 1000} g"  # mm3 * g/cm3
+        src.VexMass = part["mass"]  # vex's listed one, "155 g"
+    elif made in cat()["density"]:
+        src.addProperty("App::PropertyMass", "VexMass", "VEX")
+        src.VexMass = f"{s.Volume * cat()['density'][made] / 1000} g"  # mm3 * g/cm3
+        if "file" in part:
+            # one density for a whole step part
+            src.addProperty("App::PropertyBool", "VexGuess", "VEX")
+            src.VexGuess = True
     color = cat()["colors"].get(p.get("color", p.get("material")))
     paint = "heads" in p and p["heads"].get(f"{p['length']:.3f}")
     if paint:

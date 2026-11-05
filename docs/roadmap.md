@@ -36,7 +36,8 @@ in build order, each one is something i can open and poke at
 - [ ] simple joint tool: spin on a hole, slide along a line, and drag a part to see it move
 - [ ] duplicate a sub-assembly, mirrorred across a plane or turned about an axis. parts get turned, not mirrored, so they stay real parts
 - [ ] real colors and materials on every vex part
-- [ ] weight for the step parts too, vex's listed mass where there is one, an estimate where there isnt
+- [x] weight for the step parts too, vex's listed mass where there is one, an estimate where there isnt
+	20 listed (electronics, flywheel weight, pneumatics), the rest off a material per folder from vex's store pages. wheels, inserts, kits and the small pneumatic fittings still a ?
 
 ## Still need numbers for
 - [x] bend radius

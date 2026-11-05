@@ -80,7 +80,8 @@ try:
     assert len(library.holes(solid.Shape)) == len(library.holes(plain)), "holes differ"
 
     Gui.runCommand("Vex_PartsList")
-    assert doc.getObject("VexPartsList").get("A5").startswith("Total, 2 parts, 1 without")
+    sheet = doc.getObject("VexPartsList")
+    assert sheet.get("A5") == "Total, 2 parts" and 155 in (sheet.get("C2"), sheet.get("C3")), (sheet.get("A5"), sheet.get("C2"), sheet.get("C3"))
 
     # the dock, a family with pairs
     from freecad.vex_workbench import browser

@@ -54,7 +54,7 @@ how its laid out:
 - screws are `base` (a vex screw) cut at `head` and given a new shank, so the head and tip are vex's exactly
 - `[[family]]` for each generated thing. `title` is what the browser shows, `name` and `folder` are templates filled from the params (`"1x{width}x1x{holes} {material} C-Channel"`). a param is a list or a `{ from, to, step }` range, every combo is a part. a list of tables is rows, one part each (the washers, the drilled gears). `fixtures` = the vex steps it has to match. `base` = a step it's made out of (the thin nylock is the vex nylock with the plain end shaved down to 11/64)
 - `[[menu]]` after the families, for step parts with a pile of variants (wheels, gears, sprockets). `axes` are the boxes in order, and each row in `parts` has a value for every axis plus `part`, the step part's name. no cross product, just the rows, so only real parts show up
-- after `# --- step parts ---`, one `[[group]]` per folder with `{ sku, name, file }` rows. the 15 pneumatics parts have no sku
+- after `# --- step parts ---`, one `[[group]]` per folder with `{ sku, name, file }` rows, plus vex's listed `mass` or a `material` on the ones that have one. the 15 pneumatics parts have no sku. `[step_material]` up top gives the rest a material by folder, longest folder wins
 
 `size` is a shaft's width, `length` is a length (the shoulder screws have `[screw length, shoulder length]` pairs), `sizes` is rows, `from` is only ever a range start
 

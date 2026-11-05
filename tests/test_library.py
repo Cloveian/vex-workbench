@@ -121,19 +121,27 @@ for o in (s, sp):
 
 # step part
 w = library.place(doc, steps["Motion/Spacers/Washers/Steel/Steel Washer (275-1024).step"])
+radio = library.place(doc, steps["Electronics/V5 Robot Radio (276-4831).step"])
+collar = library.place(doc, steps["Motion/Collars/Rubber Shaft Collar (228-3510).step"])
 doc.recompute()
 assert Part.getShape(w).Volume > 0
 
-# weights and the parts list. the washer is a step part, no weight
+# weights and the parts list. step parts get vex's listed mass, a guess off the folder's material, or nothing
 from freecad.vex_workbench import partslist  # noqa: E402
 
 grams = a.LinkedObject.VexMass.getValueAs("g").Value
 assert abs(grams - Part.getShape(a.LinkedObject).Volume * 7.85 / 1000) < 1e-6, grams
-assert not hasattr(w.LinkedObject, "VexMass")
+assert not hasattr(a.LinkedObject, "VexGuess")
+washer = w.LinkedObject
+assert washer.VexGuess and abs(washer.VexMass.getValueAs("g").Value - Part.getShape(washer).Volume * 7.85 / 1000) < 1e-6
+assert radio.LinkedObject.VexMass.getValueAs("g").Value == 25 and not hasattr(radio.LinkedObject, "VexGuess")
+assert not hasattr(collar.LinkedObject, "VexMass")
 counts = partslist.count(doc)
-assert [row[0] for row in counts.values()] == [1, 1, 1, 1] and counts[w.Label][1] is None, counts
+assert [row[0] for row in counts.values()] == [1] * 6 and counts[collar.Label][1] is None, counts
 sheet = partslist.fill(doc)
-assert sheet.get("A7").startswith("Total, 4 parts, 1 without"), sheet.get("A7")
+assert sheet.get("A9") == "Total, 6 parts, 1 without a weight, 1 guessed (~)", sheet.get("A9")
+washer_row = next(r for r in range(2, 8) if sheet.get(f"A{r}") == w.Label)
+assert sheet.get(f"C{washer_row}").startswith("~"), sheet.get(f"C{washer_row}")
 
 # a sub-assembly linked once and as an array of 2 counts 4 times with its original, a link array counts every element
 sub = doc.addObject("App::Part", "Side")
@@ -156,7 +164,7 @@ library.rework(p1, [shop.bend(p1, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 9
 library.rework(p2, [shop.cut(p2, App.Vector(2.5, 0.25, 0.046) * IN, True, 0)])
 doc.recompute()
 bent, half = (o.LinkedObject.VexMass.getValueAs("g").Value for o in (p1, p2))
-n, each, total = partslist.count(doc)["5x10 Steel Plate"]
+n, each, total, _ = partslist.count(doc)["5x10 Steel Plate"]
 assert n == 2 and each == plain and abs(total - bent - half) < 1e-6 and half < plain < bent, (n, each, total, plain, bent, half)
 
 App.closeDocument(doc.Name)

@@ -25,10 +25,38 @@ Nylon = [0.93, 0.92, 0.86]
 Red = [0.80, 0.10, 0.12]
 Blue = [0.10, 0.25, 0.75]
 
-[density] # g/cm3. 6061 al, mild steel, nylon 6/6
+[density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
 Steel = 7.85
 Nylon = 1.14
+Acetal = 1.41
+"Glass-Filled Nylon" = 1.37
+PTFE = 2.20
+
+# step parts with no listed mass get volume * density off this, longest folder wins. materials off vex's store pages and robosource, "plastic" counts as nylon
+# no wheels, inserts or electronics, theyre more than one thing. those get a mass = "..." on the row or a ?
+[step_material]
+"Hardware" = "Steel"
+"Hardware/Retainers" = "Nylon"
+"Hardware/Screws/8-32/Nylon" = "Nylon"
+"Hardware/Standoffs" = "Aluminum"
+"Motion/Bearings" = "Acetal"
+"Motion/Chain Links" = "Acetal"
+"Motion/Gears" = "Acetal"
+"Motion/Gears/High Strength (v1)/12T" = "Steel"
+"Motion/HS Shafts" = "Steel"
+"Motion/LS Shafts" = "Steel"
+"Motion/Lock Bars" = "Steel"
+"Motion/Spacers" = "Nylon"
+"Motion/Spacers/Washers/Steel" = "Steel"
+"Motion/Spacers/Washers/Teflon" = "PTFE"
+"Motion/Sprockets" = "Acetal"
+"Motion/Sprockets/6P/8T" = "Steel"
+"Motion/Turntables" = "Acetal"
+"Structure/Aluminum" = "Aluminum"
+"Structure/Brackets" = "Steel"
+"Structure/Gussets" = "Steel"
+"Structure/Steel" = "Steel"
 
 # generated parts
 
@@ -473,12 +501,12 @@ parts = [
 [[group]]
 folder = "Electronics"
 parts = [
-  { sku = "276-4820", name = "V5 Controller", file = "V5 Controller (276-4820).step" },
-  { sku = "276-4811", name = "V5 Robot Battery", file = "V5 Robot Battery (276-4811).step" },
-  { sku = "276-4810", name = "V5 Robot Brain", file = "V5 Robot Brain (276-4810).step" },
-  { sku = "276-4831", name = "V5 Robot Radio", file = "V5 Robot Radio (276-4831).step" },
-  { sku = "276-4840", name = "V5 Smart Motor", file = "V5 Smart Motor (276-4840).step" },
-  { sku = "276-4842", name = "V5 Smart Motor (5.5W)", file = "V5 Smart Motor (5.5W) (276-4842).step" },
+  { sku = "276-4820", name = "V5 Controller", file = "V5 Controller (276-4820).step", mass = "350 g" },
+  { sku = "276-4811", name = "V5 Robot Battery", file = "V5 Robot Battery (276-4811).step", mass = "0.62 lb" },
+  { sku = "276-4810", name = "V5 Robot Brain", file = "V5 Robot Brain (276-4810).step", mass = "285 g" },
+  { sku = "276-4831", name = "V5 Robot Radio", file = "V5 Robot Radio (276-4831).step", mass = "25 g" },
+  { sku = "276-4840", name = "V5 Smart Motor", file = "V5 Smart Motor (276-4840).step", mass = "155 g" },
+  { sku = "276-4842", name = "V5 Smart Motor (5.5W)", file = "V5 Smart Motor (5.5W) (276-4842).step", mass = "0.20 lb" },
 ]
 
 [[group]]
@@ -508,13 +536,13 @@ parts = [
 [[group]]
 folder = "Electronics/Sensors"
 parts = [
-  { sku = "276-8659", name = "AI Vision Sensor", file = "AI Vision Sensor (276-8659).step" },
-  { sku = "276-5299", name = "V5 3-Wire Expander", file = "V5 3-Wire Expander (276-5299).step" },
+  { sku = "276-8659", name = "AI Vision Sensor", file = "AI Vision Sensor (276-8659).step", mass = "0.16 lb" },
+  { sku = "276-5299", name = "V5 3-Wire Expander", file = "V5 3-Wire Expander (276-5299).step", mass = "0.06 lb" },
   { sku = "276-4852", name = "V5 Distance Sensor", file = "V5 Distance Sensor (276-4852).step" },
-  { sku = "276-4855", name = "V5 Inertial Sensor", file = "V5 Inertial Sensor (276-4855).step" },
+  { sku = "276-4855", name = "V5 Inertial Sensor", file = "V5 Inertial Sensor (276-4855).step", mass = "0.06 lb" },
   { sku = "276-7043", name = "V5 Optical Sensor", file = "V5 Optical Sensor (276-7043).step" },
-  { sku = "276-6050", name = "V5 Rotation Sensor", file = "V5 Rotation Sensor (276-6050).step" },
-  { sku = "276-7405", name = "VEX GPS Sensor", file = "VEX GPS Sensor (276-7405).step" },
+  { sku = "276-6050", name = "V5 Rotation Sensor", file = "V5 Rotation Sensor (276-6050).step", mass = "0.05 lb" },
+  { sku = "276-7405", name = "VEX GPS Sensor", file = "VEX GPS Sensor (276-7405).step", mass = "0.15 lb" },
 ]
 
 [[group]]
@@ -522,10 +550,10 @@ folder = "Electronics/Sensors/3-Wire"
 parts = [
   { sku = "276-2332", name = "Analog Accelerometer V1.0", file = "Analog Accelerometer V1.0 (276-2332).step" },
   { sku = "276-2159", name = "Bumper Switch", file = "Bumper Switch (276-2159).step" },
-  { sku = "276-4858", name = "Bumper Switch v2", file = "Bumper Switch v2 (276-4858).step" },
+  { sku = "276-4858", name = "Bumper Switch v2", file = "Bumper Switch v2 (276-4858).step", mass = "15 g" },
   { sku = "276-2158", name = "Light Sensor", file = "Light Sensor (276-2158).step" },
-  { sku = "276-2174", name = "Limit Switch", file = "Limit Switch (276-2174).step" },
-  { sku = "276-2154", name = "Line Tracker", file = "Line Tracker (276-2154).step" },
+  { sku = "276-2174", name = "Limit Switch", file = "Limit Switch (276-2174).step", mass = "13.6 g" },
+  { sku = "276-2154", name = "Line Tracker", file = "Line Tracker (276-2154).step", mass = "15.4 g" },
   { sku = "276-7417", name = "Potentiometer V2", file = "Potentiometer V2 (276-7417).step" },
 ]
 
@@ -664,7 +692,7 @@ parts = [
   { sku = "217-3288", name = "Short Shifter Shaft 2.65 Ratio Spread", file = "Short Shifter Shaft 2.65 Ratio Spread (217-3288).step" },
   { sku = "276-2045-020", name = "U-Joint", file = "U-Joint (276-2045-020).step" },
   { sku = "276-2723", name = "Universal Joints", file = "Universal Joints (276-2723).step" },
-  { sku = "276-8794", name = "V5 Flywheel Weight", file = "V5 Flywheel Weight (276-8794).step" },
+  { sku = "276-8794", name = "V5 Flywheel Weight", file = "V5 Flywheel Weight (276-8794).step", mass = "109 g" },
 ]
 
 [[group]]
@@ -676,7 +704,7 @@ parts = [
   { sku = "276-1209", name = "Flat Bearing", file = "Flat Bearing (276-1209).step" },
   { sku = "276-7582-001", name = "High Strength Bushing Kit (1/8\" Thick)", file = "High Strength Bushing Kit (1_8 Thick) (276-7582-001).step" },
   { sku = "276-7582-002", name = "High Strength Bushing Kit (5/16\" Thick)", file = "High Strength Bushing Kit (5_16 Thick) (276-7582-002).step" },
-  { sku = "276-8383", name = "High Strength Pillow Block Bearing", file = "High Strength Pillow Block Bearing (276-8383).step" },
+  { sku = "276-8383", name = "High Strength Pillow Block Bearing", file = "High Strength Pillow Block Bearing (276-8383).step", material = "Nylon" },
   { sku = "276-3521", name = "High Strength Shaft Bearing", file = "High Strength Shaft Bearing (276-3521).step" },
   { sku = "276-8023", name = "Low Profile Bearing Flat", file = "Low Profile Bearing Flat (276-8023).step" },
   { sku = "276-8024", name = "Shaft Collar Retainer with Bearing Flat", file = "Shaft Collar Retainer with Bearing Flat (276-8024).step" },
@@ -706,11 +734,11 @@ parts = [
 [[group]]
 folder = "Motion/Collars"
 parts = [
-  { sku = "276-3520", name = "High Strength Clamping Shaft Collar", file = "High Strength Clamping Shaft Collar (276-3520).step" },
-  { sku = "276-7580", name = "Low Profile High Strength Clamping Shaft Collar", file = "Low Profile High Strength Clamping Shaft Collar (276-7580).step" },
+  { sku = "276-3520", name = "High Strength Clamping Shaft Collar", file = "High Strength Clamping Shaft Collar (276-3520).step", material = "Glass-Filled Nylon" },
+  { sku = "276-7580", name = "Low Profile High Strength Clamping Shaft Collar", file = "Low Profile High Strength Clamping Shaft Collar (276-7580).step", material = "Glass-Filled Nylon" },
   { sku = "228-3510", name = "Rubber Shaft Collar", file = "Rubber Shaft Collar (228-3510).step" },
-  { sku = "276-6101", name = "Star Drive Clamping Shaft Collar", file = "Star Drive Clamping Shaft Collar (276-6101).step" },
-  { sku = "276-6103", name = "Star Drive Shaft Collar", file = "Star Drive Shaft Collar (276-6103).step" },
+  { sku = "276-6101", name = "Star Drive Clamping Shaft Collar", file = "Star Drive Clamping Shaft Collar (276-6101).step", material = "Nylon" },
+  { sku = "276-6103", name = "Star Drive Shaft Collar", file = "Star Drive Shaft Collar (276-6103).step", material = "Steel" },
 ]
 
 [[group]]
@@ -785,7 +813,7 @@ parts = [
 folder = "Motion/Gears/Low Strength"
 parts = [
   { sku = "276-2169-001", name = "12T Gear", file = "12T Gear (276-2169-001).step" },
-  { sku = "276-7368", name = "12T Metal Gear", file = "12T Metal Gear (276-7368).step" },
+  { sku = "276-7368", name = "12T Metal Gear", file = "12T Metal Gear (276-7368).step", material = "Steel" },
   { sku = "276-2169-002", name = "36T Gear", file = "36T Gear (276-2169-002).step" },
   { sku = "276-2169-003", name = "60T Gear", file = "60T Gear (276-2169-003).step" },
   { sku = "276-2169-004", name = "84T Gear", file = "84T Gear (276-2169-004).step" },
@@ -854,18 +882,18 @@ parts = [
 [[group]]
 folder = "Motion/Pneumatics/New"
 parts = [
-  { name = "25mm Stroke Pneumatic Cylinder", file = "25mm Stroke Pneumatic Cylinder.step" },
-  { name = "50mm Stroke Pneumatic Cylinder", file = "50mm Stroke Pneumatic Cylinder.step" },
-  { name = "75mm Stroke Pneumatic Cylinder", file = "75mm Stroke Pneumatic Cylinder.step" },
+  { name = "25mm Stroke Pneumatic Cylinder", file = "25mm Stroke Pneumatic Cylinder.step", mass = "33 g" },
+  { name = "50mm Stroke Pneumatic Cylinder", file = "50mm Stroke Pneumatic Cylinder.step", mass = "39 g" },
+  { name = "75mm Stroke Pneumatic Cylinder", file = "75mm Stroke Pneumatic Cylinder.step", mass = "45 g" },
   { name = "Air Flow Valve Fitting", file = "Air Flow Valve Fitting.step" },
   { name = "Air Pressure Regulator Mounting Bracket", file = "Air Pressure Regulator Mounting Bracket.step" },
   { name = "Elbow Fitting", file = "Elbow Fitting.step" },
   { name = "Manifold Assembly", file = "Manifold Assembly.step" },
   { name = "Pneumatic Fitting Plug", file = "Pneumatic Fitting Plug.step" },
   { name = "Pneumatic Hand Valve", file = "Pneumatic Hand Valve.step" },
-  { name = "Pneumatic Reservoir Assembly", file = "Pneumatic Reservoir Assembly.step" },
+  { name = "Pneumatic Reservoir Assembly", file = "Pneumatic Reservoir Assembly.step", mass = "0.69 lb" },
   { name = "Pressure Gauge", file = "Pressure Gauge.step" },
-  { name = "Pressure Regulator", file = "Pressure Regulator.step" },
+  { name = "Pressure Regulator", file = "Pressure Regulator.step", mass = "0.31 lb" },
   { name = "Schrader Valve", file = "Schrader Valve.step" },
   { name = "Straight Pneumatic Fitting", file = "Straight Pneumatic Fitting.step" },
   { name = "Tee Fittings", file = "Tee Fittings.step" },
@@ -1084,7 +1112,7 @@ parts = [
 [[group]]
 folder = "Structure"
 parts = [
-  { sku = "275-1272", name = "Hinge", file = "Hinge (275-1272).step" },
+  { sku = "275-1272", name = "Hinge", file = "Hinge (275-1272).step", material = "Steel" },
   { sku = "276-7499", name = "Rubber Bumper", file = "Rubber Bumper (276-7499).step" },
   { sku = "276-3938", name = "V5RC License Plate", file = "V5RC License Plate (276-3938).step" },
 ]

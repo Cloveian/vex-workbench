@@ -79,9 +79,15 @@ def generated(cat):
     return [v for fam in cat["family"] for v in variants(fam)]
 
 
+def made_of(cat, folder):
+    # longest [step_material] folder thats this one or above it
+    fits = [f for f in cat["step_material"] if folder == f or folder.startswith(f + "/")]
+    return cat["step_material"][max(fits, key=len)] if fits else None
+
+
 def step_parts(cat):
-    # vex-step/{folder}/{file}, the pneumatics ones have no sku
-    return [{**p, "folder": g["folder"]} for g in cat["group"] for p in g["parts"]]
+    # vex-step/{folder}/{file}, the pneumatics ones have no sku. a material on the row beats the folders
+    return [{"material": made_of(cat, g["folder"]), **p, "folder": g["folder"]} for g in cat["group"] for p in g["parts"]]
 
 
 def narrowed(menu, picked):
