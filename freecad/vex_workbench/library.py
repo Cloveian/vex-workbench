@@ -111,17 +111,18 @@ def painted(s, paint, faces):
     axis = Vector(*(float(i == k) for i in range(3)))
     line = Part.makeLine(b.Center - axis * size[k], b.Center + axis * size[k])
     pieces = list(s.Solids)
-    inside = {f.hashCode() for x in pieces for f in x.Faces}
-    pieces += [sh for sh in s.Shells if sh.Faces[0].hashCode() not in inside]  # the 2" mecanum has 2 loose ones, 4000 specks of faces
+    # keyed by s.Faces number. hashCode only goes to 2^31, the 9000 faces on an omni share one in ~2% of loads
+    inside = {s.findSubShape(f)[1] for x in pieces for f in x.Faces}
+    pieces += [sh for sh in s.Shells if s.findSubShape(sh.Faces[0])[1] not in inside]  # the 2" mecanum has 2 loose ones, 4000 specks of faces
     copies = collections.Counter(round(x.Volume, 1) for x in pieces)
     rgb = {}
     for x in pieces:
         # rollers come 3+ alike, a tread is one piece but out past half the raduis. mecanum rollers lean in too far for that
         rim = copies[round(x.Volume, 1)] >= 3 or x.distToShape(line)[0] > max(size) / 4
         c = tuple(cat()["colors"][paint["rim" if rim else "hub"]])
-        rgb.update((f.hashCode(), c) for f in x.Faces)
+        rgb.update((s.findSubShape(f)[1], c) for f in x.Faces)
     faces = faces or [(0.8, 0.8, 0.8)] * len(s.Faces)
-    return [rgb.get(f.hashCode(), old) for f, old in zip(s.Faces, faces)]
+    return [rgb.get(i, old) for i, old in enumerate(faces, 1)]
 
 
 def group(doc):
@@ -191,9 +192,9 @@ def source(doc, part, steps=()):
         # the seam line down every full cylender drawn in its face's color so it doesnt show. Shaded would lose the spacer ends too
         seams = {}
         for f, c in zip(s.Faces, faces or [vo.ShapeColor] * len(s.Faces)):
-            seams.update((e.hashCode(), c) for e in f.Edges if e.isSeam(f))
+            seams.update((s.findSubShape(e)[1], c) for e in f.Edges if e.isSeam(f))
         if seams:
-            vo.LineColorArray = [seams.get(e.hashCode(), vo.LineColor) for e in s.Edges]
+            vo.LineColorArray = [seams.get(i, vo.LineColor) for i in range(1, len(s.Edges) + 1)]
     src.addObject(solid)
     group(doc).addObject(src)
     src.Visibility = False

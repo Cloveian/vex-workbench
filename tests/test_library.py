@@ -132,11 +132,11 @@ for f, hub, rim in [("Omni Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Omni-
                     ("Traction Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Anti-Static Wheel (276-8098).step", "Black", "Grey")]:
     wheel = steps["Motion/Wheels/" + f]
     s, _ = library.shape(wheel)
-    got = dict(zip((x.hashCode() for x in s.Faces), library.painted(s, wheel["paint"], None)))
+    paint = library.painted(s, wheel["paint"], None)
     big = max(s.Solids, key=lambda x: x.Volume)
     biggest = hub if "Omni" in f else rim  # the omni hub outweighs a roller, a traction tread outweighs its hub
-    assert {got[x.hashCode()] for x in big.Faces} == {tuple(colors[biggest])}, f
-    assert {got[x.hashCode()] for x in s.Faces} == {tuple(colors[hub]), tuple(colors[rim])}, f
+    assert {paint[s.findSubShape(x)[1] - 1] for x in big.Faces} == {tuple(colors[biggest])}, f
+    assert set(paint) == {tuple(colors[hub]), tuple(colors[rim])}, f
 
 # weights and the parts list. step parts get vex's listed mass, a guess off the folder's material, or nothing
 from freecad.vex_workbench import partslist  # noqa: E402
