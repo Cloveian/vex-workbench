@@ -456,7 +456,8 @@ def dottable(w, step):
         return all(c == "Part::GeomCircle" for c in curves)
     b = w.BoundBox
     narrow, wide = sorted([b.XLength, b.YLength, b.ZLength])[1:]
-    shaft = any(lo <= wide <= hi for lo, hi in SHAFT)
+    flats = 2 * w.distToShape(Part.Vertex(b.Center))[0]  # the 11W socket is a 1/4 square turned 45, 0.35 across its box
+    shaft = any(lo <= wide <= hi or lo <= flats <= hi for lo, hi in SHAFT)
     return shaft and narrow > 0.95 * wide and all(c in ("Part::GeomLine", "Part::GeomCircle") for c in curves)
 
 

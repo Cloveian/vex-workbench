@@ -24,7 +24,7 @@ in build order, each one is something i can open and poke at
 
 ## From actually using it
 - [x] dots drawn on top of solids, and a bigger area to click them
-- [x] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones. the 11W's output doesnt get one yet, its opening isnt a plain round or square loop
+- [x] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones. the 11W's output too, its socket is a 1/4 square turned 45 so it goes by across the flats, the dot sits where the square starts 0.5" down the recess
 - [x] U-channel inner dots in a hair, to match where a c-channel's outer ones sit. out in the gap, 0.025 a side on steel
 - [x] dots on every click-to-do tool, and a "show more" grid with a size box (drill needs it most). all six tools had dots already, drill gets Grid + Show the grid
 - [x] screw tool takes several holes on one face, then the ones across. with "auto finish" on, one click across does them all, off and its a click across for each
@@ -34,7 +34,7 @@ in build order, each one is something i can open and poke at
 - [x] place menu for wheels, gears and anything else with a pile of variants, same as the c-channel one (family, then type / size / whatever), only combos that exist
 	Wheels, Gears and Sprockets, a `[[menu]]` in `parts.toml` each. a placed one gets the boxes as properties too and swaps in place
 - [ ] simple joint tool: spin on a hole, slide along a line, and drag a part to see it move
-	spin is Align's Revolute, slide is Align > Slide along to another hole (a Slider, length limits on the two holes). drag is the assembly's own. a plain solve ignores the limits, still need to see if a real drag stops on them
+	spin is Align's Revolute, slide is Align > Slide along to another hole (a Slider, length limits on the two holes). drag is the assembly's own. the limits go in on every solve (rail is marker I, the moving part J, so 0 to the rail length is the right way round) but a plain solve still leaves it 3.5" up a 2" rail, and drag isnt in the python api, so a real drag by hand is the only way to see if it stops on them
 - [x] duplicate a sub-assembly, mirrorred across a plane or turned about an axis. parts get turned, not mirrored, so they stay real parts
 	Duplicate tool. each part goes through world mirror x placement x a mirror across one of its own middle planes (found off its vertices), two reflections = a turn. mecanums swap to the other hand, other handed ones (motors) get turned and named. joints dont come along
 - [ ] real colors and materials on every vex part
