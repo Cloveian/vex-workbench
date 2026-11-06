@@ -1,5 +1,13 @@
 # Log
 
+## 2026-11-06 - drilled gears and a fusion reader
+
+- joints made with freecad's own tool straight on a face, edge or corner of a plate died on any rework: the worked source gets a new solid (`Solid001`) with every face renumbered, so `Vex.Solid.Face431` pointed at nothing. `carry` looks them up again by where they are now, through the same `ways()` the frames use. a face counts if any of it is left (most overlap wins), edges and corners have to be right there. first go did a boolean against every plane in the face's box, which on a plate is ~400 hole walls, 3.6 s for one drill. only faces actually on the old face's surface get the boolean now, ~0.4 s
+- "drilled gears" were never a part, you just take a drill to an LS gear so it spins on a screw. so the made up family went and Drill takes LS gears now. it goes straight through the whole gear, the bore has a step inside at 0.125 that the wall finder stopped at, leaving a 0.06 skin at the bottom. a drilled gear keeps the color most of it was
+- nylon and aluminum hex nuts really are the steel shape (robosource, ASME 11/32 x 1/8)
+- `tools/read_f3d.py` reads the fusion library's .f3d files: ACIS binary SAB inside a zip, cm. planes, cones, spheres, tori, lemon tori (omni rollers, occ's toroid wont do those so its a circle swept round), spline surfaces and intcurves off the b-spline acis stores inline, tolerant edges. the hex nut matches vex's own to 5 decimals, the 36T to 0.01% on volume, the 2" omni solid for solid to 6. the mecanum has a modeled thread on one screw that winds ~10 times past a seam and doesnt sew, and assemblies come out as loose parts since the placements live in fusion's own BulkStream. *bleh*
+- the fusion files dont have face colors in the brep, theyre in an autodesk asset blob pointed at by body GUIDs, so the 2" omni colors are still a photo job. and the library has no license, so the reader is for measuring, nothing it makes ships
+
 ## 2026-11-05 - joints that follow along
 
 - the 11W output finally gets a dot. its socket is a 1/4 square turned 45, so its box is 0.35 across and it was "too big" for a shaft hole the whole time. goes by 2 \* the center's distance to the loop now (across the flats), dot sits where the square starts 0.5" down the recess
