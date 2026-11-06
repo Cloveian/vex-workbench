@@ -10,6 +10,8 @@
 - Duplicate brings joints along when both ends are on copied parts. a mirrored frame is own \* frame \* a flip of its own y so its still right handed, offsets get the same flip on both sides (gap stays, spin goes negative), angle limits swap and negate. a whole copied assembly gets its own joint group
 - the mirror check went from "one of 3 axis planes, exact vertices" to the best of those plus planes through each axis off level vertices (vex's torx lobes), neighbor cells so a point on a cell edge isnt a miss, and for 20 or fewer leftovers each has to land on an edge (stray split vertices do, a drilled hole's dont). had a boolean there first, 38 s on a 36T v2 gear, *bleh*
 - found doing that: the "handed" fallback was a reflection through the part's own Z, which on a motor is the shaft. so a mirrored motor came out pointing its shaft the wrong way the whole time lol. now the plane it comes closest to mirroring on, keeps the shaft. near-mirrors (motors, v2 HS gears with a handful of odd bits) bring a joint only if its mirrored frame lands on a hole
+- joints to a part that wasnt copied come too: its frame goes through the mirror in that part's own coords (W^-1 M W \* frame \* the y flip) or the turn, and if theres a hole there the copy gets jointed to it. so a drive side mirrored across a symmetric chassis comes out bolted to the other side. ones with nowhere to go get counted and the panel says "couldn't come along, Align it again"
+- the undo test caught a stray frame: a joint whose far end failed still made its frame on the copy end, and thats a shared source so every channel that size grew a Hole. frames only get made once both ends have somewhere to go now
 
 ## 2026-11-04 - weights, slides, wheels, mirrors
 
