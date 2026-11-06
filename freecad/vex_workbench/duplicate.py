@@ -1,4 +1,5 @@
 # duplicate tool. a copy of the picked parts or groups, mirrored across a plane or turned about an axis. parts only ever get turned, so they stay real parts
+import itertools
 import json
 import re
 
@@ -8,12 +9,14 @@ import Part
 from FreeCAD import Matrix, Placement, Rotation, Vector
 from PySide import QtWidgets
 
-from . import library, metal, ui
+from . import align, library, metal, snap, ui
 from .metal import IN
 
 AXES = {"X": Vector(1, 0, 0), "Y": Vector(0, 1, 0), "Z": Vector(0, 0, 1)}
 SAME = 1e-3  # mm, vertices closer than this are the same one
 GROUPS = ("App::Part", "App::DocumentObjectGroup", "Assembly::AssemblyObject")
+FLIP_Y = Matrix(1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)  # a flip of a frame's own y, keeps a mirrored frame right handed
+LIMITS = ("EnableLengthMin", "EnableLengthMax", "LengthMin", "LengthMax", "Distance", "Distance2", "Angle", "Detach1", "Detach2")  # copied as is, the same in a mirror
 
 
 def reflection(o, n):
@@ -27,18 +30,47 @@ def reflection(o, n):
 
 
 def own_mirror(shape):
-    # a reflection across one of its own middle planes it lands back on itself under, None for a handed part (mecanum, the motors)
+    # (reflection across the plane through its middle it fits best, how many vertices miss). 0 misses is exact, more is a handed part (mecanum, the motors)
     def key(p):
         return round(p.x / SAME), round(p.y / SAME), round(p.z / SAME)
 
     c = shape.BoundBox.Center
     pts = [v.Point for v in shape.Vertexes]
     have = {key(p) for p in pts}
-    for n in AXES.values():
+    near = list(itertools.product((-1, 0, 1), repeat=3))  # a point right on a cell edge rounds either way
+
+    def missing(m, cap):
+        # mirrored vertices with no vertex there, up to cap. past the best so far its out anyway
+        out = []
+        for p in pts:
+            k = key(m.multVec(p))
+            if not any((k[0] + i, k[1] + j, k[2] + l) in have for i, j, l in near):
+                out.append(m.multVec(p))
+                if len(out) >= cap:
+                    break
+        return out
+
+    planes = list(AXES.values())
+    # round stuff has its planes at any turn round its axis (vex's torx lobes), bewteen the farthest vertex out and each one level with it
+    for a in AXES.values():
+        def out(p):
+            return (p - c) - a * (p - c).dot(a)
+        far = max(pts, key=lambda p: out(p).Length)
+        planes += [far - q for q in pts if (far - q).Length > SAME and abs(out(q).Length - out(far).Length) < SAME and abs((q - far).dot(a)) < SAME]
+    best, gone = None, pts + [c]
+    for n in planes:
         m = reflection(c, n)
-        if all(key(m.multVec(p)) in have for p in pts):
-            return m
-    return None
+        k = missing(m, len(gone))
+        if len(k) < len(gone):
+            best, gone = m, k
+        if not gone:
+            break
+    # a few left can still be stray vertices on a mirror image, where vex's shank stub meets ours on a torx screw. a boolean says, ~17 mm3 for one drilled hole
+    if 0 < len(gone) <= 20 and shape.Solids:
+        twin = shape.transformed(best)
+        if shape.cut(twin).Volume + twin.cut(shape).Volume < 1e-3:  # mm3
+            gone = []
+    return best, len(gone)
 
 
 def vex(o):
@@ -78,11 +110,60 @@ def frame(o):
     return p.getGlobalPlacement() if p else Placement()
 
 
+def copied_ref(ref, names, owns):
+    # a joint ref onto the copies, None if its not all on copied parts or one only got turned (a motor)
+    obj, subs = ref or (None, [""])
+    if obj is None or obj.Name not in names:
+        return None
+    out = []
+    for sub in subs:
+        owner, name = library.holder(obj, sub)
+        cp = names.get(owner.Name)
+        if cp is None:
+            return None
+        path = [names[p].Name if p in names else p for p in sub.split(".")]
+        if owns is not None:
+            # the mirror of a frame on its own source, own x frame x FLIP_Y, so W' frame' = M W frame FLIP_Y
+            lcs = cp.Name in owns and owner.LinkedObject.getObject(name or "")
+            if not lcs or lcs.TypeId != "App::LocalCoordinateSystem":
+                return None
+            plc = Placement(owns[cp.Name].multiply(lcs.Placement.toMatrix()).multiply(FLIP_Y))
+            path[-2] = library.frame(cp, plc, lcs.Label.rstrip("0123456789") or "Hole").Name
+        out.append(".".join(path))
+    return [names[obj.Name], out]
+
+
+def along(doc, names, owns):
+    # copies of the joints with both ends on copied parts, how many. owns: copy name -> its own reflection, None for a turn
+    n = 0
+    for j in [o for o in doc.Objects if hasattr(o, "JointType") and hasattr(o, "Reference1")]:
+        refs = [copied_ref(getattr(j, p), names, owns) for p in ("Reference1", "Reference2")]
+        if None in refs:
+            continue
+        offs = [j.Offset1, j.Offset2]
+        lo, hi = (j.EnableAngleMin, j.AngleMin), (j.EnableAngleMax, j.AngleMax)
+        if owns is not None:
+            # same gap, the spin goes the other way
+            offs = [Placement(FLIP_Y.multiply(o.toMatrix()).multiply(FLIP_Y)) for o in offs]
+            lo, hi = (hi[0], -hi[1]), (lo[0], -lo[1])
+        asm = j.Proxy.getAssembly(j)
+        k = snap.joint(names.get(asm.Name, asm), j.JointType, *refs, *offs)  # a whole copied assembly gets its own
+        for p in LIMITS:
+            setattr(k, p, getattr(j, p))
+        k.EnableAngleMin, k.AngleMin = lo
+        k.EnableAngleMax, k.AngleMax = hi
+        if getattr(j, "VexAlign", False):
+            align.ours(k)
+        n += 1
+    return n
+
+
 def duplicate(objs, mirror=None, turn=None):
     # copies of objs next to them, every vex part mirrored with mirror (a reflection matrix) or turned with turn (a placement)
-    # labels back of the handed ones that went to their other hand, and the ones with none that only got turned
+    # labels back of the handed ones that went to their other hand, the ones with none that only got turned, and how many joints came along
     doc = objs[0].Document
     swapped, handed = [], []
+    names, owns = {}, {}  # original name -> its copy, copy name -> own (mirror only)
     objs = [o for o in objs if not any(up in objs for up in o.InListRecursive)]  # a part in a picked group comes with it
     for obj in objs:
         if not (vex(obj) or obj.TypeId in GROUPS):
@@ -92,6 +173,7 @@ def duplicate(objs, mirror=None, turn=None):
         parent = obj.getParentGeoFeatureGroup() or obj.getParentGroup()
         if parent:
             parent.addObject(copies[0])
+        names.update((was.Name, cp) for was, cp in zip(mine, copies))
         for was, cp in zip(mine, copies):
             if not vex(was):
                 continue
@@ -100,7 +182,8 @@ def duplicate(objs, mirror=None, turn=None):
                 cp.Placement = frame(cp).inverse().multiply(turn.multiply(world))
                 continue
             src = was.LinkedObject
-            own = library.cached(src, own_mirror)
+            closest, off = library.cached(src, own_mirror)
+            own = None if off else closest
             flip = own is None and other_hand(was)
             if flip:
                 library.restep(cp, flip)
@@ -108,19 +191,24 @@ def duplicate(objs, mirror=None, turn=None):
                 own = hands(Part.getShape(src), Part.getShape(cp.LinkedObject))
             elif own is None and library.steps(was):
                 # a bend and an off center hole leave no middle plane, so its the plain part's mirror with the steps mirrored too
-                own = library.cached(library.source(doc, library.part_of(was)), own_mirror)
-                if own:
+                plain, off = library.cached(library.source(doc, library.part_of(was)), own_mirror)
+                if not off:
+                    own = plain
                     cp.VexSteps = json.dumps([metal.mirrored(s, own) for s in library.steps(was)])
                     library.retarget(cp)
             if own is None:
                 handed.append(was.Label)
-                own = reflection(Part.getShape(src).BoundBox.Center, AXES["Z"])  # turned to where the mirror would be, still the same hand
+                own = closest  # the plane it nearly mirrors across, still the same hand
+            else:
+                owns[cp.Name] = own
             # two reflections make a turn, so the part comes out real and in the mirror spot
             cp.Placement = frame(cp).inverse().multiply(Placement(mirror.multiply(world.toMatrix()).multiply(own)))
             if cp.ElementCount:
                 cp.PlacementList = [Placement(own.multiply(e.toMatrix()).multiply(own)) for e in was.PlacementList]
     doc.recompute()
-    return swapped, handed
+    joints = along(doc, names, None if turn else owns)
+    doc.recompute()
+    return swapped, handed, joints
 
 
 class Panel:
@@ -172,8 +260,10 @@ class Panel:
         if got is None:
             return
         Gui.Selection.clearSelection()
-        swapped, handed = got
+        swapped, handed, joints = got
         said = [f"copied {len(objs)}"]
+        if joints:
+            said.append(f"{joints} joint{'s' if joints > 1 else ''} came along")
         if swapped:
             said.append(f"{', '.join(swapped)} went to the other hand")
         if handed:

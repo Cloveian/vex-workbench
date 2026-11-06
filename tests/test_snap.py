@@ -463,8 +463,8 @@ for step in (shop.bend(flat, App.Vector(2.25, 0.25, 0.046) * IN, True, 0.25, -60
              {"do": "sketch", "sketch": "Sketch", "face": square.exportBrepToString(), "n": [0, 0, 1], "t": 0.046 * IN}):
     want = metal.work(plain, step).transformed(m)
     got = metal.work(plain.transformed(m), metal.mirrored(step, m))
-    off = max(got.distToShape(v)[0] for v in want.Vertexes[::7])
-    assert off < 1e-6 and abs(got.Volume - want.Volume) < 1e-6 and "sketch" not in metal.mirrored(step, m), (step["do"], off, got.Volume - want.Volume)
+    far = max(got.distToShape(v)[0] for v in want.Vertexes[::7])
+    assert far < 1e-6 and abs(got.Volume - want.Volume) < 1e-6 and "sketch" not in metal.mirrored(step, m), (step["do"], far, got.Volume - want.Volume)
 # a channel bends away from its flanges, folding the web into them gets refused
 ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
 doc.recompute()
@@ -599,6 +599,51 @@ align.align((ch, App.Vector(0.26, 0.26, 0) * IN, ch.Placement, (ch, "")), (u, in
 doc.recompute()
 b = ch.Shape.optimalBoundingBox()
 assert abs(b.ZMin / IN - 0.046 - side) < 1e-6 and abs((29 / 25.4 - 0.046) - b.ZMax / IN - side) < 1e-6, (b.ZMin / IN, b.ZMax / IN)
+
+# duplicate brings the joints with both ends on copied parts. mirrored or turned the copies already sit where those joints say, a solve moves nothing
+q1 = library.place(doc, gen["5x10 Steel Plate"], asm)
+q2 = library.place(doc, gen["5x10 Steel Plate"], asm)
+q1.Placement = App.Placement(App.Vector(20, 0, 0) * IN, App.Rotation(10, 0, 0))
+q2.Placement = q1.Placement.multiply(App.Placement(App.Vector(-IN, 0, -0.046 * IN), App.Rotation()))
+bar2 = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
+for q in (q1, q2):
+    JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q)
+doc.recompute()
+qs, qn, _ = screws.fasten(doc, where(q1, App.Vector(1.27, 0.24, 0.046) * IN), where(q2, App.Vector(2.26, 0.26, 0) * IN), "star-screw", nylock, asm)
+jb = align.align(where(bar2, library.hole_dots(bar2)[0]), where(q1, App.Vector(3.25, 0.25, 0.046) * IN), 0.25 * IN, asm)["joint"]
+jb.Offset2 = snap.offset(0.25 * IN, 30)
+assert asm.solve() == 0
+doc.recompute()
+for how in ({"mirror": duplicate.reflection(App.Vector(17, 0, 0) * IN, App.Vector(1, 0.3, 0))}, {"turn": App.Placement(App.Vector(0, 30, 0), App.Rotation(App.Vector(0, 0, 1), 70))}):
+    before = set(doc.Objects)
+    aligned = sum(getattr(j, "VexAlign", False) for j in joints.Group)
+    assert duplicate.duplicate([q1, q2, qs, qn, bar2], **how)[2] == 3, how
+    new = [o for o in doc.Objects if o not in before and duplicate.vex(o)]
+    for q in new[:2]:
+        JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q)
+    got = moved(new + [qs, qn, bar2])
+    assert not got and sum(getattr(j, "VexAlign", False) for j in joints.Group) == aligned + 1, (list(how), got)
+# a whole assembly copied, its joints go in the copy's own joint group
+import UtilsAssembly  # noqa: E402
+
+side =doc.addObject("Assembly::AssemblyObject", "Side2")
+side.Type = "Assembly"
+side.newObject("Assembly::JointGroup", "Joints")
+r1, r2 = (library.place(doc, gen["5x10 Steel Plate"], side) for _ in range(2))
+r2.Placement = App.Placement(App.Vector(-IN, 0, -0.046 * IN), App.Rotation())
+doc.recompute()
+
+
+def on(r, pt):
+    return r, pt, r.Placement, (side, r.Name + ".")
+
+
+screws.fasten(doc, on(r1, App.Vector(1.27, 0.24, 0.046) * IN), on(r2, App.Vector(2.26, 0.26, 0) * IN), "star-screw", nylock, side)
+before = set(doc.Objects)
+assert duplicate.duplicate([side], turn=App.Placement(App.Vector(0, 0, 3 * IN), App.Rotation()))[2] == 2
+twin = next(o for o in doc.Objects if o not in before and o.TypeId == "Assembly::AssemblyObject")
+mine = [j for j in UtilsAssembly.getJointGroup(twin).Group if hasattr(j, "Reference1")]
+assert len(mine) == 2 and all(j.Reference1[0] in twin.Group and j.Reference2[0] in twin.Group for j in mine), mine
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")

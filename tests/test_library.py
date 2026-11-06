@@ -202,7 +202,7 @@ side.Placement = App.Placement(App.Vector(0, 4, 0) * IN, App.Rotation(15, 0, 0))
 doc.recompute()
 before = set(doc.Objects)
 m = duplicate.reflection(App.Vector(IN, 0, 0), App.Vector(1, 0, 0))
-assert duplicate.duplicate([side], mirror=m) == ([], [])
+assert duplicate.duplicate([side], mirror=m) == ([], [], 0)
 new = [o for o in doc.Objects if o not in before]
 assert not any(o.TypeId == "App::Part" and hasattr(o, "VexName") for o in new), "copied a source"
 copy = next(o for o in new if o.TypeId == "App::Part")
@@ -223,7 +223,7 @@ mec.Placement = App.Placement(App.Vector(4, 2, 1) * IN, App.Rotation(40, 0, 70))
 motor = library.place(doc, steps["Electronics/V5 Smart Motor (276-4840).step"])
 doc.recompute()
 before = set(doc.Objects)
-assert duplicate.duplicate([mec, motor], mirror=m) == ([mec.Label], [motor.Label])
+assert duplicate.duplicate([mec, motor], mirror=m) == ([mec.Label], [motor.Label], 0)
 cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o) and "Mecanum" in o.Label)
 assert cp.Label == "2” Mecanum Wheels V2 (Right)" and cp.Kind == "V2, Right", (cp.Label, cp.Kind)
 have = [App.Vector(*p) for p in corners(cp)]
@@ -235,9 +235,9 @@ odd.Placement = App.Placement(App.Vector(-3, 2, 0) * IN, App.Rotation(20, 10, 0)
 doc.recompute()
 b = shop.bend(odd, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)
 library.rework(odd, [b, shop.drill(odd, App.Vector(3.5, 0.25, 0.046) * IN, 0.17 * IN, False)])
-assert duplicate.own_mirror(Part.getShape(odd.LinkedObject)) is None
+assert duplicate.own_mirror(Part.getShape(odd.LinkedObject))[1] > 0
 before = set(doc.Objects)
-assert duplicate.duplicate([odd], mirror=m) == ([], [])
+assert duplicate.duplicate([odd], mirror=m) == ([], [], 0)
 cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
 got = [cp.Placement.multVec(c) for c in library.hole_dots(cp)]
 off = max(min((m.multVec(odd.Placement.multVec(c)) - q).Length for q in got) for c in library.hole_dots(odd))

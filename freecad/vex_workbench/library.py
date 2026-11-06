@@ -326,6 +326,15 @@ def rework(link, done):
     prune(was)
 
 
+def holder(obj, sub):
+    # (the link the frame in joint sub is on, the frame's name) off its root obj. "Link.2.Hole001." is element 2 of an array, "Face1" has no trailing dot
+    path = sub.split(".")[:-1]
+    owner = path[:-1]
+    if owner and owner[-1].isdigit():
+        owner.pop()
+    return (obj.Document.getObject(owner[-1]) if owner else obj), (path[-1] if path else None)
+
+
 def ways(old, new):
     # where a frame on a copy worked by old steps could be with new ones. each bend since they differ turns it or doesnt, cuts and drills leave it
     k = 0
@@ -348,12 +357,11 @@ def carry(link, was):
     for j in [o for o in link.Document.Objects if hasattr(o, "JointType")]:
         for prop in ("Reference1", "Reference2"):
             obj, subs = getattr(j, prop) or (None, [""])  # None when unset
-            path = subs[0].split(".")[:-1]  # [..., "Link", "Hole001"], just ["Hole001"] on the link itself. "Face1" has no trailing dot
-            owner = path[:-1]
-            if owner and owner[-1].isdigit():
-                owner.pop()  # link array element, "Link.2.Hole001."
-            if path and path[-1] in lcs and (owner[-1] == link.Name if owner else obj == link):
-                refs.append((j, prop, obj, subs, path[-1]))
+            if obj is None:
+                continue
+            owner, name = holder(obj, subs[0])
+            if owner == link and name in lcs:
+                refs.append((j, prop, obj, subs, name))
     # bare ones only onto a worked source just this copy uses, on a plain one theyd show up on every copy of that size
     src = link.LinkedObject
     private = bool(getattr(src, "VexSteps", "")) and [o for o in src.InList if o.isDerivedFrom("App::Link")] == [link]
