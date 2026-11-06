@@ -25,7 +25,7 @@ every V5 part needs a solid, and the solid has to be *exact*. there's three plac
 **What's out there:**
 
 - **vex's step files**: 289 of them pulled off vexrobotics.com (`tools/fetch_vex_cad.py`, plus 13 packs by hand), sorted into the fusion library's folders (`tools/sort_vex_step.py`). exported out of solidworks, real planes and cylinders, measured really clean in FreeCAD
-- **the fusion library (VEX-CAD)**: more parts and more sizes, but its `.f3d` solids are autodesk ShapeManager binary, the only maybe-reader is the InventorLoader addon (untested). and the repo has no license, so none of it ships
+- **the fusion library (VEX-CAD)**: more parts and more sizes, but its `.f3d` solids are autodesk ShapeManager binary, ~~the only maybe-reader is the InventorLoader addon (untested)~~ `tools/read_f3d.py` reads them now (planes, cones, spheres, tori, intcurves off their stored b-spline), checked on the lockbar and the nuts. the repo still has no license tho, so none of it ships, its for measuring
 - **generated**: made from the catalog numbers at insert time
 
 **Gate cuts:**
