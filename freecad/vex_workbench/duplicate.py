@@ -1,4 +1,5 @@
 # duplicate tool. a copy of the picked parts or groups, mirrored across a plane or turned about an axis. parts only ever get turned, so they stay real parts
+import json
 import re
 
 import FreeCAD as App
@@ -7,7 +8,7 @@ import Part
 from FreeCAD import Matrix, Placement, Rotation, Vector
 from PySide import QtWidgets
 
-from . import library, ui
+from . import library, metal, ui
 from .metal import IN
 
 AXES = {"X": Vector(1, 0, 0), "Y": Vector(0, 1, 0), "Z": Vector(0, 0, 1)}
@@ -65,7 +66,7 @@ def other_hand(link):
 
 
 def hands(a, b):
-    # reflection taking hand a onto hand b, across the plane square to the axle halfway between them. exact on the V2 mecanums, vex's V1 ones dont quiet match
+    # reflection taking hand a onto hand b, across the plane square to the axle halfway between them. exact on the V2 mecanums, vex's V1 ones dont quite match
     box = a.BoundBox
     size = [box.XLength, box.YLength, box.ZLength]
     return reflection((box.Center + b.BoundBox.Center) * 0.5, list(AXES.values())[size.index(min(size))])
@@ -105,7 +106,13 @@ def duplicate(objs, mirror=None, turn=None):
                 library.restep(cp, flip)
                 swapped.append(was.Label)
                 own = hands(Part.getShape(src), Part.getShape(cp.LinkedObject))
-            elif own is None:
+            elif own is None and library.steps(was):
+                # a bend and an off center hole leave no middle plane, so its the plain part's mirror with the steps mirrored too
+                own = library.cached(library.source(doc, library.part_of(was)), own_mirror)
+                if own:
+                    cp.VexSteps = json.dumps([metal.mirrored(s, own) for s in library.steps(was)])
+                    library.retarget(cp)
+            if own is None:
                 handed.append(was.Label)
                 own = reflection(Part.getShape(src).BoundBox.Center, AXES["Z"])  # turned to where the mirror would be, still the same hand
             # two reflections make a turn, so the part comes out real and in the mirror spot

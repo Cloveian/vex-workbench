@@ -229,6 +229,26 @@ assert cp.Label == "2” Mecanum Wheels V2 (Right)" and cp.Kind == "V2, Right", 
 have = [App.Vector(*p) for p in corners(cp)]
 off = max(min((m.multVec(App.Vector(*p)) - q).Length for q in have) for p in corners(mec))
 assert off < 0.01, off  # mm
+# bent with an off center hole theres no middle plane left, so its copy gets mirrored steps. hole and outline where the mirror puts them
+odd = library.place(doc, gen["5x10 Steel Plate"])
+odd.Placement = App.Placement(App.Vector(-3, 2, 0) * IN, App.Rotation(20, 10, 0))
+doc.recompute()
+b = shop.bend(odd, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)
+library.rework(odd, [b, shop.drill(odd, App.Vector(3.5, 0.25, 0.046) * IN, 0.17 * IN, False)])
+assert duplicate.own_mirror(Part.getShape(odd.LinkedObject)) is None
+before = set(doc.Objects)
+assert duplicate.duplicate([odd], mirror=m) == ([], [])
+cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
+got = [cp.Placement.multVec(c) for c in library.hole_dots(cp)]
+off = max(min((m.multVec(odd.Placement.multVec(c)) - q).Length for q in got) for c in library.hole_dots(odd))
+assert len(got) == len(library.hole_dots(odd)) and off < 1e-6, off
+want, have = App.BoundBox(), App.BoundBox()
+for p in corners(odd):
+    want.add(m.multVec(App.Vector(*p)))
+for p in corners(cp):
+    have.add(App.Vector(*p))
+assert (want.Center - have.Center).Length < 0.01 and abs(want.DiagonalLength - have.DiagonalLength) < 0.01, (want, have)
+assert abs(Part.getShape(cp).Volume - Part.getShape(odd).Volume) < 1e-6 and cp.LinkedObject != odd.LinkedObject
 
 App.closeDocument(doc.Name)
 print("ok")

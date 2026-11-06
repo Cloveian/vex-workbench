@@ -235,6 +235,26 @@ def work(shape, step):
     return {"fold": fold, "cut": cut, "slot": slot, "sketch": slot, "drill": drill}[step["do"]](shape, step)
 
 
+def mirrored(step, m):
+    # step for the mirror image, m a reflection in the copy's own coords
+    o = m.multVec(Vector())
+    s = dict(step)
+    for key in ("p", "c", "a", "b", "keep", "center"):
+        if key in s:
+            s[key] = list(m.multVec(Vector(*s[key])))
+    for key in ("d", "n"):
+        if key in s:
+            s[key] = list(m.multVec(Vector(*s[key])) - o)
+    if "side" in s:
+        s["side"] = -s["side"]  # n x d flips in a mirror
+    if "face" in s:
+        face = Part.Shape()
+        face.importBrepFromString(s["face"])
+        s["face"] = face.transformGeometry(m).exportBrepToString()
+        s.pop("sketch", None)  # that sketch still cuts the origonal
+    return s
+
+
 def line(step):
     # line through p along d on the face out along n, and u into its side (+-1 of n x d)
     p, d, n = (Vector(*step[key]) for key in ("p", "d", "n"))
