@@ -615,6 +615,18 @@ try:
     assert not any(o.TypeId == "App::LocalCoordinateSystem" for o in new), [o.Label for o in new]
     doc.undo()
     assert set(doc.Objects) == had, [o.Label for o in set(doc.Objects) - had]
+    # accross the plate's middle its slide comes along onto the mirror holes, one undo takes the copy, joint and new frames back out
+    panel.at.setValue(2.5)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(swing)
+    panel.go()
+    assert panel.status.text() == "copied 1. 1 joint came along", panel.status.text()
+    k = UtilsAssembly.getJointGroup(asm).Group[-1]
+    on = p1.LinkedObject.getObject(k.Reference1[1][0].rstrip("."))
+    assert k.JointType == "Slider" and k.Reference1[0] == p1 and on not in had, (k.JointType, k.Reference1)
+    assert (on.Placement.Base - App.Vector(2.75, 1.25, 0.046) * IN).Length < 1e-6, on.Placement.Base / IN
+    doc.undo()
+    assert set(doc.Objects) == had, [o.Label for o in set(doc.Objects) - had]
     panel.reject()
     say("ok")
     failed = False
