@@ -1,7 +1,8 @@
 # usage: python -I tools/read_f3d.py <in.f3d> <out.step>
-#   pulls the acis brep (binary sab, the .smb in the zip) out of a fusion .f3d and writes it as step in mm
-#   surfaces: plane cone sphere torus. curves: lines, circles/ellipses, intcurves (off their stored b-spline)
-#   spline surfaces and anything else stop with an error
+#   pulls the acis breps (binary sab, the .smbs in the zip) out of a fusion .f3d and writes them as one step in mm
+#   surfaces: plane, cone, sphere, torus (lemon/apple too), splines off their stored b-spline. curves: lines, circles/ellipses, intcurves the same way
+#   tolerant edges/coedges/vertices and voids are fine
+#   splines with no stored b-spline and anything else stop with an error
 
 import math
 import struct
@@ -13,17 +14,18 @@ import freecad  # noqa: F401
 import FreeCAD as App
 import Part
 
-SURFACES = ("plane-surface", "cone-surface", "sphere-surface", "torus-surface")
+SURFACES = ("plane-surface", "cone-surface", "sphere-surface", "torus-surface", "spline-surface")
 CURVES = ("straight-curve", "ellipse-curve", "intcurve-curve")
 IN = 25.4
 
 
+# assemblies have one .smb per component, each lands at its own origin (placements arent read)
 def read_smb(path):
     with zipfile.ZipFile(path) as z:
         names = [n for n in z.namelist() if n.endswith(".smb")]
-        if len(names) != 1:
-            sys.exit(f"{path}: {len(names)} .smb breps in there, only know what to do with exactly 1")
-        return z.read(names[0])
+        if not names:
+            sys.exit(f"{path}: no .smb breps in there")
+        return [(n.rsplit("/", 1)[-1], z.read(n)) for n in names]
 
 
 def read_value(b, pos):
@@ -111,9 +113,10 @@ def resolve_refs(f, subs):
 
 
 # topology + geometry records go attrib, id, $-1, then their own stuff. this skips the first 3
+# tolerant ones (tedge-edge etc) are the plain record with their tolerance stuff tacked on the end
 def data(recs, i, want=None):
     name, f = recs[i]
-    if want and name != want:
+    if want and name != want and not name.endswith("-" + want):
         sys.exit(f"record {i} is {name}, wanted {want}")
     return f[3:]
 
@@ -158,14 +161,62 @@ def make_surface(recs, i, mm):
         return s, d[1] < 0
     if name == "torus-surface":
         if d[2] <= 0 or abs(d[3]) >= d[2]:
-            sys.exit(f"record {i}: lemon/apple torus (major {d[2]}, minor {d[3]}), not handled")
+            # lemon (major < 0, the omni rollers) or apple, occ's toroid wont take either. tube circle swept round the axis instead, same param and normal
+            c, n, x = vec(d[0], mm), vec(d[1]).normalize(), vec(d[4]).normalize()
+            circ = Part.Circle(c + x * (d[2] * mm), x.cross(n), abs(d[3]) * mm)
+            circ.XAxis = x
+            return Part.SurfaceOfRevolution(circ, c, n), d[3] < 0
         s = Part.Toroid()
         s.Center = vec(d[0], mm)
         s.Axis = vec(d[1])
-        s.MajorRadius = d[2] * mm
-        s.MinorRadius = abs(d[3]) * mm
+        # occ wants major > minor after every set, and it starts at 5 / 1
+        if d[2] * mm > s.MinorRadius:
+            s.MajorRadius = d[2] * mm
+            s.MinorRadius = abs(d[3]) * mm
+        else:
+            s.MinorRadius = abs(d[3]) * mm
+            s.MajorRadius = d[2] * mm
         return s, d[3] < 0
+    if name == "spline-surface":
+        return make_spline_surface(recs, i, mm), d[0]
     sys.exit(f"record {i}: {name} surface not handled")
+
+
+# the stored bs3 is the first nubs/nurbs one level into the subtype, deeper ones are the curves it was made from (cyl_spl_sur etc)
+# layout: degree u v, "both" etc if nurbs, closure u v, singularity u v, n knots u v, (knot, mult) for u then v, poles with u running fastest, fit tol
+def make_spline_surface(recs, si, mm):
+    d = data(recs, si)
+    depth, k = 0, None
+    for j, t in enumerate(d):
+        if t == "{":
+            depth += 1
+        elif t == "}":
+            depth -= 1
+        elif depth == 1 and t in ("nubs", "nurbs", "nullbs"):
+            k = j
+            break
+    if k is None or d[k] == "nullbs":
+        sys.exit(f"record {si}: {d[2]} spline surface without a stored b-spline, not handled")
+    du, dv = d[k + 1], d[k + 2]
+    per = 4 if d[k] == "nurbs" else 3
+    j = k + (8 if per == 4 else 7)
+    nu, nv = d[j], d[j + 1]
+    j += 2
+    ku, mu = knot_list(d, j, nu)
+    j += 2 * nu
+    kv, mv = knot_list(d, j, nv)
+    j += 2 * nv
+    npu, npv = sum(mu) - du - 1, sum(mv) - dv - 1
+    end = j + per * npu * npv
+    if end >= len(d) or not isinstance(d[end], float) or not all(isinstance(x, float) for x in d[j:end]):
+        sys.exit(f"record {si}: couldnt line up the {d[2]} b-spline surface data")
+    raw = d[j:end]
+    at = [[per * (v * npu + u) for v in range(npv)] for u in range(npu)]
+    poles = [[vec(raw[p:p + 3], mm) for p in row] for row in at]
+    w = [[raw[p + 3] for p in row] for row in at] if per == 4 else None
+    s = Part.BSplineSurface()
+    s.buildFromPolesMultsKnots(poles, mu, mv, ku, kv, False, False, du, dv, w)
+    return s
 
 
 def point(recs, vi, mm):
@@ -203,8 +254,16 @@ def make_edge(recs, ei, mm):
         return e.reversed() if rev else e
     if name == "intcurve-curve":
         # intcurve has its own sense (c[0]) on top of the edge's
-        return spline_edge(make_spline(recs, ci, mm), a, b, rev != c[0], d[0] == d[2])
+        return spline_edge(make_spline(recs, ci, mm), a, b, rev != c[0], d[0] == d[2], (d[1], d[3]))
     sys.exit(f"record {ci}: {name} edge curve not handled")
+
+
+# n (knot, mult) pairs from f[j]
+def knot_list(f, j, n):
+    knots, mults = f[j:j + 2 * n:2], list(f[j + 1:j + 2 * n:2])
+    mults[0] += 1  # acis leaves one off each clamped end
+    mults[-1] += 1
+    return knots, mults
 
 
 # the stored bs3 is the first nubs/nurbs in the subtype, pcurves come after it
@@ -215,10 +274,7 @@ def make_spline(recs, ci, mm):
     if k is None or f[k] == "nullbs":
         sys.exit(f"record {ci}: intcurve without a stored b-spline ({f[2]}), not handled")
     deg, n = f[k + 1], f[k + 3]
-    knots = f[k + 4:k + 4 + 2 * n:2]
-    mults = list(f[k + 5:k + 4 + 2 * n:2])
-    mults[0] += 1  # acis leaves one off each clamped end
-    mults[-1] += 1
+    knots, mults = knot_list(f, k + 4, n)
     per = 4 if f[k] == "nurbs" else 3
     start = k + 4 + 2 * n
     end = start + per * (sum(mults) - deg - 1)
@@ -231,14 +287,24 @@ def make_spline(recs, ci, mm):
     return g
 
 
+# projecting a tolerant vertex 0.01 mm off a 0.02 mm curve can land anywere on it, so the edge's stored param wins if its closer
+def closest_param(g, p, s):
+    u = g.parameter(p)
+    if g.FirstParameter <= s <= g.LastParameter and g.value(s).distanceToPoint(p) < g.value(u).distanceToPoint(p):
+        return s
+    return u
+
+
 # trims g to run a -> b (backwards along it if flip), wrapping over the seam if its closed
 # ends get pinned onto the vertices, the fit is only good to ~1e-3 mm and wires want them exact
-def spline_edge(g, a, b, flip, closed_edge):
+# t is the edge's param range, the bs3 runs the other way (-t) if flip
+def spline_edge(g, a, b, flip, closed_edge, t):
     if flip:
         a, b = b, a
+        t = (-t[1], -t[0])
     lo, hi = g.FirstParameter, g.LastParameter
     tol = 1e-9 * (hi - lo)
-    u0, u1 = g.parameter(a), g.parameter(b)
+    u0, u1 = closest_param(g, a, t[0]), closest_param(g, b, t[1])
     if g.isClosed():
         if u0 > hi - tol:
             u0 = lo
@@ -268,6 +334,17 @@ def spline_edge(g, a, b, flip, closed_edge):
     return e.reversed() if flip else e
 
 
+# acis vertices can sit a bit off the curve ends (2e-4 mm seen on arcs, tolerant ones more), 2x cuz the next edge can be off the other way
+# Part.Wire just quietly leaves out an edge that doesnt reach, even at 1.1e-7 off
+def fit_ends(recs, ei, e, mm):
+    d = data(recs, ei, "edge")
+    ends = [v.Point for v in e.Vertexes]
+    gap = max(min((p - q).Length for q in ends) for p in (point(recs, d[0], mm), point(recs, d[2], mm)))
+    if gap > 1e-8:
+        e.fixTolerance(2 * gap + 1e-7, Part.Vertex)
+    return e
+
+
 def loop_wire(recs, li, edges, mm):
     first = data(recs, li, "loop")[1]
     out, ci = [], first
@@ -275,12 +352,15 @@ def loop_wire(recs, li, edges, mm):
         d = data(recs, ci, "coedge")
         ei = d[3]
         if ei not in edges:
-            edges[ei] = make_edge(recs, ei, mm)
+            edges[ei] = fit_ends(recs, ei, make_edge(recs, ei, mm), mm)
         out.append(edges[ei].reversed() if d[4] else edges[ei])
         ci = d[0]
         if ci == first or ci == -1:
             break
-    return Part.Wire(out)
+    w = Part.Wire(out)
+    if len(w.Edges) != len(out):
+        sys.exit(f"loop {li}: wire came out with {len(w.Edges)} of {len(out)} edges")
+    return w
 
 
 def make_face(recs, fi, edges, mm):
@@ -303,7 +383,7 @@ def make_face(recs, fi, edges, mm):
 def build(recs, mm):
     bad = Counter(n for n, _ in recs if n.endswith(("-surface", "-curve")) and n not in SURFACES + CURVES)
     if bad:
-        sys.exit("spline geometry, not handled yet: " + ", ".join(f"{n} x{c}" for n, c in bad.most_common()))
+        sys.exit("geometry not handled yet: " + ", ".join(f"{n} x{c}" for n, c in bad.most_common()))
     solids, edges = [], {}
     for bi, (name, _) in enumerate(recs):
         if name != "body":
@@ -315,32 +395,53 @@ def build(recs, mm):
                 sys.exit(f"body {bi} has a non identity transform {t[:5]}, not handled")
         lump = d[0]
         while lump != -1:
-            shell = data(recs, lump, "lump")[1]
+            # a lump is one connected solid, any shells after the first are voids (faces already point into them)
+            shells, shell = [], data(recs, lump, "lump")[1]
             while shell != -1:
                 s = data(recs, shell, "shell")
                 if s[1] != -1:
                     sys.exit(f"shell {shell} has subshells, not handled")
-                faces, fi = [], s[2]
+                faces, fids, fi = [], [], s[2]
                 while fi != -1:
                     faces.append(make_face(recs, fi, edges, mm))
+                    fids.append(fi)
                     fi = data(recs, fi, "face")[0]
                 sh = Part.Shell(faces)
                 sh.sewShape()
                 if sh.ShapeType != "Shell":
-                    sys.exit(f"shell {shell} didnt sew into one shell, got {sh.ShapeType}")
-                solids.append(Part.Solid(sh))
+                    # seen on a modeled thread (cylinder face with a hole winding past the seam ~10 times) and 0.2 mm ball corners with tolerant vertices off by about the face size
+                    broken = [f"{i} ({recs[data(recs, i)[4]][0]})" for i, f in zip(fids, faces) if not f.isValid()]
+                    sys.exit(f"shell {shell} didnt sew into one shell, got {sh.ShapeType}"
+                             + (". faces that came out invalid: " + ", ".join(broken) if broken else ""))
+                if not sh.isValid():
+                    # tiny faces (0.002 mm2 slivers on the omni rollers) can have pcurves crossing in uv once theyre in the shell
+                    # shapefix at 1e-4 grows the tolerances over it, ~4e-5 mm
+                    sh.fix(1e-4, 1e-7, 1e-3)
+                if not sh.isClosed():
+                    print(f"body {bi}: shell {shell} isnt closed", file=sys.stderr)
+                shells.append(sh)
                 shell = s[0]
+            so = Part.Solid(shells[0] if len(shells) == 1 else Part.Compound(shells))
+            if not so.isValid():
+                print(f"body {bi}: lump {lump} isnt a valid solid", file=sys.stderr)
+            solids.append(so)
             lump = data(recs, lump, "lump")[0]
-    if not solids:
-        sys.exit("no solids in there")
-    return solids[0] if len(solids) == 1 else Part.Compound(solids)
+    return solids
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
         sys.exit("usage: python -I tools/read_f3d.py <in.f3d> <out.step>")
-    mm, recs = read_sab(read_smb(sys.argv[1]))
-    shape = build(recs, mm)
+    solids = []
+    for name, b in read_smb(sys.argv[1]):
+        try:
+            mm, recs = read_sab(b)
+            solids += build(recs, mm)
+        except SystemExit as e:
+            sys.exit(f"{name}: {e}")
+    if not solids:
+        sys.exit("no solids in there")
+    shape = solids[0] if len(solids) == 1 else Part.Compound(solids)
     shape.exportStep(sys.argv[2])
     bb = shape.optimalBoundingBox()  # plain BoundBox goes off the torus poles, way too big
     print(f"{len(shape.Solids)} solid(s), {len(shape.Faces)} faces, valid {shape.isValid()}")
