@@ -57,9 +57,9 @@ try:
     # a spacer's seam lines are nylon colored so they dont show, its end circles keep their lines
     sp = library.place(doc, gen["0.375 OD Spacer, 0.250 (Nylon)"])
     s, vo = sp.LinkedObject.Group[0].Shape, sp.LinkedObject.Group[0].ViewObject
-    seam = {e.hashCode() for f in s.Faces for e in f.Edges if e.isSeam(f)}
+    seam = {s.findSubShape(e)[1] for f in s.Faces for e in f.Edges if e.isSeam(f)}
     nylon = tuple(library.cat()["colors"]["Nylon"])
-    got = {(e.hashCode() in seam, tuple(round(v, 2) for v in c[:3])) for e, c in zip(s.Edges, vo.LineColorArray)}
+    got = {(i in seam, tuple(round(v, 2) for v in c[:3])) for i, c in enumerate(vo.LineColorArray, 1)}
     want = {(True, nylon), (False, tuple(round(v, 2) for v in vo.LineColor[:3]))}
     assert vo.DisplayMode == "Flat Lines" and seam and got == want, (got, want)
     for o in (red, plain, sp):
