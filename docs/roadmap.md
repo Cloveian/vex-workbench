@@ -52,7 +52,7 @@ in build order, each one is something i can open and poke at
 - [x] which spacer OD / length combos actually exist: whatever robosource sells is fine
 - [x] ~~drilled gear hole pattern~~ not a part, an LS gear drilled out by hand. Drill does LS gears now, straight through
 - [ ] HS lockbar
-- [ ] are the nylon / aluminum hex nuts just the steel shape
+- [x] are the nylon / aluminum hex nuts just the steel shape? yes. robosource's nylon one is 11/32 across, 0.130 tall, "the same size as VEX EDR nuts", aluminum 8-32 nuts are ASME 11/32 x 1/8, and the fusion library's three are one shape. thats what the catalog does already
 - [x] shoulder screw thread = length - shoulder? yes, robosource: "Overall length of 0.375" includes shoulder and threads". thats how screw() already does it
 
 ---

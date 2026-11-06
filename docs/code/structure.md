@@ -29,6 +29,7 @@
 | `tools/sort_vex_step.py`           | sorts the downloads into the fusion library folders, `--apply` moves them |
 | `tools/ship_steps.py`              | zips the shipped set out of `vex-step/` into the package, drops ones that stopped shipping |
 | `tools/render_shots.py`            | the README images, rendered with no window into `downloads/`          |
+| `tools/read_f3d.py`                | `.f3d` -> step, for measuring the fusion library's parts. no spline surfaces yet |
 | `vex-step/`                        | all 289 steps, gitignored. the tests' fixtures and anything that doesnt ship |
 | `LICENSE`                          | LGPL-2.1-or-later, the workbench only. vex's steps are theirs                  |
 | `downloads/`                       | raw downloads + `manifest.csv`, gitignored                            |
