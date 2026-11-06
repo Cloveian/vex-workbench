@@ -1,5 +1,16 @@
 # Log
 
+## 2026-11-05 - joints that follow along
+
+- the 11W output finally gets a dot. its socket is a 1/4 square turned 45, so its box is 0.35 across and it was "too big" for a shaft hole the whole time. goes by 2 \* the center's distance to the loop now (across the flats), dot sits where the square starts 0.5" down the recess
+- slide limits: read FreeCAD 1.1's AssemblyObject.cpp. the limits go into every solve (min `=>`, max `=<`, rail is marker I and the mover J, so 0 to rail length is the right way round), the static solve just doesnt hold them, 3.5" up a 2" rail. drag isnt in the python api, so a hand drag is still the only test
+- joints follow bends. a bend's turned side moves by one rigid placement (`metal.turned`), so a frame either stayed or went round with it. `ways()` tries every combo of the bends since the old and new steps split, undo the old ones then redo the new, first one that lands on a hole wins. a 90 redone at 45 lands right, and a real Revolute'd shaft follows after a solve
+- mirroring worked metal with no middle plane left (a bend plus one off center hole) mirrors the steps on the plain part's plane: points and directions through the matrix, `side` flips cuz n x d does. checked every step kind against a slanted mirror, which caught `transformGeometry` turning the sketch face into bsplines a mm3 off. `transformShape` does reflections exact
+- a flaky wheel paint test turned out real: 9000 faces on an omni, `hashCode()` only goes to 2^31, so on ~2% of loads two faces share one and a hub face goes rim colored. `findSubShape` numbers them now
+- Duplicate brings joints along when both ends are on copied parts. a mirrored frame is own \* frame \* a flip of its own y so its still right handed, offsets get the same flip on both sides (gap stays, spin goes negative), angle limits swap and negate. a whole copied assembly gets its own joint group
+- the mirror check went from "one of 3 axis planes, exact vertices" to the best of those plus planes through each axis off level vertices (vex's torx lobes), neighbor cells so a point on a cell edge isnt a miss, and for 20 or fewer leftovers each has to land on an edge (stray split vertices do, a drilled hole's dont). had a boolean there first, 38 s on a 36T v2 gear, *bleh*
+- found doing that: the "handed" fallback was a reflection through the part's own Z, which on a motor is the shaft. so a mirrored motor came out pointing its shaft the wrong way the whole time lol. now the plane it comes closest to mirroring on, keeps the shaft. near-mirrors (motors, v2 HS gears with a handful of odd bits) bring a joint only if its mirrored frame lands on a hole
+
 ## 2026-11-04 - weights, slides, wheels, mirrors
 
 - step parts weigh something now. 20 off vex's listed masses (motors 155 g, brain 285 g, the pneumatic cylinders), the rest volume \* density off a material per folder (`[step_material]`) and a ~ in the parts list. vex's product pages 403 anything that isnt a person, playwright included, so the numbers came out of search snippets and the materials off pages saved by hand. the battery is 0.62 lb off the store, the KB says 350 g which is just the controller's number copy pasted
