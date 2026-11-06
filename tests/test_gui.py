@@ -597,7 +597,7 @@ try:
     assert "slides along" in panel.status.text(), panel.status.text()
     panel.slides.setChecked(False)
     panel.reject()
-    # duplicate panel, the swinging channel mirrored across the assembly's YZ plane lands in it with the same source
+    # duplicate panel, the swinging channel mirrored across the assembly's YZ plane lands in it with the same source. its plate doesnt reach over there, so its joint stays
     from freecad.vex_workbench import duplicate
     panel = duplicate.Panel()
     Gui.Control.showDialog(panel)
@@ -609,7 +609,7 @@ try:
     panel.go()
     cp = [o for o in doc.Objects if o not in had and duplicate.vex(o)]
     assert len(cp) == 1 and cp[0].LinkedObject == swing.LinkedObject and cp[0] in asm.Group, cp
-    assert panel.status.text() == "copied 1", panel.status.text()
+    assert panel.status.text() == "copied 1. 1 joint couldn't come along, Align it again", panel.status.text()
     panel.reject()
     say("ok")
     failed = False

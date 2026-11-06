@@ -617,7 +617,7 @@ doc.recompute()
 for how in ({"mirror": duplicate.reflection(App.Vector(17, 0, 0) * IN, App.Vector(1, 0.3, 0))}, {"turn": App.Placement(App.Vector(0, 30, 0), App.Rotation(App.Vector(0, 0, 1), 70))}):
     before = set(doc.Objects)
     aligned = sum(getattr(j, "VexAlign", False) for j in joints.Group)
-    assert duplicate.duplicate([q1, q2, qs, qn, bar2], **how)[2] == 3, how
+    assert duplicate.duplicate([q1, q2, qs, qn, bar2], **how)[2:] == (3, 0), how
     new = [o for o in doc.Objects if o not in before and duplicate.vex(o)]
     for q in new[:2]:
         JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q)
@@ -634,8 +634,8 @@ align.align(where(mo, dot), where(q3, App.Vector(1.25, 0.25, 0.046) * IN), 0, as
 doc.recompute()
 ms, *_ = screws.fasten(doc, where(q3, App.Vector(1.26, 0.26, 0) * IN), where(mo, dot), "star-screw", None, asm)
 before = set(doc.Objects)
-# the Align one and the screw in the plate, the screw's frame in the motor's thread isnt on a dot so theres nothing to check it against
-assert duplicate.duplicate([q3, mo, ms], mirror=duplicate.reflection(App.Vector(28, 0, 0) * IN, App.Vector(1, 0, 0))) == ([], [mo.Label], 2)
+# the Align one onto the motor's hole and the screw's in the plate (into a thread its just the one)
+assert duplicate.duplicate([q3, mo, ms], mirror=duplicate.reflection(App.Vector(28, 0, 0) * IN, App.Vector(1, 0, 0))) == ([], [mo.Label], 2, 0)
 new = [o for o in doc.Objects if o not in before and duplicate.vex(o)]
 JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), new[0])  # just the plate, the motor hangs off its Align
 got = moved(new)
@@ -651,7 +651,7 @@ doc.recompute()
 for how, hole in (({"mirror": duplicate.reflection(App.Vector(42.5, 0, 0) * IN, App.Vector(1, 0, 0))}, (3.75, 0.25)),
                   ({"turn": App.Placement(App.Vector(), App.Rotation(App.Vector(0, 0, 1), 180), App.Vector(42.5, 1.25, 0) * IN)}, (3.75, 2.25))):
     before = set(doc.Objects)
-    assert duplicate.duplicate([b4], **how) == ([], [], 1), how
+    assert duplicate.duplicate([b4], **how) == ([], [], 1, 0), how
     cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
     k = joints.Group[-1]
     on = q4.LinkedObject.getObject(k.Reference1[1][0].rstrip("."))
@@ -675,7 +675,7 @@ def on(r, pt):
 
 screws.fasten(doc, on(r1, App.Vector(1.27, 0.24, 0.046) * IN), on(r2, App.Vector(2.26, 0.26, 0) * IN), "star-screw", nylock, side)
 before = set(doc.Objects)
-assert duplicate.duplicate([side], turn=App.Placement(App.Vector(0, 0, 3 * IN), App.Rotation()))[2] == 2
+assert duplicate.duplicate([side], turn=App.Placement(App.Vector(0, 0, 3 * IN), App.Rotation()))[2:] == (2, 0)
 twin = next(o for o in doc.Objects if o not in before and o.TypeId == "Assembly::AssemblyObject")
 mine = [j for j in UtilsAssembly.getJointGroup(twin).Group if hasattr(j, "Reference1")]
 assert len(mine) == 2 and all(j.Reference1[0] in twin.Group and j.Reference2[0] in twin.Group for j in mine), mine

@@ -153,14 +153,15 @@ def copied_ref(ref, names, owns, mirror, turn):
 
 
 def along(doc, names, owns, mirror, turn):
-    # copies of the joints on copied parts, how many. owns: copy name -> (its own reflection, exact or not)
-    n = 0
+    # copies of the joints on copied parts, how many came and how many had nowhere to go. owns: copy name -> (its own reflection, exact or not)
+    n = left = 0
     for j in [o for o in doc.Objects if hasattr(o, "JointType") and hasattr(o, "Reference1")]:
         ends = [j.Reference1, j.Reference2]
         if not all(ends) or not any(touches(r, names) for r in ends):
             continue
         refs = [copied_ref(r, names, owns, mirror, turn) for r in ends]
         if None in refs:
+            left += 1
             continue
         offs = [j.Offset1, j.Offset2]
         lo, hi = (j.EnableAngleMin, j.AngleMin), (j.EnableAngleMax, j.AngleMax)
@@ -177,12 +178,12 @@ def along(doc, names, owns, mirror, turn):
         if getattr(j, "VexAlign", False):
             align.ours(k)
         n += 1
-    return n
+    return n, left
 
 
 def duplicate(objs, mirror=None, turn=None):
     # copies of objs next to them, every vex part mirrored with mirror (a reflection matrix) or turned with turn (a placement)
-    # labels back of the handed ones that went to their other hand, the ones that only got turned to the closest fit, and how many joints came along
+    # labels back of the handed ones that went to their other hand, the ones that only got turned to the closest fit, how many joints came along and how many stayed behind
     doc = objs[0].Document
     swapped, handed = [], []
     names, owns = {}, {}  # original name -> its copy, copy name -> (own, exact) (mirror only)
@@ -228,9 +229,9 @@ def duplicate(objs, mirror=None, turn=None):
             if cp.ElementCount:
                 cp.PlacementList = [Placement(own.multiply(e.toMatrix()).multiply(own)) for e in was.PlacementList]
     doc.recompute()
-    joints = along(doc, names, owns, mirror, turn)
+    joints, left = along(doc, names, owns, mirror, turn)
     doc.recompute()
-    return swapped, handed, joints
+    return swapped, handed, joints, left
 
 
 class Panel:
@@ -282,10 +283,12 @@ class Panel:
         if got is None:
             return
         Gui.Selection.clearSelection()
-        swapped, handed, joints = got
+        swapped, handed, joints, left = got
         said = [f"copied {len(objs)}"]
         if joints:
             said.append(f"{joints} joint{'s' if joints > 1 else ''} came along")
+        if left:
+            said.append(f"{left} joint{'s' if left > 1 else ''} couldn't come along, Align {'it' if left == 1 else 'them'} again")
         if swapped:
             said.append(f"{', '.join(swapped)} went to the other hand")
         if handed:
