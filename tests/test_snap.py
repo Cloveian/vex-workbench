@@ -623,6 +623,23 @@ for how in ({"mirror": duplicate.reflection(App.Vector(17, 0, 0) * IN, App.Vecto
         JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q)
     got = moved(new + [qs, qn, bar2])
     assert not got and sum(getattr(j, "VexAlign", False) for j in joints.Group) == aligned + 1, (list(how), got)
+# a motor only nearly mirrors, its joints come along where theres a hole for them, and the copies sit where those joints say
+q3 = library.place(doc, gen["5x10 Steel Plate"], asm)
+q3.Placement = App.Placement(App.Vector(30, 0, 0) * IN, App.Rotation())
+mo = library.place(doc, steps["Electronics/V5 Smart Motor (276-4840).step"], asm)
+JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q3)
+doc.recompute()
+dot = next(c for c in library.hole_dots(mo) if abs(c.x + 0.5 * IN) < 1e-6)
+align.align(where(mo, dot), where(q3, App.Vector(1.25, 0.25, 0.046) * IN), 0, asm)
+doc.recompute()
+ms, *_ = screws.fasten(doc, where(q3, App.Vector(1.26, 0.26, 0) * IN), where(mo, dot), "star-screw", None, asm)
+before = set(doc.Objects)
+# the Align one and the screw in the plate, the screw's frame in the motor's thread isnt on a dot so theres nothing to check it against
+assert duplicate.duplicate([q3, mo, ms], mirror=duplicate.reflection(App.Vector(28, 0, 0) * IN, App.Vector(1, 0, 0))) == ([], [mo.Label], 2)
+new = [o for o in doc.Objects if o not in before and duplicate.vex(o)]
+JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), new[0])  # just the plate, the motor hangs off its Align
+got = moved(new)
+assert not got, got
 # a whole assembly copied, its joints go in the copy's own joint group
 import UtilsAssembly  # noqa: E402
 

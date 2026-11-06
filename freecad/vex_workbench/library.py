@@ -335,6 +335,12 @@ def holder(obj, sub):
     return (obj.Document.getObject(owner[-1]) if owner else obj), (path[-1] if path else None)
 
 
+def on_hole(link, plc):
+    # plc (link coords) sits on a hole of link. either way along the axis, a standoff's Seat points in off an end whose normal points out
+    center, n = hole_spot(link, plc.Base)
+    return (center - plc.Base).Length < 1e-4 and abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) > 1 - 1e-6
+
+
 def ways(old, new):
     # where a frame on a copy worked by old steps could be with new ones. each bend since they differ turns it or doesnt, cuts and drills leave it
     k = 0
@@ -374,11 +380,10 @@ def carry(link, was):
         for way in tries:
             plc = way.multiply(old.Placement)
             try:
-                center, n = hole_spot(link, plc.Base)
+                hit = on_hole(link, plc)
             except ValueError:
                 return  # no holes left at all
-            # either way along the axis, a standoff's Seat points in off an end whose normal points out
-            if (center - plc.Base).Length < 1e-4 and abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) > 1 - 1e-6:
+            if hit:
                 moved[old.Name] = frame(link, plc, old.Label.rstrip("0123456789") or "Hole")
                 break
     for j, prop, obj, subs, name in refs:
