@@ -452,6 +452,19 @@ for step in (b, dict(b, angle=45)):
     assert asm.solve() == 0
     doc.recompute()
     assert (pin.Placement.Base - leg.Placement.multVec(g.Placement.Base)).Length < 1e-6, (step["angle"], pin.Placement.Base / IN)
+# every kind of step mirrored and done on the mirrored plate is the mirror of it done on the plate. a slanted plane, nothing lines up by luck
+from freecad.vex_workbench import duplicate  # noqa: E402
+
+m = duplicate.reflection(App.Vector(1.3, -0.7, 2.1) * IN, App.Vector(1, 2, 0.5))
+plain = Part.getShape(flat.LinkedObject)
+square = Part.Face(Part.makePolygon([App.Vector(x, y, 0.046) * IN for x, y in ((3.1, 1.1), (3.9, 1.1), (3.9, 1.4), (3.1, 1.4), (3.1, 1.1))]))
+for step in (shop.bend(flat, App.Vector(2.25, 0.25, 0.046) * IN, True, 0.25, -60), shop.cut(flat, App.Vector(4.25, 0.25, 0.046) * IN, True, 0),
+             shop.slot(flat, App.Vector(0.5, 1, 0.046) * IN, App.Vector(1.5, 1, 0.046) * IN, 0.04 * IN), shop.drill(flat, App.Vector(3.5, 0.25, 0.046) * IN, 0.17 * IN, False),
+             {"do": "sketch", "sketch": "Sketch", "face": square.exportBrepToString(), "n": [0, 0, 1], "t": 0.046 * IN}):
+    want = metal.work(plain, step).transformed(m)
+    got = metal.work(plain.transformed(m), metal.mirrored(step, m))
+    off = max(got.distToShape(v)[0] for v in want.Vertexes[::7])
+    assert off < 1e-6 and abs(got.Volume - want.Volume) < 1e-6 and "sketch" not in metal.mirrored(step, m), (step["do"], off, got.Volume - want.Volume)
 # a channel bends away from its flanges, folding the web into them gets refused
 ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
 doc.recompute()

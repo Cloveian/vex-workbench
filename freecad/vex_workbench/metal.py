@@ -250,7 +250,8 @@ def mirrored(step, m):
     if "face" in s:
         face = Part.Shape()
         face.importBrepFromString(s["face"])
-        s["face"] = face.transformGeometry(m).exportBrepToString()
+        face.transformShape(m)  # exact, transformGeometry makes it all bsplines
+        s["face"] = face.exportBrepToString()
         s.pop("sketch", None)  # that sketch still cuts the origonal
     return s
 
