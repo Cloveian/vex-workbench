@@ -30,7 +30,7 @@ def reflection(o, n):
 
 
 def own_mirror(shape):
-    # (reflection across the plane through its middle it fits best, how many vertices miss). 0 misses is exact, more is a handed part (mecanum, the motors)
+    # (reflection across the plane through its middle it fits best, how many vertices miss). 0 misses is exact, more is a handed part (mecanum, the motors) or one thats only nearly symmetric
     def key(p):
         return round(p.x / SAME), round(p.y / SAME), round(p.z / SAME)
 
@@ -166,7 +166,7 @@ def along(doc, names, owns):
 
 def duplicate(objs, mirror=None, turn=None):
     # copies of objs next to them, every vex part mirrored with mirror (a reflection matrix) or turned with turn (a placement)
-    # labels back of the handed ones that went to their other hand, the ones with none that only got turned, and how many joints came along
+    # labels back of the handed ones that went to their other hand, the ones that only got turned to the closest fit, and how many joints came along
     doc = objs[0].Document
     swapped, handed = [], []
     names, owns = {}, {}  # original name -> its copy, copy name -> (own, exact) (mirror only)
@@ -273,7 +273,8 @@ class Panel:
         if swapped:
             said.append(f"{', '.join(swapped)} went to the other hand")
         if handed:
-            said.append(f"{', '.join(handed)} only turned into place, there's no other hand of {'it' if len(handed) == 1 else 'them'}")
+            dont = "doesn't" if len(handed) == 1 else "don't"
+            said.append(f"{', '.join(handed)} {dont} mirror exactly, turned to the closest fit")
         self.status.setText(". ".join(said))
 
     def getStandardButtons(self):
