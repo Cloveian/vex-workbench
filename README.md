@@ -37,7 +37,7 @@ The [usage guide](docs/using.md) goes through every tool.
 - **Screw**: two clicks and the shortest screw that reaches through the nut goes in, nut and all, or 3/8" into a threaded hole (a standoff, a motor) with no nut. Pick a few holes on one face first and one click across does the lot. Or pick the screw yourself and place it with one click.
 - **Spacers**: click two holes facing each other, like inside a boxed channel, and the gap fills with spacers and washers. The screw tool can fill its gaps too.
 - **Frame on hole**: a frame on a hole's exact center, for joining parts by hand in the Assembly workbench.
-- **Duplicate**: copy a side of the robot mirrored across a plane or turned about an axis. Every part stays a real part, turned into its mirror spot instead of flipped inside out, and the joints between the copied parts come along.
+- **Duplicate**: copy a side of the robot mirrored across a plane or turned about an axis. Every part stays a real part, turned into its mirror spot instead of flipped inside out, and the joints come along too, onto the matching holes of whatever the copy is bolted to.
 - In an assembly, screws, nuts, spacers and aligned parts all get revolute joints, so they can still spin.
 
 ![crunchy align image](docs/img/align.png)

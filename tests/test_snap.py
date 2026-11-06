@@ -640,6 +640,24 @@ new = [o for o in doc.Objects if o not in before and duplicate.vex(o)]
 JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), new[0])  # just the plate, the motor hangs off its Align
 got = moved(new)
 assert not got, got
+# a bar on a plate that stays put, mirrored across the plate's middle, gets jointed to the plate's hole on the other side. turned too
+q4 = library.place(doc, gen["5x10 Steel Plate"], asm)
+q4.Placement = App.Placement(App.Vector(40, 0, 0) * IN, App.Rotation())
+b4 = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
+JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q4)
+doc.recompute()
+align.align(where(b4, library.hole_dots(b4)[0]), where(q4, App.Vector(1.25, 0.25, 0.046) * IN), 0.125 * IN, asm)
+doc.recompute()
+for how, hole in (({"mirror": duplicate.reflection(App.Vector(42.5, 0, 0) * IN, App.Vector(1, 0, 0))}, (3.75, 0.25)),
+                  ({"turn": App.Placement(App.Vector(), App.Rotation(App.Vector(0, 0, 1), 180), App.Vector(42.5, 1.25, 0) * IN)}, (3.75, 2.25))):
+    before = set(doc.Objects)
+    assert duplicate.duplicate([b4], **how) == ([], [], 1), how
+    cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
+    k = joints.Group[-1]
+    on = q4.LinkedObject.getObject(k.Reference1[1][0].rstrip("."))
+    assert k.Reference1[0] == q4 and k.Reference2[0] == cp and (on.Placement.Base - App.Vector(*hole, 0.046) * IN).Length < 1e-6, (list(how), on.Placement.Base / IN)
+    got = moved([cp])
+    assert not got, (list(how), got)
 # a whole assembly copied, its joints go in the copy's own joint group
 import UtilsAssembly  # noqa: E402
 

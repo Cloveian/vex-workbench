@@ -110,45 +110,61 @@ def frame(o):
     return p.getGlobalPlacement() if p else Placement()
 
 
-def copied_ref(ref, names, owns):
-    # a joint ref onto the copies, None if its not all on copied parts or a neaely mirrored one (a motor) has no hole there
-    obj, subs = ref or (None, [""])
-    if obj is None or obj.Name not in names:
-        return None
+def touches(ref, names):
+    obj, subs = ref
+    return library.holder(obj, subs[0])[0].Name in names
+
+
+def copied_ref(ref, names, owns, mirror, turn):
+    # a joint ref onto the copies. an end on a part that wasnt copied (the chassis a drive side sat on) goes to the hole its frame lands on mirrored or turned
+    # None if a frame has nowhere to go, a nearly mirrored part (a motor) or an uncopied one with no hole there
+    obj, subs = ref
     out = []
     for sub in subs:
         owner, name = library.holder(obj, sub)
         cp = names.get(owner.Name)
-        if cp is None:
-            return None
         path = [names[p].Name if p in names else p for p in sub.split(".")]
-        if owns is not None:
-            # the mirror of a frame on its own source, own x frame x FLIP_Y, so W' frame' = M W frame FLIP_Y
-            lcs = cp.Name in owns and owner.LinkedObject.getObject(name or "")
-            if not lcs or lcs.TypeId != "App::LocalCoordinateSystem":
-                return None
+        if cp is not None and mirror is None:
+            out.append(".".join(path))  # turned whole, same frame
+            continue
+        lcs = name and hasattr(owner, "LinkedObject") and owner.LinkedObject.getObject(name)
+        if not lcs or lcs.TypeId != "App::LocalCoordinateSystem" or (cp is None and (obj.Name in names or any(p.isdigit() for p in path))):
+            return None  # not a hole frame, a non vex part left out of a copied group, or one element of an uncopied arrray
+        if cp is not None:
+            # own x frame x FLIP_Y on its own source, so W' frame' = M W frame FLIP_Y
             own, exact = owns[cp.Name]
-            plc = Placement(own.multiply(lcs.Placement.toMatrix()).multiply(FLIP_Y))
-            try:
-                if not (exact or library.on_hole(cp, plc)):
-                    return None
-            except ValueError:
-                return None  # no holes at all
-            path[-2] = library.frame(cp, plc, lcs.Label.rstrip("0123456789") or "Hole").Name
+            on, plc = cp, Placement(own.multiply(lcs.Placement.toMatrix()).multiply(FLIP_Y))
+        else:
+            w = frame(owner).multiply(owner.Placement)
+            if mirror is not None:
+                there = w.inverse().toMatrix().multiply(mirror).multiply(w.toMatrix())  # mirror in owner coords
+                plc = Placement(there.multiply(lcs.Placement.toMatrix()).multiply(FLIP_Y))
+            else:
+                plc = w.inverse().multiply(turn).multiply(w).multiply(lcs.Placement)
+            on, exact = owner, False
+        try:
+            if not (exact or library.on_hole(on, plc)):
+                return None
+        except ValueError:
+            return None  # no holes at all
+        path[-2] = library.frame(on, plc, lcs.Label.rstrip("0123456789") or "Hole").Name
         out.append(".".join(path))
-    return [names[obj.Name], out]
+    return [names.get(obj.Name, obj), out]
 
 
-def along(doc, names, owns):
-    # copies of the joints with both ends on copied parts, how many. owns: copy name -> (its own reflection, exact or not), None for a turn
+def along(doc, names, owns, mirror, turn):
+    # copies of the joints on copied parts, how many. owns: copy name -> (its own reflection, exact or not)
     n = 0
     for j in [o for o in doc.Objects if hasattr(o, "JointType") and hasattr(o, "Reference1")]:
-        refs = [copied_ref(getattr(j, p), names, owns) for p in ("Reference1", "Reference2")]
+        ends = [j.Reference1, j.Reference2]
+        if not all(ends) or not any(touches(r, names) for r in ends):
+            continue
+        refs = [copied_ref(r, names, owns, mirror, turn) for r in ends]
         if None in refs:
             continue
         offs = [j.Offset1, j.Offset2]
         lo, hi = (j.EnableAngleMin, j.AngleMin), (j.EnableAngleMax, j.AngleMax)
-        if owns is not None:
+        if mirror is not None:
             # same gap, the spin goes the other way
             offs = [Placement(FLIP_Y.multiply(o.toMatrix()).multiply(FLIP_Y)) for o in offs]
             lo, hi = (hi[0], -hi[1]), (lo[0], -lo[1])
@@ -212,7 +228,7 @@ def duplicate(objs, mirror=None, turn=None):
             if cp.ElementCount:
                 cp.PlacementList = [Placement(own.multiply(e.toMatrix()).multiply(own)) for e in was.PlacementList]
     doc.recompute()
-    joints = along(doc, names, None if turn else owns)
+    joints = along(doc, names, owns, mirror, turn)
     doc.recompute()
     return swapped, handed, joints
 
