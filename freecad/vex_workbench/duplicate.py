@@ -14,6 +14,7 @@ from .metal import IN
 
 AXES = {"X": Vector(1, 0, 0), "Y": Vector(0, 1, 0), "Z": Vector(0, 0, 1)}
 SAME = 1e-3  # mm, vertices closer than this are the same one
+NEAR = 0.01 * IN  # mm, a frame landing this close to a hole goes on it. vex's 25 hole chassis rails have their holes 0.002 off center, 0.004 mirrored
 GROUPS = ("App::Part", "App::DocumentObjectGroup", "Assembly::AssemblyObject")
 FLIP_Y = Matrix(1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)  # a flip of a frame's own y, keeps a mirrored frame right handed
 LIMITS = ("EnableLengthMin", "EnableLengthMax", "LengthMin", "LengthMax", "Distance", "Distance2", "Angle", "Detach1", "Detach2")  # copied as is, the same in a mirror
@@ -143,11 +144,14 @@ def copied_ref(ref, names, owns, mirror, turn):
             else:
                 plc = w.inverse().multiply(turn).multiply(w).multiply(lcs.Placement)
             on, exact = owner, False
-        try:
-            if not (exact or library.on_hole(on, plc)):
+        if not exact:
+            try:
+                hit = library.on_hole(on, plc, NEAR)
+            except ValueError:
+                return None  # no holes at all
+            if hit is None:
                 return None
-        except ValueError:
-            return None  # no holes at all
+            plc = Placement(hit, plc.Rotation)
         out.append((path, (on, plc, lcs.Label.rstrip("0123456789") or "Hole")))
     return names.get(obj.Name, obj), out
 

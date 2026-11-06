@@ -693,6 +693,24 @@ for how, hole in (({"mirror": duplicate.reflection(App.Vector(42.5, 0, 0) * IN, 
     assert k.Reference1[0] == q4 and k.Reference2[0] == cp and (on.Placement.Base - App.Vector(*hole, 0.046) * IN).Length < 1e-6, (list(how), on.Placement.Base / IN)
     got = moved([cp])
     assert not got, (list(how), got)
+# vex's 25 hole chassis rail has its holes 0.002 off the middle, mirrored across the middle a channel on the end hole still gets the far end one, and a solve only nudges it
+rail = library.place(doc, steps["Structure/Steel/2x1x25 Steel Chassis Rail (275-1145).step"], asm)
+rail.Placement = App.Placement(App.Vector(0, 20, 0) * IN, App.Rotation())
+b5 = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
+JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), rail)
+doc.recompute()
+align.align(where(b5, library.hole_dots(b5)[0]), where(rail, App.Vector(2.028, 0.046, -2.098) * IN), 0, asm)
+doc.recompute()
+b = Part.getShape(rail.LinkedObject).BoundBox
+before = set(doc.Objects)
+assert duplicate.duplicate([b5], mirror=duplicate.reflection(App.Vector(b.Center.x, 0, 0), App.Vector(1, 0, 0))) == ([], [], 1, 0)
+cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
+k = joints.Group[-1]
+on = rail.LinkedObject.getObject(k.Reference1[1][0].rstrip("."))
+assert k.Reference1[0] == rail and (on.Placement.Base - App.Vector(-9.972, 0.046, -2.098) * IN).Length < 0.001 * IN, on.Placement.Base / IN
+was = cp.Placement
+assert asm.solve() == 0
+assert (cp.Placement.Base - was.Base).Length < 0.01 * IN, (cp.Placement.Base - was.Base) / IN
 # a whole assembly copied, its joints go in the copy's own joint group
 import UtilsAssembly  # noqa: E402
 

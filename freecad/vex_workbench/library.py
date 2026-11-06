@@ -339,10 +339,12 @@ def holder(obj, sub):
     return (obj.Document.getObject(owner[-1]) if owner else obj), (path[-1] if path else None)
 
 
-def on_hole(link, plc):
-    # plc (link coords) sits on a hole of link. either way along the axis, a standoff's Seat points in off an end whose normal points out
+def on_hole(link, plc, near=1e-4):
+    # center of the hole plc (link coords) sits on, within near mm, or None. either way along the axis, a standoff's Seat points in off an end whose normal points out
     center, n = hole_spot(link, plc.Base)
-    return (center - plc.Base).Length < 1e-4 and abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) > 1 - 1e-6
+    if (center - plc.Base).Length < near and abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) > 1 - 1e-6:
+        return center
+    return None
 
 
 def on_surface(surface, f):
@@ -430,7 +432,7 @@ def carry(link, was):
                 hit = on_hole(link, plc)
             except ValueError:
                 return  # no holes left at all
-            if hit:
+            if hit is not None:
                 moved[old.Name] = frame(link, plc, old.Label.rstrip("0123456789") or "Hole")
                 break
     for j, prop, obj, subs, name in refs:
