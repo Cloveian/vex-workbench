@@ -438,19 +438,6 @@ name = "{color} License Plate"
 base = "V5RC License Plate (276-3938)"
 color = ["Red", "Blue"]
 
-[[family]]
-id = "drilled-gear"
-title = "Drilled Gear"
-folder = "Motion/Gears/Low Strength/Drilled Gears"
-name = "LS {teeth}T Gear (Drilled)"
-sizes = [
-  { teeth = 12, base = "12T Gear (276-2169-001)" },
-  { teeth = 36, base = "36T Gear (276-2169-002)" },
-  { teeth = 60, base = "60T Gear (276-2169-003)" },
-  { teeth = 84, base = "84T Gear (276-2169-004)" },
-]
-# todo hole pattern
-
 # --- place menus ---
 # vex's own step parts picked down a few boxes, like a family but only the combos listed. part = its name in the groups below
 

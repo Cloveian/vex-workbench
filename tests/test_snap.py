@@ -552,6 +552,22 @@ for done in ([h, wide], [h, wide, shop.drill(plate, App.Vector(0.07, 0.75, 0.046
     spots = shop.grid_spots(plate, 0.3 * IN)
     grids.append([{(round(p.x, 4), round(p.y, 4)) for p in spots if abs(p.z - z) < 1e-6} for z in (0.046 * IN, 0)])
 assert grids[0][0] and grids[0][0] == grids[0][1] == grids[1][0] == grids[1][1], [len(s) for g in grids for s in g]
+# an LS gear drilled out to spin on a screw, a click near the middle snaps onto it. straight through, the bore has steps inside that a wall would stop at
+gear = library.place(doc, steps["Motion/Gears/Low Strength/12T Gear (276-2169-001).step"])
+doc.recompute()
+shop.drillable(gear)
+d = shop.drill(gear, App.Vector(0.03, -0.02, 0.1875) * IN, 0.18 * IN)
+assert App.Vector(*d["c"]).isEqual(App.Vector(0, 0, 0.1875) * IN, 1e-6) and abs(d["t"] - 0.375 * IN) < 1e-6, d
+library.rework(gear, [d])
+left = Part.getShape(gear.LinkedObject).common(Part.makeCylinder(0.0899 * IN, IN, App.Vector(0, 0, -0.5) * IN))
+assert left.Volume < 1e-9, left.Volume
+dots = [c for c in library.hole_dots(gear) if c.x**2 + c.y**2 < 1e-9]
+assert len(dots) == 2 and gear.Label == "12T Gear", (dots, gear.Label)
+try:
+    shop.drillable(sc)
+    raise AssertionError("drilled a screw")
+except ValueError:
+    pass
 
 # a bend centered on its line sits half the flat it eats back from where one next to the line does, and a 0 radius (vice and hammer) still folds
 flat = library.place(doc, gen["5x10 Steel Plate"])

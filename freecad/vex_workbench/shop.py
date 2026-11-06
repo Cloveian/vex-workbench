@@ -161,10 +161,13 @@ def at_face(link, shape, pt):
 
 def drill(link, pt, dia, grid=GRID):
     # a hole at pt (link coords) through the wall its on. snapped onto that face's lattice(), grid mm, 0 or False for right there
-    face, c, t, near = at_face(link, Part.getShape(link.LinkedObject), pt)
+    shape = Part.getShape(link.LinkedObject)
+    face, c, t, near = at_face(link, shape, pt)
     n = face.normalAt(0, 0)
     if near and grid:
         c = gridded(c, grid, *lattice(near, n, library.steps(link)))
+    if not is_metal(link):
+        t = max((c - v.Point).dot(n) for v in shape.Vertexes)  # a gear's bore has steps inside, straight through the lot like a drill press
     return {"do": "drill", "c": list(c), "n": list(n), "dia": dia, "t": t}
 
 
@@ -175,6 +178,12 @@ def is_metal(link):
 def metal_only(link):
     if not is_metal(link):
         raise ValueError(f"{link.Label} isn't VEX metal, only metal gets worked")
+
+
+def drillable(link):
+    # metal, and LS gears drilled out to spin free on a screw
+    if not is_metal(link) and library.part_of(link).get("folder") != "Motion/Gears/Low Strength":
+        raise ValueError(f"{link.Label} can't be drilled, only metal and LS gears")
 
 
 def sketch_on(link, pt):
@@ -334,6 +343,7 @@ def edge_spots(link, grid):
 class Clicked(snap.Clicks):
     # one click makes a step on that copy, then the boxes (and the button, side -1) redo the last one. step() builds it, tweak() puts the boxes in
     UNDO = "Rework VEX part"
+    ONLY = staticmethod(metal_only)  # raises on a part this panel cant work
 
     def __init__(self, title, rows, button=None, other=()):
         # other: rows that dont redo the last one, like the drill's grid
@@ -357,7 +367,7 @@ class Clicked(snap.Clicks):
         link = spot[0]
 
         def go():
-            metal_only(link)
+            self.ONLY(link)
             library.rework(link, library.steps(link) + [self.step(link, spot[1], other)])
             return True
         if not ui.run(self.UNDO, go):
@@ -476,6 +486,7 @@ class Gridded:
 
 class DrillPanel(Gridded, Clicked):
     DID = "drilled"
+    ONLY = staticmethod(drillable)
     ONE = "click where the hole goes, it snaps to the grid. hold Shift for right where you click"
 
     def __init__(self):
@@ -582,4 +593,4 @@ class CutPanel(Gridded, Lined):
 BEND = ui.Command(BendPanel, "vex-bend.svg", "Bend", "Click a hole the bend goes through. It folds there by the angle, then change the line, angle or which side turns")
 CUT = ui.Command(CutPanel, "vex-cut.svg", "Cut", "Click a hole the cut goes through, across or along the part. The smaller side goes, or keep that one instead. "
                  "Or set it to two points for a saw cut that stops wherever you want, for slots and notches, or sketch it for any shape")
-DRILL = ui.Command(DrillPanel, "vex-drill.svg", "Drill", "Click a spot on the metal and a round hole goes through there, snapped to the grid. Hold Shift to skip the snap")
+DRILL = ui.Command(DrillPanel, "vex-drill.svg", "Drill", "Click a spot on the metal or an LS gear's hub and a round hole goes through there, snapped to the grid. Hold Shift to skip the snap")

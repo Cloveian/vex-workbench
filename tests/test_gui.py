@@ -459,6 +459,19 @@ try:
     assert spots and not moved, (len(spots), moved)
     panel.show_grid.setChecked(False)
     panel.grid.setValue(0.25)
+    # an LS gear's hub face drills out its bore, the color most of it was all over
+    gear = library.place(doc, steps["Motion/Gears/Low Strength/12T Gear (276-2169-001).step"])
+    gear.Placement.Base = App.Vector(0, 600, 0)
+    doc.recompute()
+    was = next(o for o in gear.LinkedObject.Group if o.TypeId == "Part::Feature").ViewObject.DiffuseColor
+    hub = App.Vector(0.07 * IN, 600 + 0.07 * IN, 0.1875 * IN)
+    k = next(i for i, f in enumerate(Part.getShape(gear).Faces, 1) if f.distToShape(Part.Vertex(hub))[0] < 1e-6)
+    Gui.Selection.addSelection(doc.Name, gear.Name, f"Face{k}", hub.x, hub.y, hub.z)
+    QtWidgets.QApplication.processEvents()
+    got = library.steps(gear)
+    assert len(got) == 1 and App.Vector(*got[0]["c"]).isEqual(App.Vector(0, 0, 0.1875) * IN, 1e-6), (got, panel.status.text())
+    now = next(o for o in gear.LinkedObject.Group if o.TypeId == "Part::Feature").ViewObject.DiffuseColor
+    assert set(now) == {max(set(was), key=was.count)}, (set(now), set(was))
     panel.reject()
     # click a flange's hole then slide the line onto the web, the side gets picked again for the new line so the flange goes
     chan = library.place(doc, gen["1x2x1x10 Steel C-Channel"])

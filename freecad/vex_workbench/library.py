@@ -149,6 +149,10 @@ def source(doc, part, steps=()):
             return o
     if steps:
         s, faces = worked(doc, part, steps), None  # vex's face colors dont survive the steps
+        if "file" in part and App.GuiUp:
+            # a drilled gear, the color most of it was
+            was = next(o for o in source(doc, part).Group if o.TypeId == "Part::Feature").ViewObject.DiffuseColor
+            faces = [max(set(was), key=was.count)] * len(s.Faces)
     else:
         s, faces = shape(part)  # first, or no generator leaves an empty source behind
         if part.get("paint") and App.GuiUp:

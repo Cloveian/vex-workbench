@@ -50,7 +50,7 @@ in build order, each one is something i can open and poke at
 - [ ] flange nuts (nylon, nylock), wing nut
 - [x] HS spacer bore clearance: 0.252 across the flats on vex's steps, 0.002 over the shaft
 - [x] which spacer OD / length combos actually exist: whatever robosource sells is fine
-- [ ] drilled gear hole pattern
+- [x] ~~drilled gear hole pattern~~ not a part, an LS gear drilled out by hand. Drill does LS gears now, straight through
 - [ ] HS lockbar
 - [ ] are the nylon / aluminum hex nuts just the steel shape
 - [x] shoulder screw thread = length - shoulder? yes, robosource: "Overall length of 0.375" includes shoulder and threads". thats how screw() already does it
