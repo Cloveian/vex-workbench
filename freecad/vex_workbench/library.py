@@ -325,8 +325,21 @@ def rework(link, done):
     prune(was)
 
 
+def ways(old, new):
+    # where a frame on a copy worked by old steps could be with new ones. each bend since they differ turns it or doesnt, cuts and drills leave it
+    k = 0
+    while k < min(len(old), len(new)) and old[k] == new[k]:
+        k += 1
+    undo = [metal.turned(s).inverse() for s in reversed(old[k:]) if s["do"] == "fold"]
+    redo = [metal.turned(s) for s in new[k:] if s["do"] == "fold"]
+    out = [Placement()]
+    for t in undo + redo:
+        out += [t.multiply(o) for o in out]
+    return out
+
+
 def carry(link, was):
-    # frames on the old source onto the new one, for holes still in the same spot, and joints on this copy with them. on a hole a bend moved or a cut took off they stay broken (todo)
+    # frames on the old source onto the new one, for holes still there or turned with a bend, and joints on this copy with them. on a hole a cut took off they stay broken
     if was is None or was == link.LinkedObject:
         return
     lcs = {o.Name: o for o in was.Group if o.TypeId == "App::LocalCoordinateSystem"}
@@ -345,17 +358,20 @@ def carry(link, was):
     private = bool(getattr(src, "VexSteps", "")) and [o for o in src.InList if o.isDerivedFrom("App::Link")] == [link]
     wanted = {r[4] for r in refs}
     moved = {}  # old frame name -> its copy in the new source
+    tries = ways(steps(was), steps(link))
     for old in lcs.values():
         if not (private or old.Name in wanted):
             continue
-        plc = old.Placement
-        try:
-            center, n = hole_spot(link, plc.Base)
-        except ValueError:
-            return  # no holes left at all
-        # either way along the axis, a standoff's Seat points in off an end whose normal points out
-        if (center - plc.Base).Length < 1e-4 and abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) > 1 - 1e-6:
-            moved[old.Name] = frame(link, plc, old.Label.rstrip("0123456789") or "Hole")
+        for way in tries:
+            plc = way.multiply(old.Placement)
+            try:
+                center, n = hole_spot(link, plc.Base)
+            except ValueError:
+                return  # no holes left at all
+            # either way along the axis, a standoff's Seat points in off an end whose normal points out
+            if (center - plc.Base).Length < 1e-4 and abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) > 1 - 1e-6:
+                moved[old.Name] = frame(link, plc, old.Label.rstrip("0123456789") or "Hole")
+                break
     for j, prop, obj, subs, name in refs:
         if name in moved:
             setattr(j, prop, [obj, [".".join(moved[name].Name if p == name else p for p in s.split(".")) for s in subs]])

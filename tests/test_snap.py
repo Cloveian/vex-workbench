@@ -436,6 +436,22 @@ assert abs(App.Vector(*b2["d"]).z) < 1e-9 and abs(abs(App.Vector(*b2["d"]).y) - 
 library.rework(sheet, [b, b2])
 s = Part.getShape(sheet.LinkedObject)
 assert s.isValid() and len(s.Solids) == 1 and abs(s.Volume / Part.getShape(flat.LinkedObject).Volume - 1) < 0.004, s.Volume
+# a joint on a hole on the side that turns goes round with it, and again when that bend gets redone at 45
+leg = library.place(doc, gen["5x10 Steel Plate"], asm)
+JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), leg)
+pin = library.place(doc, gen["2.000 LS Shaft"], asm)
+doc.recompute()
+f = library.frame(leg, App.Placement(App.Vector(1.25, 0.25, 0.046) * IN, App.Rotation()))
+fs = library.hole_frame(pin, App.Vector(0.01, 0.02, 0.1) * IN)
+j = snap.revolute(asm, [leg, [f"{f.Name}.", f"{f.Name}."]], [pin, [f"{fs.Name}.", f"{fs.Name}."]])
+b = shop.bend(leg, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)
+for step in (b, dict(b, angle=45)):
+    library.rework(leg, [step])
+    g = leg.LinkedObject.getObject(j.Reference1[1][0].rstrip("."))
+    assert g in leg.LinkedObject.Group and g.Placement.isSame(metal.turned(step).multiply(f.Placement), 1e-6), (step["angle"], j.Reference1)
+    assert asm.solve() == 0
+    doc.recompute()
+    assert (pin.Placement.Base - leg.Placement.multVec(g.Placement.Base)).Length < 1e-6, (step["angle"], pin.Placement.Base / IN)
 # a channel bends away from its flanges, folding the web into them gets refused
 ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
 doc.recompute()

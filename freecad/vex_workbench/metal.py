@@ -322,15 +322,30 @@ def drill(shape, h):
     return out
 
 
-def fold(shape, b):
-    # shape folded once by a bend dict, mm in its own coords
-    if abs(b["angle"]) < 1e-6:
-        return shape
-    p, u, n = line(b)  # u into the side that turns
+def hinge(b):
+    # a bend dict worked out, u into the side that turns
+    p, u, n = line(b)
     a = math.radians(abs(b["angle"]))
     w = (b["r"] + b["k"] * b["t"]) * a  # flat length the bend eats, on the netural line. r inside radius, t wall
     if b.get("centered"):
         p = p - u * (w / 2)  # middle of the bend on the line
+    up = 1 if b["angle"] > 0 else -1
+    # inside radius off the clicked face folding toward it, off the far face folding away
+    at = p + n * b["r"] if up > 0 else p - n * (b["t"] + b["r"])
+    return p, u, n, w, at, u.cross(n), math.degrees(a) * up
+
+
+def turned(b):
+    # where a bend puts everthing past the bent bit
+    _, u, _, w, at, axis, deg = hinge(b)
+    return Placement(Vector(), Rotation(axis, deg), at).multiply(Placement(-u * w, Rotation()))
+
+
+def fold(shape, b):
+    # shape folded once by a bend dict, mm in its own coords
+    if abs(b["angle"]) < 1e-6:
+        return shape
+    p, u, n, w, at, axis, deg = hinge(b)
     keep, mine, stays = split(shape, p, u, n, b["t"])
     turns = Part.makeCompound(mine)
     rest = turns.common(half(p, u, n, w))
@@ -338,18 +353,13 @@ def fold(shape, b):
     section = [f for f in turns.Faces if on_line(f, p, u)]
     if not section or not keep.Solids:
         raise ValueError("nothing to bend there, the line has to go across the metal with some on both sides")
-    up = 1 if b["angle"] > 0 else -1
-    # inside radius off the clicked face folding toward it, off the far face folding away
-    at = p + n * b["r"] if up > 0 else p - n * (b["t"] + b["r"])
     # a channel's flanges reach past the axis folding the web toward them, the sweep turns inside out
-    reach = [up * n.dot(v.Point - at) for f in section for v in f.Vertexes]
+    reach = [math.copysign(1, deg) * n.dot(v.Point - at) for f in section for v in f.Vertexes]
     if max(reach) > 1e-6:
         raise ValueError("that would fold it through itself, a flange or another wall is in the way. try the other way, or cut it off first")
-    axis, deg = u.cross(n), math.degrees(a) * up
     pieces = [Part.makeCompound(section).revolve(at, axis, deg)]
     if rest.Solids:
-        rest.translate(-u * w)
-        rest.rotate(at, axis, deg)
+        rest.transformShape(turned(b).toMatrix())
         pieces.append(rest)
     out = keep.fuse(pieces + stays).removeSplitter()
     # anything else that collapes comes back as nothing or a sliver, still isValid
