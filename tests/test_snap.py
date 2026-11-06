@@ -452,6 +452,25 @@ for step in (b, dict(b, angle=45)):
     assert asm.solve() == 0
     doc.recompute()
     assert (pin.Placement.Base - leg.Placement.multVec(g.Placement.Base)).Length < 1e-6, (step["angle"], pin.Placement.Base / IN)
+# a joint made with freecad's own tool, straight on the bottom face and the corner at 0. bent the corner goes round with its face, drilled the face is a new one in the same spot
+sheet = library.place(doc, gen["5x10 Steel Plate"], asm)
+doc.recompute()
+sol = next(o for o in sheet.LinkedObject.Group if o.TypeId == "Part::Feature")
+faces, points = sol.Shape.Faces, [v.Point for v in sol.Shape.Vertexes]  # out here, sol.Shape.Faces inside the key is ~6 s
+bottom = min(range(len(faces)), key=lambda i: (-round(faces[i].Area, 3), faces[i].CenterOfGravity.z)) + 1
+corner = min(range(len(points)), key=lambda i: points[i].Length) + 1  # rounded corners
+at = points[corner - 1]
+odd = fake([asm, [f"{sheet.Name}.{sol.Name}.Face{bottom}", f"{sheet.Name}.{sol.Name}.Vertex{corner}"]])
+b = shop.bend(sheet, App.Vector(2.25, 0.25, 0.046) * IN, True, 0, 90)
+library.rework(sheet, [b])
+t = metal.turned(b)
+face, v = (asm.getSubObject(s) for s in odd.Reference1[1])
+assert (v.Point - t.multVec(at)).Length < 1e-6 and face.distToShape(v)[0] < 1e-6, odd.Reference1
+assert (face.normalAt(0, 0) - t.Rotation.multVec(App.Vector(0, 0, -1))).Length < 1e-6, (odd.Reference1, face.normalAt(0, 0))
+area = face.Area
+library.rework(sheet, [b, shop.drill(sheet, t.multVec(App.Vector(1, 1, 0.046) * IN), 0.25 * IN, False)])
+face, v = (asm.getSubObject(s) for s in odd.Reference1[1])
+assert (v.Point - t.multVec(at)).Length < 1e-6 and 0 < area - face.Area < 0.25**2 * math.pi / 4 * IN**2 + 1e-6, (odd.Reference1, area - face.Area)
 # every kind of step mirrored and done on the mirrored plate is the mirror of it done on the plate. a slanted plane, nothing lines up by luck
 from freecad.vex_workbench import duplicate  # noqa: E402
 

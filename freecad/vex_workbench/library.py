@@ -341,6 +341,33 @@ def on_hole(link, plc):
     return (center - plc.Base).Length < 1e-4 and abs(n.dot(plc.Rotation.multVec(Vector(0, 0, 1)))) > 1 - 1e-6
 
 
+def on_surface(surface, f):
+    # going by a corner and a middle point of f's parameters, a sphere has no vertexes
+    u0, u1, v0, v1 = f.ParameterRange
+    for p in (f.valueAt(u0, v0), f.valueAt((u0 + u1) / 2, (v0 + v1) / 2)):
+        if (surface.value(*surface.parameter(p)) - p).Length > 1e-4:
+            return False
+    return True
+
+
+def element(shape, old, way):
+    # name of the face / edge / vertex in shape that old is after way, None if its gone
+    # a face counts if any of it is still there (a drilled one is a *dih*frent face but the same spot), the most of it wins
+    old = old.copy()
+    old.transformShape(way.toMatrix())
+    kind = old.ShapeType
+    if kind == "Vertex":
+        hits = [(1, i) for i, v in enumerate(shape.Vertexes, 1) if (v.Point - old.Point).Length < 1e-4]
+    elif kind == "Edge":
+        # length first, a degenerate edge has no Curve
+        hits = [(1, i) for i, e in enumerate(shape.Edges, 1) if abs(e.Length - old.Length) < 1e-4 and (e.CenterOfMass - old.CenterOfMass).Length < 1e-4 and type(e.Curve) is type(old.Curve)]
+    else:
+        near = [(i, f) for i, f in enumerate(shape.Faces, 1) if type(f.Surface) is type(old.Surface) and f.BoundBox.intersect(old.BoundBox) and on_surface(old.Surface, f)]
+        hits = [(f.common(old).Area, i) for i, f in near]  # the boolean only on ones already on the same surface, a plate has ~400 hole walls in the box
+    most, i = max(hits, default=(0, 0))
+    return f"{kind}{i}" if most > 1e-4 else None  # mm2 for a face
+
+
 def ways(old, new):
     # where a frame on a copy worked by old steps could be with new ones. each bend since they differ turns it or doesnt, cuts and drills leave it
     k = 0
@@ -355,11 +382,13 @@ def ways(old, new):
 
 
 def carry(link, was):
-    # frames on the old source onto the new one, for holes still there or turned with a bend, and joints on this copy with them. on a hole a cut took off they stay broken
+    # frames on the old source onto the new one, for holes still there or turned with a bend, and joints on this copy with them, ones straight on a face, edge or corner too. on a hole a cut took off they stay broken
     if was is None or was == link.LinkedObject:
         return
     lcs = {o.Name: o for o in was.Group if o.TypeId == "App::LocalCoordinateSystem"}
+    solid, new = (next(o for o in s.Group if o.TypeId == "Part::Feature") for s in (was, link.LinkedObject))
     refs = []  # (joint, prop, obj, subs, frame name) through this copy
+    direct = []  # (joint, prop, obj, subs, the elements) straight on faces / edges / vertexes of the solid, freecad's own joint tool
     for j in [o for o in link.Document.Objects if hasattr(o, "JointType")]:
         for prop in ("Reference1", "Reference2"):
             obj, subs = getattr(j, prop) or (None, [""])  # None when unset
@@ -368,12 +397,26 @@ def carry(link, was):
             owner, name = holder(obj, subs[0])
             if owner == link and name in lcs:
                 refs.append((j, prop, obj, subs, name))
+            elif owner == link and name == solid.Name:
+                try:
+                    olds = [solid.Shape.getElement(s.rsplit(".", 1)[1]) for s in subs]
+                except (IndexError, ValueError):
+                    continue  # already broken
+                if all(o.ShapeType in ("Face", "Edge", "Vertex") for o in olds):
+                    direct.append((j, prop, obj, subs, olds))
+    tries = ways(steps(was), steps(link))
+    for j, prop, obj, subs, olds in direct:
+        for way in tries:
+            found = [element(new.Shape, o, way) for o in olds]
+            if None not in found:
+                path = [s.rsplit(".", 1)[0].removesuffix(solid.Name) for s in subs]  # "Vex.Solid" -> "Vex.", or "" with the link as root
+                setattr(j, prop, [obj, [f"{p}{new.Name}.{e}" for p, e in zip(path, found)]])
+                break
     # bare ones only onto a worked source just this copy uses, on a plain one theyd show up on every copy of that size
     src = link.LinkedObject
     private = bool(getattr(src, "VexSteps", "")) and [o for o in src.InList if o.isDerivedFrom("App::Link")] == [link]
     wanted = {r[4] for r in refs}
     moved = {}  # old frame name -> its copy in the new source
-    tries = ways(steps(was), steps(link))
     for old in lcs.values():
         if not (private or old.Name in wanted):
             continue
