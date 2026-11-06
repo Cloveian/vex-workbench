@@ -118,6 +118,7 @@ def touches(ref, names):
 def copied_ref(ref, names, owns, mirror, turn):
     # a joint ref onto the copies. an end on a part that wasnt copied (the chassis a drive side sat on) goes to the hole its frame lands on mirrored or turned
     # None if a frame has nowhere to go, a nearly mirrored part (a motor) or an uncopied one with no hole there
+    # frames dont get made here, made() does that once both ends have somewhere to go
     obj, subs = ref
     out = []
     for sub in subs:
@@ -125,7 +126,7 @@ def copied_ref(ref, names, owns, mirror, turn):
         cp = names.get(owner.Name)
         path = [names[p].Name if p in names else p for p in sub.split(".")]
         if cp is not None and mirror is None:
-            out.append(".".join(path))  # turned whole, same frame
+            out.append((path, None))  # turned whole, same frame
             continue
         lcs = name and hasattr(owner, "LinkedObject") and owner.LinkedObject.getObject(name)
         if not lcs or lcs.TypeId != "App::LocalCoordinateSystem" or (cp is None and (obj.Name in names or any(p.isdigit() for p in path))):
@@ -147,9 +148,19 @@ def copied_ref(ref, names, owns, mirror, turn):
                 return None
         except ValueError:
             return None  # no holes at all
-        path[-2] = library.frame(on, plc, lcs.Label.rstrip("0123456789") or "Hole").Name
+        out.append((path, (on, plc, lcs.Label.rstrip("0123456789") or "Hole")))
+    return names.get(obj.Name, obj), out
+
+
+def made(ref):
+    # a copied_ref() as a joint ref, its frames made
+    root, subs = ref
+    out = []
+    for path, put in subs:
+        if put:
+            path[-2] = library.frame(*put).Name
         out.append(".".join(path))
-    return [names.get(obj.Name, obj), out]
+    return [root, out]
 
 
 def along(doc, names, owns, mirror, turn):
@@ -163,6 +174,7 @@ def along(doc, names, owns, mirror, turn):
         if None in refs:
             left += 1
             continue
+        refs = [made(r) for r in refs]
         offs = [j.Offset1, j.Offset2]
         lo, hi = (j.EnableAngleMin, j.AngleMin), (j.EnableAngleMax, j.AngleMax)
         if mirror is not None:

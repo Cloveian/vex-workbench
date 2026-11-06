@@ -610,6 +610,11 @@ try:
     cp = [o for o in doc.Objects if o not in had and duplicate.vex(o)]
     assert len(cp) == 1 and cp[0].LinkedObject == swing.LinkedObject and cp[0] in asm.Group, cp
     assert panel.status.text() == "copied 1. 1 joint couldn't come along, Align it again", panel.status.text()
+    # no stry frame on the channel's end of that joint, and one undo takes the copy back out
+    new = [o for o in doc.Objects if o not in had]
+    assert not any(o.TypeId == "App::LocalCoordinateSystem" for o in new), [o.Label for o in new]
+    doc.undo()
+    assert set(doc.Objects) == had, [o.Label for o in set(doc.Objects) - had]
     panel.reject()
     say("ok")
     failed = False
