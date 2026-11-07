@@ -30,6 +30,7 @@ Black = [0.13, 0.13, 0.14]
 Grey = [0.47, 0.48, 0.49]
 "Light Grey" = [0.82, 0.82, 0.80]
 "Dark Green" = [0.20, 0.36, 0.22]
+"Roller Grey" = [0.65, 0.65, 0.65] # 166/255, the fusion library's "Roller Rubber" on its 2" omni
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -75,10 +76,11 @@ PTFE = "8ce226db-43ef-4471-93f1-07e7276aa276" # PTFE-Generic
 "Structure/Steel" = "Steel"
 
 # wheels repainted over their step colors (none, or green and red cad colors). rim = tread and rollers, hub the rest
-# no 2" omni (no photo of it) or V2 2" mecanum, thats one solid
+# no V2 2" mecanum, thats one solid
 [step_paint]
 "Motion/Wheels/Mecanum Wheels/2 Inch/V1" = { hub = "Black", rim = "Light Grey" }
 "Motion/Wheels/Mecanum Wheels/4 Inch" = { hub = "Dark Grey", rim = "Dark Green" }
+"Motion/Wheels/Omni Wheels/2 Inch" = { hub = "Black", rim = "Roller Grey" }
 "Motion/Wheels/Omni Wheels/2.75 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }
 "Motion/Wheels/Omni Wheels/3.25 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }
 "Motion/Wheels/Omni Wheels/4 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }

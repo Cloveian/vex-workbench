@@ -126,10 +126,11 @@ collar = library.place(doc, steps["Motion/Collars/Rubber Shaft Collar (228-3510)
 doc.recompute()
 assert Part.getShape(w).Volume > 0
 
-# wheels repainted: omni rollers light grey on a black hub, a traction tread grey
+# wheels repainted: omni rollers light grey on a black hub (the 2" a darker grey), a traction tread grey
 colors = library.cat()["colors"]
 for f, hub, rim in [("Omni Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Omni-Directional Anti-Static Wheel (276-8106).step", "Black", "Light Grey"),
-                    ("Traction Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Anti-Static Wheel (276-8098).step", "Black", "Grey")]:
+                    ("Traction Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Anti-Static Wheel (276-8098).step", "Black", "Grey"),
+                    ("Omni Wheels/2 Inch/2” Omni-Directional Wheel (276-9044).step", "Black", "Roller Grey")]:
     wheel = steps["Motion/Wheels/" + f]
     s, _ = library.shape(wheel)
     paint = library.painted(s, wheel["paint"], None)
