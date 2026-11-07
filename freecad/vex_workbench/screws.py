@@ -2,7 +2,6 @@
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
-from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
 
 from . import catalog, derived, library, snap, spacers, stock, ui
