@@ -6,7 +6,7 @@ from FreeCAD import Vector
 
 from .metal import EPS, IN, square
 
-FAMILIES = ("ls-shaft", "hs-shaft", "pitch-shaft", "standoff", "extra-low-nut", "flange-nut", "spacer", "washer")
+FAMILIES = ("ls-shaft", "hs-shaft", "pitch-shaft", "standoff", "extra-low-nut", "flange-nut", "nylock-flange-nut", "spacer", "washer")
 O, Z = Vector(0, 0, 0), Vector(0, 0, 1)
 
 
@@ -44,6 +44,16 @@ def blank(h, end):
     return face.revolve(O, Z, 360)
 
 
+def crown(h, c):
+    # nylock dome on the hex top at h, flat out to r then a qaurter round R down onto it
+    r, R = c["r"], c["R"]
+    pts = [Vector(0, 0, h), Vector(r + R, 0, h), Vector(r, 0, h + R), Vector(0, 0, h + R)]
+    a = math.radians(45)
+    arc = Part.Arc(pts[1], Vector(r + R * math.cos(a), 0, h + R * math.sin(a)), pts[2])
+    edges = [Part.LineSegment(pts[0], pts[1]), arc, Part.LineSegment(pts[2], pts[3]), Part.LineSegment(pts[3], pts[0])]
+    return Part.Face(Part.Wire([e.toShape() for e in edges])).revolve(O, Z, 360)
+
+
 def bores(p, h):
     # through, or blind `tap` deep from each end on long standoffs. `sink` = 45 deg chamfer at the mouth
     r, sink, deep = p["bore"] / 2, p.get("sink", 0), p.get("tap", h)
@@ -72,6 +82,11 @@ def make(part, cat):
         solid = solid.common(blank(h, p["end"]))
     if "collar" in p:
         solid = solid.fuse(Part.makeCylinder(p["collar"] / 2, p["lip"])).removeSplitter()
+    if "crown" in p:
+        c = p["crown"]
+        solid = solid.fuse(crown(h, c)).removeSplitter()
+        h += c["R"]
+        solid = solid.cut(Part.makeCylinder(c["mouth"] / 2, c["deep"] + EPS, Vector(0, 0, h - c["deep"])))
     if "bore" in p:
         solid = solid.cut(bores(p, h))
     solid.scale(IN)

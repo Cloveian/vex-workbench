@@ -405,7 +405,21 @@ collar = 0.379 # flange od
 lip = 0.035 # flange thickness
 bore = 0.134
 
-# todo: nylock flange nut, wing nut
+[[family]]
+id = "nylock-flange-nut"
+title = "Nylock Flange Nut"
+folder = "Hardware/Nuts/8-32 Nuts/Nylock Nuts"
+name = "Nylock Flange Nut"
+material = "Steel"
+# fusion library's Nylock Flange Nut (8-32, Steel). bigger than vex's nylock, so not off that step
+hex = 0.34375 # 11/32
+height = 0.2083 # to the hex top
+collar = 0.46875 # 15/32
+lip = 0.02
+crown = { r = 0.1302, R = 0.0417, mouth = 0.2, deep = 0.009 } # 0.25 tall with it, the nylon ring shows through a 0.2 hole on top
+bore = 0.134
+
+# todo: wing nut, theres no model of one anywhere
 
 [[family]]
 id = "spacer"
