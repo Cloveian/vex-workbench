@@ -568,6 +568,10 @@ left = Part.getShape(gear.LinkedObject).common(Part.makeCylinder(0.0899 * IN, IN
 assert left.Volume < 1e-9, left.Volume
 dots = [c for c in library.hole_dots(gear) if c.x**2 + c.y**2 < 1e-9]
 assert len(dots) == 2 and gear.Label == "12T Gear", (dots, gear.Label)
+# onto a 60T the drill comes along, the 12T's worked source goes
+worked = gear.LinkedObject.Name
+library.restep(gear, "Motion/Gears/Low Strength/60T Gear (276-2169-003).step")
+assert gear.Label == "60T Gear" and library.steps(gear) == [d] and doc.getObject(worked) is None, (gear.Label, library.steps(gear))
 try:
     shop.drillable(sc)
     raise AssertionError("drilled a screw")

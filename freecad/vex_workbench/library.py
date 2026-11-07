@@ -272,11 +272,9 @@ def remenu(link):
 
 
 def restep(link, key):
-    # a placed step part onto another step, frames and joints carried over, its menu boxes along
-    was = link.LinkedObject
+    # a placed step part onto another step, the steps that still fit and its menu boxes along
     link.VexStep = key
-    retarget(link)
-    carry(link, was)
+    refit(link)
     menu = menus().get(getattr(link, "VexMenu", ""))
     part = menu and next((p for p in menu["parts"] if p["key"] == key), None)
     if part:
@@ -403,7 +401,7 @@ def carry(link, was):
     for j in [o for o in link.Document.Objects if hasattr(o, "JointType")]:
         for prop in ("Reference1", "Reference2"):
             obj, subs = getattr(j, prop) or (None, [""])  # None when unset
-            if obj is None:
+            if obj is None or not subs:
                 continue
             owner, name = holder(obj, subs[0])
             if owner == link and name in lcs:
@@ -557,9 +555,10 @@ def hole_dots(link):
         return [c for c, _ in ends(Part.getShape(src))]
     # kept on the source, the 11W's rays take a while
     if not hasattr(src, "VexHoleDots"):
+        dots = outermost(Part.getShape(src), hasattr(link, "VexStep"))  # before the property, one that throws would leave it empty for good
         src.addProperty("App::PropertyVectorList", "VexHoleDots", "VEX")
         src.setPropertyStatus("VexHoleDots", "Hidden")
-        src.VexHoleDots = outermost(Part.getShape(src), hasattr(link, "VexStep"))
+        src.VexHoleDots = dots
     gap = u_gap(link)
     return [into_gap(c, gap) for c in src.VexHoleDots]
 
@@ -656,7 +655,8 @@ class Observer:
         # undo / redo puts LinkedObject back itself, retargetting made a second source
         if doc.Restoring or doc.Transacting:
             return
-        if hasattr(obj, "VexMenu") and prop in menus()[obj.VexMenu]["axes"] and (doc.Name, obj.Name) not in BUSY:
+        menu = hasattr(obj, "VexMenu") and menus().get(obj.VexMenu)
+        if menu and prop in menu["axes"] and (doc.Name, obj.Name) not in BUSY:
             remenu(obj)
         if not hasattr(obj, "VexFamily"):
             return
