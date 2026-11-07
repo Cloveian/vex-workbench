@@ -84,7 +84,7 @@ def shape(part):
 
 def colored(path):
     # vex's own colors only come through ImportGui (Import.insert greys every face), which splits the step into peices
-    if b"COLOUR_RGB" not in Path(path).read_bytes():
+    if b"COLOUR" not in Path(path).read_bytes():  # COLOUR_RGB or a named DRAUGHTING_PRE_DEFINED_COLOUR
         return Part.read(path), None  # no colors at all, source() paints it by material
     import ImportGui
     active = App.ActiveDocument
@@ -117,8 +117,8 @@ def painted(s, paint, faces):
     # keyed by s.Faces number. hashCode only goes to 2^31, the 9000 faces on an omni share one in ~2% of loads
     inside = {s.findSubShape(f)[1] for x in pieces for f in x.Faces}
     pieces += [sh for sh in s.Shells if s.findSubShape(sh.Faces[0])[1] not in inside]  # the 2" mecanum has 2 loose ones, 4000 specks of faces
-    # alike by face / edge / vertex count, Volume on the 2.75 omni's splines takes ~20 s
-    kinds = [(len(x.Faces), len(x.Edges), len(x.Vertexes)) for x in pieces]
+    # alike by topology and total edge length, Volume on the 2.75 omni's splines takes ~10 s
+    kinds = [(len(x.Faces), len(x.Edges), len(x.Vertexes), round(x.Length, 1)) for x in pieces]
     copies = collections.Counter(kinds)
     rgb = {}
     for x, kind in zip(pieces, kinds):
