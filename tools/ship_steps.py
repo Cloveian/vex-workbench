@@ -20,7 +20,7 @@ def ships(step, bases, fixtures):
     if stem in bases:
         return True
     # the fixtures are generated parts, those only matter to the tests
-    return stem not in fixtures and not step["folder"].startswith(SKIP) and step["file"] not in SKIP_FILES
+    return stem not in fixtures and not catalog.by_folder(dict.fromkeys(SKIP, True), step["folder"]) and step["file"] not in SKIP_FILES
 
 
 cat = catalog.load()
@@ -35,9 +35,11 @@ for step in catalog.step_parts(cat):
     if out.is_file() and out.stat().st_mtime >= step_file.stat().st_mtime:
         continue  # zipped since the download last changed
     out.parent.mkdir(parents=True, exist_ok=True)
-    # mtime 0 so the same step zips to the same bytes, git sees no change
-    with open(step_file, "rb") as src, gzip.GzipFile(out, "wb", 9, mtime=0) as dst:
+    part = out.with_name(out.name + ".part")  # so a killed run cant leave a short one looking new
+    # mtime 0 and the real name in the header so the same step zips to the same bytes, git sees no change
+    with open(step_file, "rb") as src, open(part, "wb") as raw, gzip.GzipFile(str(out), "wb", 9, raw, mtime=0) as dst:
         shutil.copyfileobj(src, dst)
+    part.replace(out)
 for old in catalog.SHIPPED.rglob("*.gz"):
     if old not in keep:
         old.unlink()
