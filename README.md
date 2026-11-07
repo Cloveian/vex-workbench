@@ -90,7 +90,6 @@ The first one drives Firefox through VEX's CAD search using your Firefox cookies
 - Joints on a hole that a cut takes off break, so cut before screwing things on. Joints on holes that stay put or get turned with a bend carry over, and whatever's screwed in goes round with the hole.
 - Joints made with FreeCAD's own joint tool straight on a face, edge or corner of a part come along the same way, as long as some of that face is still there. One on an edge or corner a cut or a new size moved breaks.
 - Channels and angles only bend away from their other walls. Cut the flanges off first to fold the other way, like you would for real.
-- A hole the bend line goes through stays open round the bend, but one that sits less than about 0.08" (2 mm, on a 90) past the line without crossing it gets filled in where it lands in the bend.
 - Aluminum C-channel uses the steel channel's hole layout. VEX's own aluminum files are a little different.
 - The HS lockbar isn't there yet, there are no numbers for it.
 

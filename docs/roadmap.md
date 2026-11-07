@@ -20,7 +20,7 @@ in build order, each one is something i can open and poke at
 - [x] Align tool. hole on the part to move, then the hole it goes against
 	faces land flat, keeps its turn to the nearest step, Rotate / Gap after. moves a link array whole, or the group its in. Revolute joint in an assembly, swapped out if its aligned again
 - [x] Bending metal, cutting, drilling
-	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032 to start. the cross section at the line swept round, holes the line goes through stay open. cut on the same lines (to length, or a flange off flush), drill a round hole anywhere snapped to a grid (0.25 to start). all per copy, kept on the link in order and redone if its Holes change
+	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032 to start. the cross section at the line swept round, ~~holes the line goes through stay open~~ a band at a time where the section changes, so any hole in the bend wraps round it (square ones exact, round and slanted edges in w / 12 steps). cut on the same lines (to length, or a flange off flush), drill a round hole anywhere snapped to a grid (0.25 to start). all per copy, kept on the link in order and redone if its Holes change
 
 ## From actually using it
 - [x] dots drawn on top of solids, and a bigger area to click them

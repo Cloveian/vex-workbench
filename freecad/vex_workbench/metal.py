@@ -362,6 +362,29 @@ def turned(b):
     return Placement(Vector(), Rotation(axis, deg), at).multiply(Placement(-u * w, Rotation()))
 
 
+def bands(strip, p, u, w):
+    # mm past the line where the strip's cross section changes. a square hole's edges are exact, curves and slants get cut up into w / 12 bits
+    cuts = {0.0, w}
+    for e in strip.Edges:
+        ss = [u.dot(v.Point - p) for v in e.Vertexes]
+        cuts.update(ss)
+        if isinstance(e.Curve, Part.Line):
+            if abs(abs(e.Curve.Direction.dot(u)) - 1) < 1e-9:
+                continue  # same section all the way along it
+        else:
+            ss = [u.dot(x - p) for x in e.discretize(24)]  # a round hole's far side isnt a vertex
+        lo, hi = min(ss), max(ss)
+        if hi - lo > 1e-6:
+            k = math.ceil((hi - lo) / (w / 12))
+            cuts.update(lo + (hi - lo) * i / k for i in range(k + 1))
+    out = []
+    for s in sorted(c for c in cuts if -1e-6 < c < w + 1e-6):
+        if not out or s - out[-1] > 1e-4:
+            out.append(s)
+    out[-1] = w
+    return out
+
+
 def fold(shape, b):
     # shape folded once by a bend dict, mm in its own coords
     if abs(b["angle"]) < 1e-6:
@@ -370,7 +393,6 @@ def fold(shape, b):
     keep, mine, stays = split(shape, p, u, n, b["t"])
     turns = Part.makeCompound(mine)
     rest = turns.common(half(p, u, n, w))
-    # cross section on the line, swept round. a hole the line goes through leaves a gap in it, so it stays open round the bend
     section = [f for f in turns.Faces if on_line(f, p, u)]
     if not section or not keep.Solids:
         raise ValueError("nothing to bend there, the line has to go across the metal with some on both sides")
@@ -378,7 +400,22 @@ def fold(shape, b):
     reach = [math.copysign(1, deg) * n.dot(v.Point - at) for f in section for v in f.Vertexes]
     if max(reach) > 1e-6:
         raise ValueError("that would fold it through itself, a flange or another wall is in the way. try the other way, or cut it off first")
-    pieces = [Part.makeCompound(section).revolve(at, axis, deg)]
+    # the bent strip a band at a time, each its own section swept round its share of the angel, so a hole in it wraps round the bend
+    strip = turns.cut(half(p, u, n, w))
+    cuts = bands(strip, p, u, w)
+    if len(cuts) == 2:
+        pieces = [Part.makeCompound(section).revolve(at, axis, deg)]  # nothing in the bend
+    else:
+        pieces = []
+        for s0, s1 in zip(cuts, cuts[1:]):
+            wires = strip.slice(u, u.dot(p) + (s0 + s1) / 2)
+            if not wires:
+                continue  # a hole all the way across
+            face = Part.makeFace(wires, "Part::FaceMakerBullseye")
+            face.translate(-u * ((s0 + s1) / 2))
+            band = face.revolve(at, axis, deg * (s1 - s0) / w)
+            band.rotate(at, axis, deg * s0 / w)
+            pieces.append(band)
     if rest.Solids:
         rest.transformShape(turned(b).toMatrix())
         pieces.append(rest)

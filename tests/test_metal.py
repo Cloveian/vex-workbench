@@ -8,6 +8,7 @@ from pathlib import Path
 
 import freecad  # noqa: F401  puts FreeCAD on the path
 import Part
+from FreeCAD import Rotation, Vector
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "freecad" / "vex_workbench"))
@@ -102,6 +103,35 @@ b = edge.optimalBoundingBox()
 ok = abs(off) < 1e-6 and abs(b.ZLength / IN - 0.659) < 1e-6 and half.isValid() and edge.isValid()
 bad += not ok
 print(f"{'ok ' if ok else 'BAD'} cut 1x1 angles: 2 halves + strip vs the 1x3x1 channel {off * 100:+.5f}%, hole edge one {b.ZLength / IN:.3f} across")
+
+# a bend line 0.03 short of a hole, the hole starts inside the bend and stays open round it
+plate = metal.make(gen["5x10 Steel Plate"], cat)
+t = cat["metal"]["thickness"]["Steel"] * IN
+fold = {"do": "fold", "p": [2.371 * IN, 0.25 * IN, t], "d": [0, 1, 0], "n": [0, 0, 1], "side": 1, "t": t, "angle": 90, "r": 0.032 * IN, "k": 0.44}
+p, u, n, w, at, axis, deg = metal.hinge(fold)
+
+
+def wrapped(q, s):
+    # q moved s mm past the line and round the bend
+    return Rotation(axis, deg * s / w).multVec(q - u * u.dot(q - p) - at) + at
+
+
+bent = metal.fold(plate, fold)
+mid = Vector(2.25, 0.25, 0.023) * IN  # middle of the wall
+s = u.dot(mid - p) - 0.091 * IN  # where the hole starts, past the line
+inside = wrapped(mid, (s + w) / 2)  # halfway from there to the end of the bend
+ok = 0 < s < w and bent.isValid() and len(bent.Solids) == 1 and not bent.isInside(inside, 1e-6, True)
+bad += not ok
+print(f"{'ok ' if ok else 'BAD'} bend next to a hole: starts {s:.2f} of {w:.2f} mm into the bend, open there {not bent.isInside(inside, 1e-6, True)}")
+
+# a 1 mm round one drilled 0.5 to 1.5 mm into the same bend, open just past its near side and solid beside its far side
+c = Vector(2.371 * IN - 1, 0.5 * IN, t)
+drilled = metal.fold(metal.drill(plate, {"do": "drill", "c": list(c), "n": [0, 0, 1], "dia": 1, "t": t}), fold)
+mid = c - n * (t / 2)
+side = mid + n.cross(u) * 0.4
+ok = drilled.isValid() and len(drilled.Solids) == 1 and not drilled.isInside(wrapped(mid, 0.6), 1e-6, True) and drilled.isInside(wrapped(side, 1.4), 1e-6, True)
+bad += not ok
+print(f"{'ok ' if ok else 'BAD'} bend through a round hole: open at its near side {not drilled.isInside(wrapped(mid, 0.6), 1e-6, True)}, solid beside its far side {drilled.isInside(wrapped(side, 1.4), 1e-6, True)}")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)
