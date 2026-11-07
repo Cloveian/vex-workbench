@@ -57,11 +57,12 @@ for fam in cat["family"]:
             note, ok = f" (known: {OFF[fx]})", True
         bad += not ok
         print(f"{'ok ' if ok else 'BAD'} {fx}: {got} vs {want} vol {vol * 100:+.2f}%{note}")
-    if "fixtures" not in fam:
-        # nothing to check against (wsahers, robosource parts, other materials), they just have to build
-        for p in parts:
-            ok = make(p, cat).isValid()
-            bad += not ok
+    # every size has to build as one valid solid, ~13 s for all of them. the ones with nothing to check against (wsahers, robosource parts, other materials) get a line each
+    for p in parts:
+        s = make(p, cat)
+        ok = s.isValid() and len(s.Solids) == 1
+        bad += not ok
+        if not ok or "fixtures" not in fam:
             print(f"{'ok ' if ok else 'BAD'} {p['name']}: builds")
 
 print("all good" if not bad else f"{bad} bad")
