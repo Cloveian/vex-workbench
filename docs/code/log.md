@@ -1,5 +1,19 @@
 # Log
 
+## 2026-11-06 - a review pass
+
+Went through every module with a bug review before any of this gets pushed. most of what came back was edge casses or "what if the catalog had a typo", the real ones:
+
+- a screw ending on a U-channel's inside flange threw IndexError. that frame sits out in the 0.025 gap so a c-channel inside meets it, and `bore()` wanted it dead on the hole loop. it matches the loop on the frame's axis now and adds the gap to the depth
+- a drilled LS gear changing size through its menu box never pruned its old worked source, and a drill that didnt fit the new gear left it half switched. `restep` goes through `refit` now like a size change does
+- duplicating a part out of a folder inside an assembly put the copy in the assembly, not the folder (`getParentGroup()` is None straight in a Part, so the folder goes first now). and the panel counted the selection, not what got copied
+- drill's Show the grid only drew on metal, so the grid it snaps an LS gear to was invisible
+- cut kept its "last cut" across a mode change, so Keep the other side could flip a cut from the other mode
+- the grid dots and the hole dots cached by source name only, an undo or a linked file can hand out the same name again. both key off `source_key()` now, same as the shape cache
+- parts list didnt count through a plain link to a link (an App::Link has no Group), and a copy with no weight could blank out one that had one
+
+And a few small ones: a gap under the 0.016 washer said "more than 8 spacers", `hole_dots` could get its saved property stuck empty, a removed menu id would KeyError on every change. all 791 parts with a generator build a valid single solid (the 635 metal ones take 570 s). left for later: a bend within ~2 mm of a hole fills part of it (the fold revolves the section at the line), and spacers between two U-channel inside flanges start from the gap frames, so they float 0.025 off each side
+
 ## 2026-11-06 - colors and weights
 
 - the 2" omni wasnt a photo job after all. the appearance asset in the f3d (`.protein`, a zip of autodesk binaries) is cut into 136 byte pages with an 8 byte header each, and with those stripped "VEX Wheel Plastic" is 29/255 grey and "Roller Rubber" 166/255, exact 8 bit steps, and the swatch thumbnails next to them agree. black hub and a new "Roller Grey". tried a `--colors` tool for every f3d but theres no property tags in there, picking the color out by "looks like n/255" got 4 of 6 right, so no tool
