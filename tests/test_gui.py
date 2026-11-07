@@ -662,7 +662,7 @@ try:
     assert not any(o.TypeId == "App::LocalCoordinateSystem" for o in new), [o.Label for o in new]
     doc.undo()
     assert set(doc.Objects) == had, [o.Label for o in set(doc.Objects) - had]
-    # accross the plate's middle its slide comes along onto the mirror holes, one undo takes the copy, joint and new frames back out
+    # across the plate's middle its slide comes along onto the mirror holes, one undo takes the copy, joint and new frames back out
     panel.at.setValue(2.5)
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(swing)
