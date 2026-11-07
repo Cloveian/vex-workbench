@@ -24,10 +24,10 @@ The [usage guide](docs/using.md) goes through every tool.
 
 - **A parts dock** with search. The part families sit at the top (greyed out ones don't have a generator yet), and everything else is in folders laid out like the Fusion 360 library.
 - **Generated parts**, built from the numbers in [`parts.toml`](freecad/vex_workbench/data/parts.toml) and checked against VEX's own files:
-  - C-channel, U-channel, angles (including 1x1s cut down from 3x channel), plates and bars, every length up to 35 holes (20 for U-channel), with the bends, count notches and bend reliefs
-  - LS, HS and pitch shafts, standoffs, spacers and washers
-  - star (Torx) and hex screws from 0.25 to 2.5 in, Robosource shoulder screws, the thin nylock, and nuts in other materials
-- **VEX's own STEP files** for everything else (motors, wheels, gears, sensors, electronics), with their colors. They ship with the workbench. Wheels, gears and sprockets also get a pick-down menu (type, size, teeth and so on) that only offers parts that exist, and a placed one can swap to another in place.
+  - C-channel, U-channel, angles (including 1x1s cut down from 3x channel), plates and bars, every length up to 35 holes (20 for U-channel), with the bends, count notches and bend reliefs, in the materials VEX makes them in
+  - LS, HS and pitch shafts, standoffs, spacers, washers and HS lockbars
+  - star (Torx) and hex screws from 0.25 to 2.5 in, Robosource shoulder screws, the thin nylock, nylon and nylock flange nuts, and nuts in other materials
+- **VEX's own STEP files** for everything else (motors, wheels, gears, sensors, electronics), with their colors, or the Fusion 360 library's where the STEP has none. They ship with the workbench. Wheels, gears and sprockets also get a pick-down menu (type, size, teeth and so on) that only offers parts that exist, and a placed one can swap to another in place.
 - **Editable placed parts**: change Holes or Size on a placed part and only that one changes. The same part placed 40 times is one model and 40 links.
 
 ### Putting a robot together
