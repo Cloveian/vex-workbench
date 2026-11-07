@@ -146,6 +146,8 @@ def make_surface(recs, i, mm):
         r = vec(d[2], mm).Length
         if abs(sin) < 1e-12:
             s = Part.Cylinder()
+        elif abs(cos) < 1e-12:
+            sys.exit(f"record {i}: cone with a 90 deg half angle, thats a plane")
         else:
             # radius grows sin/cos per unit along the axis, either sign. cos < 0 just means normals point in
             s = Part.Cone()
@@ -327,7 +329,8 @@ def spline_edge(g, a, b, flip, closed_edge, t):
             sys.exit("intcurve edge with no length to it")
         c = pieces[0]
         for p in pieces[1:]:
-            c.join(p)
+            if not c.join(p):
+                sys.exit("intcurve edge across the seam didnt join back up")
     c.setPole(1, a)
     c.setPole(c.NbPoles, b)
     e = c.toShape()
@@ -347,8 +350,11 @@ def fit_ends(recs, ei, e, mm):
 
 def loop_wire(recs, li, edges, mm):
     first = data(recs, li, "loop")[1]
-    out, ci = [], first
+    out, ci, seen = [], first, set()
     while True:
+        if ci in seen:
+            sys.exit(f"loop {li}: coedges go round without getting back to the first one")
+        seen.add(ci)
         d = data(recs, ci, "coedge")
         ei = d[3]
         if ei not in edges:
@@ -421,6 +427,8 @@ def build(recs, mm):
                     print(f"body {bi}: shell {shell} isnt closed", file=sys.stderr)
                 shells.append(sh)
                 shell = s[0]
+            if not shells:
+                sys.exit(f"body {bi}: lump {lump} has no shells")
             so = Part.Solid(shells[0] if len(shells) == 1 else Part.Compound(shells))
             if not so.isValid():
                 print(f"body {bi}: lump {lump} isnt a valid solid", file=sys.stderr)
