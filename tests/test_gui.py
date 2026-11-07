@@ -477,6 +477,10 @@ try:
     assert len(got) == 1 and App.Vector(*got[0]["c"]).isEqual(App.Vector(0, 0, 0.1875) * IN, 1e-6), (got, panel.status.text())
     now = next(o for o in gear.LinkedObject.Group if o.TypeId == "Part::Feature").ViewObject.DiffuseColor
     assert set(now) == {max(set(was), key=was.count)}, (set(now), set(was))
+    # the grid it snaps to shows on the gear too
+    panel.show_grid.setChecked(True)
+    assert panel.extra(gear), "no grid on the gear"
+    panel.show_grid.setChecked(False)
     panel.reject()
     # click a flange's hole then slide the line onto the web, the side gets picked again for the new line so the flange goes
     chan = library.place(doc, gen["1x2x1x10 Steel C-Channel"])

@@ -180,9 +180,13 @@ def metal_only(link):
         raise ValueError(f"{link.Label} isn't VEX metal, only metal gets worked")
 
 
-def drillable(link):
+def can_drill(link):
     # metal, and LS gears drilled out to spin free on a screw
-    if not is_metal(link) and library.part_of(link).get("folder") != "Motion/Gears/Low Strength":
+    return is_metal(link) or library.part_of(link).get("folder") == "Motion/Gears/Low Strength"
+
+
+def drillable(link):
+    if not can_drill(link):
         raise ValueError(f"{link.Label} can't be drilled, only metal and LS gears")
 
 
@@ -453,6 +457,8 @@ class BendPanel(Lined):
 
 class Gridded:
     # Grid and Show the grid rows for a panel, the grid dots go in through extra(). prefix starts the prefs names
+    WORKS = staticmethod(is_metal)  # parts the grid shows on
+
     def grid_rows(self, prefix):
         prefs = App.ParamGet(ui.PARAMS)
         self.prefix = prefix
@@ -479,7 +485,7 @@ class Gridded:
         return self.grids[key]
 
     def extra(self, link):
-        if not self.show_grid.isChecked() or not is_metal(link):
+        if not self.show_grid.isChecked() or not self.WORKS(link):
             return []
         return self.found(grid_spots, link)
 
@@ -487,6 +493,7 @@ class Gridded:
 class DrillPanel(Gridded, Clicked):
     DID = "drilled"
     ONLY = staticmethod(drillable)
+    WORKS = staticmethod(can_drill)
     ONE = "click where the hole goes, it snaps to the grid. hold Shift for right where you click"
 
     def __init__(self):
@@ -541,6 +548,7 @@ class CutPanel(Gridded, Lined):
         App.ParamGet(ui.PARAMS).SetInt("CutMode", self.mode.currentIndex())
         self.boxes()
         self.first = None
+        self.last = None  # the boxes and Keep the other side redo a cut from this mode only
         self.light([])
         self.refresh()
         self.ask()
@@ -573,7 +581,7 @@ class CutPanel(Gridded, Lined):
         sk = ui.run(Sketches.UNDO, lambda: sketch_on(*spot[:2]))
         if sk is not None:
             self.reject()
-            QtCore.QTimer.singleShot(0, lambda: Gui.ActiveDocument.setEdit(sk))  # once the panel is gone, one task dialog at a time
+            QtCore.QTimer.singleShot(0, lambda: Gui.getDocument(sk.Document.Name).setEdit(sk))  # once the panel is gone, one task dialog at a time
 
     def step(self, link, pt, other):
         if other is None:
