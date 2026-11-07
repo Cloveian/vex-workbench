@@ -1,7 +1,9 @@
 # vex parts in a document. one hidden source per variant, every placed copy is a plain App::Link to it
 import collections
 import functools
+import hashlib
 import json
+import os
 from pathlib import Path
 
 import FreeCAD as App
@@ -24,6 +26,7 @@ MIN_THREAD = 0.25 * metal.IN  # mm, least a screw takes in a thread
 SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 CACHE = {}
+BREPS = Path(App.getUserCachePath()) / "VexWorkbench"  # read steps as brep + face colors, gone stale ones just sit there
 BUSY = set()  # (doc, link) names getting their menu boxes refilled
 
 
@@ -74,12 +77,38 @@ def options(family):
 
 
 def shape(part):
+    if "file" in part and App.GuiUp:
+        return remembered(part)
     if "file" in part:
         with catalog.step_file(part) as path:
-            return colored(str(path)) if App.GuiUp else (Part.read(str(path)), None)
+            return Part.read(str(path)), None
     if part["family"] in GENERATORS:
         return GENERATORS[part["family"]](part, cat()), None
     raise ValueError(f"no generator for {part['family']} yet")
+
+
+def remembered(part):
+    # a step read once and kept as a brep, the 1" star drive coupler is 26 s as a step and 0.01 s as a brep. brep keeps the face order so the colors still line up
+    read = catalog.stored(part)
+    st = read.stat()
+    name = hashlib.sha1(f"{read}|{st.st_size}|{st.st_mtime_ns}".encode()).hexdigest()[:16]
+    brep, colors_file = BREPS / f"{name}.brep", BREPS / f"{name}.json"
+    if colors_file.is_file() and brep.is_file():  # json written last, a half written brep never has one
+        s = Part.Shape()
+        s.read(str(brep))
+        colors = json.loads(colors_file.read_text())
+        return s, colors and [tuple(c) for c in colors]
+    with catalog.step_file(part) as path:
+        s, colors = colored(str(path))
+    try:
+        BREPS.mkdir(parents=True, exist_ok=True)
+        s.exportBrep(f"{brep}.part")
+        os.replace(f"{brep}.part", brep)
+        Path(f"{colors_file}.part").write_text(json.dumps(colors))
+        os.replace(f"{colors_file}.part", colors_file)
+    except OSError as e:
+        App.Console.PrintWarning(f"VEX: couldn't cache {part['file']} ({e}), it reads from the step every time\n")
+    return s, colors
 
 
 def colored(path):

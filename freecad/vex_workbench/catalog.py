@@ -129,16 +129,22 @@ def step_path(step):
     return path
 
 
+def stored(step):
+    # the shipped .gz over the downloaded step
+    gz = shipped(step)
+    return gz if gz.is_file() else step_path(step)
+
+
 @contextlib.contextmanager
 def step_file(step):
     # a plain step to read, the shipped one unzipped into a temp file till the with ends
-    gz = shipped(step)
-    if not gz.is_file():
-        yield step_path(step)
+    path = stored(step)
+    if path.suffix != ".gz":
+        yield path
         return
     fd, tmp = tempfile.mkstemp(suffix=".step")
     try:
-        with os.fdopen(fd, "wb") as out, gzip.open(gz) as src:
+        with os.fdopen(fd, "wb") as out, gzip.open(path) as src:
             shutil.copyfileobj(src, out)
         yield Path(tmp)
     finally:

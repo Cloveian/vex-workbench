@@ -1,9 +1,12 @@
 # toolbar, colurs, the parts list, the dock, the screw, align, bend, cut and drill tools and snapping through link arrays and linked sub-assemblies inside the gui (needs vex-step/), run with: env QT_QPA_PLATFORM=offscreen freecad -M . tests/test_gui.py
 import math
 import os
+import shutil
 import sys
+import tempfile
 import time
 import traceback
+from pathlib import Path
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -30,10 +33,12 @@ def snapped(obj, path, face, click, center):
     return link
 
 
+breps = tempfile.mkdtemp(prefix="vex-breps")  # not my real step cache
 try:
     from freecad.vex_workbench import catalog, library
     from freecad.vex_workbench.metal import IN
 
+    library.BREPS = Path(breps)
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
@@ -86,6 +91,13 @@ try:
     plain = Part.read(str(catalog.step_path(motor)))
     assert abs(solid.Shape.Volume / plain.Volume - 1) < 1e-6, (solid.Shape.Volume, plain.Volume)
     assert len(library.holes(solid.Shape)) == len(library.holes(plain)), "holes differ"
+    # read again its off the cached brep, same faces in the same order with the same colors
+    t = time.time()
+    again, faces = library.shape(motor)
+    t = time.time() - t
+    assert len(list(library.BREPS.glob("*.json"))) == 1 and t < 2, (list(library.BREPS.iterdir()), t)
+    assert all((a.CenterOfMass - b.CenterOfMass).Length < 1e-9 for a, b in zip(again.Faces, solid.Shape.Faces)), "faces moved"
+    assert len(faces) == len(colors) and max(abs(a - b) for f, c in zip(faces, colors) for a, b in zip(f, c)) < 1e-6, "colors moved"
     # no colors in vex's hex nut step, so its steel
     nut = library.place(doc, steps["Hardware/Nuts/8-32 Nuts/Hex Nuts/#8-32 Hex Nut (275-1028).step"])
     got = nut.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
@@ -680,5 +692,6 @@ try:
 except BaseException:  # Ctrl-C and sys.exit too, or the os._exit below never runs
     say(traceback.format_exc())
     failed = True
+shutil.rmtree(breps, ignore_errors=True)
 # closing the window always exits 0, and hangs offscreen once an assembly joint has solved, plain one too
 os._exit(1 if failed else 0)
