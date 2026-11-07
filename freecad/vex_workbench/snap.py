@@ -6,7 +6,7 @@ import FreeCADGui as Gui
 from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
 
-from . import library, ui
+from . import catalog, library, ui
 
 Z = Vector(0, 0, 1)
 OFF_AXIS = 0.01  # mm
@@ -275,7 +275,7 @@ class Clicks:
         for link, (root, path) in placed(self.doc):
             key = library.source_key(link.LinkedObject)  # a linked sub-assembly's file can have a VexPart001 too
             if key not in found:
-                found[key] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.hole_dots(link) + self.extra(link)
+                found[key] = [] if catalog.inside(library.part_of(link)["folder"], *UNMARKED) else library.hole_dots(link) + self.extra(link)
             plc = placement(root, path)
             self.spots += [(link, c, plc, (root, path)) for c in found[key]]
 

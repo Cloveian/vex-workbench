@@ -91,10 +91,12 @@ rows, part = catalog.narrowed(wheels, {"Type": "Mecanum", "Size": "2.75", "Kind"
 assert rows == [("Type", ["Omni", "Traction", "Mecanum"]), ("Size", ["2", "4"]), ("Kind", ["V2, Left", "V2, Right", "V1, Left", "V1, Right"])], rows
 assert part["part"] == "2\" Mecanum Wheel- Right", part
 
+assert catalog.inside("Kits/V5", "Field Elements", "Kits") and not catalog.inside("Kits Extra", "Kits")
+
 # step weights: every [step_material] folder has parts under it, every material has a density, listed ones are g or lb
 folders = [g["folder"] for g in cat["group"]]
 for f, m in cat["step_material"].items():
-    assert any(g == f or g.startswith(f + "/") for g in folders) and m in cat["density"], (f, m)
+    assert any(catalog.inside(g, f) for g in folders) and m in cat["density"], (f, m)
 for p in steps:
     assert p["material"] is None or p["material"] in cat["density"], p["name"]
     assert re.fullmatch(r"\d+(\.\d+)? (g|lb)", p.get("mass", "0 g")), p["name"]
@@ -107,7 +109,7 @@ assert catalog.by_folder(mat, "Motion/Wheels") is None
 
 # wheel paint: every [step_paint] folder has parts, its hub and rim are colors
 for f, paint in cat["step_paint"].items():
-    assert any(g == f or g.startswith(f + "/") for g in folders) and set(paint) == {"hub", "rim"}, (f, paint)
+    assert any(catalog.inside(g, f) for g in folders) and set(paint) == {"hub", "rim"}, (f, paint)
     assert all(c in cat["colors"] for c in paint.values()), (f, paint)
 assert by_name["4\" Mecanum Wheel"]["paint"] == {"hub": "Dark Grey", "rim": "Dark Green"}, by_name["4\" Mecanum Wheel"]["paint"]
 

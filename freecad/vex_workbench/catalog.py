@@ -79,9 +79,14 @@ def generated(cat):
     return [v for fam in cat["family"] for v in variants(fam)]
 
 
+def inside(folder, *tops):
+    # folder is one of tops or under it. "Kits Extra" isnt in "Kits"
+    return any(folder == t or folder.startswith(t + "/") for t in tops)
+
+
 def by_folder(table, folder):
     # value of the longest folder in table thats this one or above it
-    fits = [f for f in table if folder == f or folder.startswith(f + "/")]
+    fits = [f for f in table if inside(folder, f)]
     return table[max(fits, key=len)] if fits else None
 
 

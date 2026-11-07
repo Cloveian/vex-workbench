@@ -20,7 +20,7 @@ def ships(step, bases, fixtures):
     if stem in bases:
         return True
     # the fixtures are generated parts, those only matter to the tests
-    return stem not in fixtures and not catalog.by_folder(dict.fromkeys(SKIP, True), step["folder"]) and step["file"] not in SKIP_FILES
+    return stem not in fixtures and not catalog.inside(step["folder"], *SKIP) and step["file"] not in SKIP_FILES
 
 
 cat = catalog.load()

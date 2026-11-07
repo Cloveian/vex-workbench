@@ -5,7 +5,7 @@ import Part
 from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
 
-from . import derived, library, snap, spacers, stock, ui
+from . import catalog, derived, library, snap, spacers, stock, ui
 from .metal import IN, X
 
 KINDS = {"Star": "star-screw", "Shoulder": "shoulder-screw"}
@@ -20,7 +20,7 @@ LEAD = 0.01 * IN  # mm, probes start this far in past the face
 def nuts():
     _, gen, steps = library.index()
     # vex steps and our generated nuts, both by folder
-    return {p["name"]: p for p in [*steps.values(), *gen.values()] if p["folder"].startswith(NUT_FOLDER)}
+    return {p["name"]: p for p in [*steps.values(), *gen.values()] if catalog.inside(p["folder"], NUT_FOLDER)}
 
 
 def sizes(family):
