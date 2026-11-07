@@ -376,14 +376,23 @@ def make_face(recs, fi, edges, mm):
     # if occ's surface normal disagrees, build on it with the wires backwards and flip the face after
     agree = d[5] == flip
     fix = Part.ShapeFix.Face(surf, 1e-7, True)
-    li = d[1]
-    while li != -1:
+    for li in chain(recs, d[1], "loop"):
         w = loop_wire(recs, li, edges, mm)
         fix.add(w if agree else w.reversed())
-        li = data(recs, li, "loop")[0]
     fix.perform()
     f = fix.face()
     return f if agree else f.reversed()
+
+
+# [0] points at the next one, -1 ends it
+def chain(recs, first, kind):
+    seen, i = set(), first
+    while i != -1:
+        if i in seen:
+            sys.exit(f"{kind} {i} comes round again, the chain loops")
+        seen.add(i)
+        yield i
+        i = data(recs, i, kind)[0]
 
 
 def build(recs, mm):
@@ -399,19 +408,15 @@ def build(recs, mm):
             t = recs[d[2]][1][2:]
             if t[:4] != [(1, 0, 0), (0, 1, 0), (0, 0, 1), (0, 0, 0)] or t[4] != 1:
                 sys.exit(f"body {bi} has a non identity transform {t[:5]}, not handled")
-        lump = d[0]
-        while lump != -1:
+        for lump in chain(recs, d[0], "lump"):
             # a lump is one connected solid, any shells after the first are voids (faces already point into them)
-            shells, shell = [], data(recs, lump, "lump")[1]
-            while shell != -1:
+            shells = []
+            for shell in chain(recs, data(recs, lump, "lump")[1], "shell"):
                 s = data(recs, shell, "shell")
                 if s[1] != -1:
                     sys.exit(f"shell {shell} has subshells, not handled")
-                faces, fids, fi = [], [], s[2]
-                while fi != -1:
-                    faces.append(make_face(recs, fi, edges, mm))
-                    fids.append(fi)
-                    fi = data(recs, fi, "face")[0]
+                fids = list(chain(recs, s[2], "face"))
+                faces = [make_face(recs, fi, edges, mm) for fi in fids]
                 sh = Part.Shell(faces)
                 sh.sewShape()
                 if sh.ShapeType != "Shell":
@@ -426,14 +431,12 @@ def build(recs, mm):
                 if not sh.isClosed():
                     print(f"body {bi}: shell {shell} isnt closed", file=sys.stderr)
                 shells.append(sh)
-                shell = s[0]
             if not shells:
                 sys.exit(f"body {bi}: lump {lump} has no shells")
             so = Part.Solid(shells[0] if len(shells) == 1 else Part.Compound(shells))
             if not so.isValid():
                 print(f"body {bi}: lump {lump} isnt a valid solid", file=sys.stderr)
             solids.append(so)
-            lump = data(recs, lump, "lump")[0]
     return solids
 
 
