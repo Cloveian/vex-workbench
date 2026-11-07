@@ -15,6 +15,7 @@ class Browser(QtWidgets.QWidget):
         self.family = self.menu = None
         self.combos = {}
         self.words = []
+        self.opened = []  # folders a search expanded, they close again when its cleared
 
         self.search = QtWidgets.QLineEdit(placeholderText="search")
         self.tree = QtWidgets.QTreeWidget(headerHidden=True)
@@ -69,12 +70,19 @@ class Browser(QtWidgets.QWidget):
             hit = all(w in it.text(0).lower() for w in words) or (boxes and self.first(kind) is not None)
             kids = [walk(it.child(i)) for i in range(it.childCount())]
             it.setHidden(not (hit or any(kids)))
-            if words and any(kids):
+            if words and any(kids) and not it.isExpanded():
                 it.setExpanded(True)
+                self.opened.append(it)
             return hit or any(kids)
         for i in range(self.tree.topLevelItemCount()):
             walk(self.tree.topLevelItem(i))
         cur = self.tree.currentItem()
+        if not words:
+            for it in self.opened:
+                it.setExpanded(False)
+            self.opened = []
+            if cur is not None:
+                self.tree.scrollToItem(cur)  # opens the way back down to whats picked
         kind = cur.data(0, KIND) if cur is not None else None
         if cur is not None and cur.isHidden():
             self.tree.setCurrentItem(None)  # its boxes and Place would still drop the part the search hid

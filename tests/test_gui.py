@@ -126,8 +126,15 @@ try:
     w.search.setText("c-channel")
     got = {p: b.currentText() for p, b in w.combos.items()}
     assert got == {"Material": "Steel", "Size": "2", "Holes": "30"}, got
-    # a menu, picking Mecanum leaves just its sizes and kinds. a search starts on the part it finds
+    # clearing it closes what it opened
     w.search.setText("")
+    assert not hit.parent().isExpanded(), "the search left Electronics open"
+    # unless whats picked is in there
+    w.search.setText("motor smart")
+    w.tree.setCurrentItem(hit)
+    w.search.setText("")
+    assert hit.parent().isExpanded() and w.tree.currentItem() is hit, "the pick got folded away"
+    # a menu, picking Mecanum leaves just its sizes and kinds. a search starts on the part it finds
     wheels = w.tree.findItems("Wheels", QtCore.Qt.MatchExactly)[0]
     w.tree.setCurrentItem(wheels)
     w.combos["Type"].setCurrentText("Mecanum")
