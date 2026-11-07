@@ -117,11 +117,13 @@ def painted(s, paint, faces):
     # keyed by s.Faces number. hashCode only goes to 2^31, the 9000 faces on an omni share one in ~2% of loads
     inside = {s.findSubShape(f)[1] for x in pieces for f in x.Faces}
     pieces += [sh for sh in s.Shells if s.findSubShape(sh.Faces[0])[1] not in inside]  # the 2" mecanum has 2 loose ones, 4000 specks of faces
-    copies = collections.Counter(round(x.Volume, 1) for x in pieces)
+    # alike by face / edge / vertex count, Volume on the 2.75 omni's splines takes ~20 s
+    kinds = [(len(x.Faces), len(x.Edges), len(x.Vertexes)) for x in pieces]
+    copies = collections.Counter(kinds)
     rgb = {}
-    for x in pieces:
+    for x, kind in zip(pieces, kinds):
         # rollers come 3+ alike, a tread is one piece but out past half the raduis. mecanum rollers lean in too far for that
-        rim = copies[round(x.Volume, 1)] >= 3 or x.distToShape(line)[0] > max(size) / 4
+        rim = copies[kind] >= 3 or x.distToShape(line)[0] > max(size) / 4
         c = tuple(cat()["colors"][paint["rim" if rim else "hub"]])
         rgb.update((s.findSubShape(f)[1], c) for f in x.Faces)
     faces = faces or [(0.8, 0.8, 0.8)] * len(s.Faces)
