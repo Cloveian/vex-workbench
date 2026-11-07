@@ -15,7 +15,7 @@ SHIPPED = Path(__file__).parent / "steps"  # the subset that ships, gzipped by t
 STEP_DIR = Path(__file__).parents[2] / "vex-step"  # the whole download, for the test fixtures and anything not shipped
 
 # everything else in a [[family]] is a param
-FAMILY_KEYS = ("id", "title", "folder", "name", "fixtures")
+FAMILY_KEYS = ("id", "title", "folder", "name", "fixtures", "skip")
 
 
 def load(path=CATALOG):
@@ -66,6 +66,8 @@ def variants(family):
         params = {}
         for c in combo:
             params.update(c)
+        if any(s.items() <= params.items() for s in family.get("skip", [])):
+            continue  # a combo vex doesnt make
         out.append({
             "family": family["id"],
             "name": family["name"].format(**params),

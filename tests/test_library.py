@@ -44,11 +44,16 @@ assert len(doc.getObject(library.GROUP).Group) == 2
 b.Size = "5"
 doc.recompute()
 assert b.Label.startswith("1x5x1x10 Steel C-Channel"), b.Label
+# no steel 3x, the box goes back
+was = b.LinkedObject
+b.Size = "3"
+doc.recompute()
+assert b.Size == "5" and b.LinkedObject == was, (b.Size, b.LinkedObject.Label)
 
 # a cut down 1x1 is a variant like any other
-c = library.place(doc, gen["1x1x5 Steel Angle (Regular)"])
+c = library.place(doc, gen["1x1x5 Aluminum Angle (Regular)"])
 c.Variant = "Cut 3x, Between Holes"
-assert c.Label.startswith("1x1x5 Steel Angle (Cut 3x, Between Holes)"), c.Label
+assert c.Label.startswith("1x1x5 Aluminum Angle (Cut 3x, Between Holes)"), c.Label
 # no generator (the HS lockbar), nothing gets left behind
 n = len(doc.Objects)
 try:

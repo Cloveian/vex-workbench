@@ -138,6 +138,16 @@ try:
     w.search.setText("c-channel")
     got = {p: b.currentText() for p, b in w.combos.items()}
     assert got == {"Material": "Steel", "Size": "2", "Holes": "30"}, got
+    # theres no steel 3x, Place says so and puts nothing down
+    w.combos["Size"].setCurrentText("3")
+    had, said, warning = len(doc.Objects), [], QtWidgets.QMessageBox.warning
+    QtWidgets.QMessageBox.warning = lambda *a: said.append(a[2])
+    try:
+        w.place()
+    finally:
+        QtWidgets.QMessageBox.warning = warning
+    assert said == ["VEX doesn't make a 1x3x1x30 Steel C-Channel"] and len(doc.Objects) == had, (said, len(doc.Objects))
+    w.combos["Size"].setCurrentText("2")
     # clearing it closes what it opened
     w.search.setText("")
     assert not hit.parent().isExpanded(), "the search left Electronics open"

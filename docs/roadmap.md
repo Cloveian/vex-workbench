@@ -25,7 +25,7 @@ in build order, each one is something i can open and poke at
 ## From actually using it
 - [x] dots drawn on top of solids, and a bigger area to click them
 - [x] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones. the 11W's output too, its socket is a 1/4 square turned 45 so it goes by across the flats, the dot sits where the square starts 0.5" down the recess
-- [x] U-channel inner dots in a hair, to match where a c-channel's outer ones sit. out in the gap, 0.025 a side on steel
+- [x] U-channel inner dots in a hair, to match where a c-channel's outer ones sit. out in the gap, ~~0.025 a side on steel~~ 0.008 a side (aluminum only now)
 - [x] dots on every click-to-do tool, and a "show more" grid with a size box (drill needs it most). all six tools had dots already, drill gets Grid + Show the grid
 - [x] screw tool takes several holes on one face, then the ones across. with "auto finish" on, one click across does them all, off and its a click across for each
 - [x] cut tool. click two points for a line, doesnt have to go all the way across (slots, notches), more pairs for more cuts. plus a sketch-it button for anything fancier
@@ -46,7 +46,7 @@ in build order, each one is something i can open and poke at
 - [x] bend radius
 - [x] 1x1 angle variants: the official one, plus a 3x c-channel cut down the middle, along the middle hole's edge or between holes. ~~Regular 2-Wide, Thick 5-Wide, Thin 5-Wide, only fusion has them, as f3d~~ (made, Cut 3x Hole Edge and Cut 3x Between Holes)
 - [ ] is aluminum c-channel really the steel shape? vex's al steps arent: 0.55 tall flanges, flange holes at 0.3, the 5x flares, 100 to 245 hole loops that dont line up with ours (volume only -0.2 to -1.7%). needs calipers on a real one to know if its vex's cad or the metal
-- [x] which metal comes in which material (al bar? steel U-channel? steel 1x1? steel 3x c-channel?). none of the four, going by vex's cad: the zips off the aluminum kits and v5 structure pages (in downloads/) have al 1x1 angle, al U, al 3x c-channel and steel bar, and the 5x plates only in steel. the aluminum kits blurb still says "C-Channel, Plates, and Bars" tho and its own zip has neither. the catalog still makes all of them in both, dropping them is a call to make
+- [x] which metal comes in which material (al bar? steel U-channel? steel 1x1? steel 3x c-channel?). none of the four, going by vex's cad: the zips off the aluminum kits and v5 structure pages (in downloads/) have al 1x1 angle, al U, al 3x c-channel and steel bar, and the 5x plates only in steel. the aluminum kits blurb still says "C-Channel, Plates, and Bars" tho and its own zip has neither. ~~the catalog still makes all of them in both, dropping them is a call to make~~ dropped: U and 1x1 are aluminum only, bar is steel only, and the c-channel family skips steel 3x
 - [ ] flange nuts (nylon, nylock), wing nut. nylon one is in, off the fusion library's, 21/64 hex on a flat 0.379 flange. nylock has a domed crown on top, still to do. no wing nut anywhere yet
 - [x] HS spacer bore clearance: 0.252 across the flats on vex's steps, 0.002 over the shaft
 - [x] which spacer OD / length combos actually exist: whatever robosource sells is fine

@@ -22,10 +22,14 @@ def run(title, fn):
         QtWidgets.QApplication.restoreOverrideCursor()
     if err is not None:
         App.closeActiveTransaction(True)
-        QtWidgets.QMessageBox.warning(Gui.getMainWindow(), "VEX", err)
+        warn(err)
         return None
     App.closeActiveTransaction()
     return out
+
+
+def warn(msg):
+    QtWidgets.QMessageBox.warning(Gui.getMainWindow(), "VEX", msg)
 
 
 def number(lo, hi, suffix, value=0.0, step=1.0, decimals=2):

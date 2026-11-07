@@ -320,7 +320,10 @@ def variant(family, picked):
     for prop, choices in options(family):
         labels = [label(c) for c in choices]
         params.update(choices[labels.index(picked[prop])])
-    return index()[1][family["name"].format(**params)]
+    name = family["name"].format(**params)
+    if name not in index()[1]:
+        raise ValueError(f"VEX doesn't make a {name}")  # a family's skip
+    return index()[1][name]
 
 
 def roots(doc):
@@ -615,7 +618,7 @@ def outermost(shape, rays):
 
 
 def u_gap(link):
-    # a U-channel's flange insides as (z, mm out into the channel). its 29 mm leaves a gap round the 2x c-channel it goes over, steel 0.025 a side, al 0.008
+    # a U-channel's flange insides as (z, mm out into the channel). its 29 mm leaves a gap round the 2x c-channel it goes over, 0.008 a side
     part = part_of(link)
     if part.get("family") != "u-channel":
         return []
@@ -699,15 +702,21 @@ class Observer:
         if prop == "VexSteps":
             retarget(obj)  # rework() / refit() already checked them
         elif prop != "VexFamily" and obj.getGroupOfProperty(prop) == "VEX":
-            refit(obj)
+            try:
+                refit(obj)
+            except ValueError as e:
+                App.Console.PrintWarning(f"VEX: {e}, {obj.Label} stays what it was\n")
+                was = index()[1].get(getattr(obj.LinkedObject, "VexName", None))
+                if was:
+                    setattr(obj, prop, picks(index()[0][obj.VexFamily], was)[prop])
 
 
 def refit(link):
     # after a size change the steps that still fit, up to the first that doesnt (a cut past the new end)
-    done, was = steps(link), link.LinkedObject
+    done, was, part = steps(link), link.LinkedObject, part_of(link)
     for k in range(len(done), -1, -1):
         try:
-            source(link.Document, part_of(link), done[:k])
+            source(link.Document, part, done[:k])
             break
         except ValueError:
             if k == 0:

@@ -628,52 +628,53 @@ sk.delGeometries([0, 1])
 doc.recompute()
 assert not shop.recut(sk) and library.steps(ring) == []
 
-# a 1x2x1 c-channel inside a steel U-channel: the U's flange inside dots sit out in the 0.025 gap, outside ones stay on the metal
-u = library.place(doc, gen["2x2x2x10 Steel U-Channel"])
+# a 1x2x1 c-channel inside a U-channel: the U's flange inside dots sit out in the 0.008 gap, outside ones stay on the metal
+u = library.place(doc, gen["2x2x2x10 Aluminum U-Channel"])
 ch = library.place(doc, gen["1x2x1x10 Steel C-Channel"])
 ch.Placement = App.Placement(App.Vector(0, 5, 3) * IN, App.Rotation())
 doc.recompute()
-side = (29 / 25.4 - 2 * 0.046 - 1) / 2
+t = 0.063  # the U's wall
+side = (29 / 25.4 - 2 * t - 1) / 2
 zs = sorted({round(c.z / IN, 4) for c in library.hole_dots(u) if c.x < 0.3 * IN and abs(c.y / IN - 0.204) < 1e-3})
-assert zs == [0, round(0.046 + side, 4), round(29 / 25.4 - 0.046 - side, 4), round(29 / 25.4, 4)], zs
-inner = App.Vector(0.25, 0.204, 0.046) * IN
-assert abs(library.hole_frame(u, inner).Placement.Base.z / IN - 0.046 - side) < 1e-9
+assert zs == [0, round(t + side, 4), round(29 / 25.4 - t - side, 4), round(29 / 25.4, 4)], zs
+inner = App.Vector(0.25, 0.204, t) * IN
+assert abs(library.hole_frame(u, inner).Placement.Base.z / IN - t - side) < 1e-9
 # lined up on that hole the c-channel sits square in the middle, the same gap both sides
 align.align((ch, App.Vector(0.26, 0.26, 0) * IN, ch.Placement, (ch, "")), (u, inner, u.Placement, (u, "")), 0)
 doc.recompute()
 b = ch.Shape.optimalBoundingBox()
-assert abs(b.ZMin / IN - 0.046 - side) < 1e-6 and abs((29 / 25.4 - 0.046) - b.ZMax / IN - side) < 1e-6, (b.ZMin / IN, b.ZMax / IN)
+assert abs(b.ZMin / IN - t - side) < 1e-6 and abs((29 / 25.4 - t) - b.ZMax / IN - side) < 1e-6, (b.ZMin / IN, b.ZMax / IN)
 # a screw ending on that frame out in the gap still finds its hole, deep is the gap and the flange
 across, deep = screws.bore(u, library.hole_frame(u, inner))
-assert abs(across / IN - 0.182) < 1e-3 and abs(deep / IN - 0.046 - side) < 1e-4, (across / IN, deep / IN)
+assert abs(across / IN - 0.182) < 1e-3 and abs(deep / IN - t - side) < 1e-4, (across / IN, deep / IN)
 # spacers between its two inside flanges go metal to metal, the first joint held back from the frame out in the gap
-uu = library.place(doc, gen["2x2x2x10 Steel U-Channel"], asm)
+uu = library.place(doc, gen["2x2x2x10 Aluminum U-Channel"], asm)
 uu.Placement = App.Placement(App.Vector(0, 40, 0) * IN, App.Rotation())
 doc.recompute()
 on_u = (asm, uu.Name + ".")
-lid = App.Vector(0.25, 0.204, 29 / 25.4 - 0.046) * IN
+lid = App.Vector(0.25, 0.204, 29 / 25.4 - t) * IN
 put = spacers.fill(doc, (uu, inner, uu.Placement, on_u), (uu, lid, uu.Placement, on_u), 0.5, asm)
 bottom = put[0].Placement.Base.z / IN
 top = put[-1].Placement.Base.z / IN + spacers.length(library.part_of(put[-1])) / IN
-assert abs(bottom - 0.046) < 1e-6 and -1e-6 < (29 / 25.4 - 0.046) - top <= 1 / 64 + 1e-6, (bottom, top)
+assert abs(bottom - t) < 1e-6 and -1e-6 < (29 / 25.4 - t) - top <= 1 / 64 + 1e-6, (bottom, top)
 got = moved([uu, *put])
 assert not got, got
 # a screw up through its bottom flange into a plate 0.25 over it, the spacer starts on the metal and stops under the plate
 pl = library.place(doc, gen["5x10 Steel Plate"], asm)
-pl.Placement = App.Placement(App.Vector(1, 40 - 0.046, 0.296) * IN, App.Rotation())
+pl.Placement = App.Placement(App.Vector(1, 40 - 0.046, t + 0.25) * IN, App.Rotation())
 doc.recompute()
 sc, nut, put = screws.fasten(doc, (uu, App.Vector(1.25, 0.204, 0) * IN, uu.Placement, on_u), (pl, App.Vector(0.25, 0.25, 0.046) * IN, pl.Placement, (asm, pl.Name + ".")), "star-screw", nylock, asm, 0.375)
 bottom = put[0].Placement.Base.z / IN
 top = put[-1].Placement.Base.z / IN + spacers.length(library.part_of(put[-1])) / IN
-assert abs(bottom - 0.046) < 1e-6 and -1e-6 < 0.296 - top <= 1 / 64 + 1e-6, (bottom, top, stacked(put))
+assert abs(bottom - t) < 1e-6 and -1e-6 < t + 0.25 - top <= 1 / 64 + 1e-6, (bottom, top, stacked(put))
 got = moved([sc, nut, *put])
 assert not got, got
 # head on that inside flange, down through it and a plate under the U: the head sits on the metal, no washer under it for the gap
 under = library.place(doc, gen["5x10 Steel Plate"], asm)
 under.Placement = App.Placement(App.Vector(2, 40 - 0.046, -0.046) * IN, App.Rotation())
 doc.recompute()
-sc, nut, put = screws.fasten(doc, (uu, App.Vector(2.25, 0.204, 0.046) * IN, uu.Placement, on_u), (under, App.Vector(0.25, 0.25, 0) * IN, under.Placement, (asm, under.Name + ".")), "star-screw", nylock, asm, 0.375)
-assert abs(sc.Placement.Base.z / IN - 0.046) < 1e-6 and not put, (sc.Placement.Base.z / IN, stacked(put))
+sc, nut, put = screws.fasten(doc, (uu, App.Vector(2.25, 0.204, t) * IN, uu.Placement, on_u), (under, App.Vector(0.25, 0.25, 0) * IN, under.Placement, (asm, under.Name + ".")), "star-screw", nylock, asm, 0.375)
+assert abs(sc.Placement.Base.z / IN - t) < 1e-6 and not put, (sc.Placement.Base.z / IN, stacked(put))
 got = moved([sc, nut])
 assert not got, got
 

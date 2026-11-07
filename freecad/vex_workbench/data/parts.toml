@@ -99,6 +99,7 @@ material = ["Aluminum", "Steel"]
 # between = the staggered row down the middle, only the 2 wide has it
 sizes = [{ width = 2, between = true }, { width = 3 }, { width = 5 }]
 holes = { from = 1, to = 35 }
+skip = [{ material = "Steel", width = 3 }] # no steel 3x anywhere in vex's cad
 flange = 0.546
 chamfer = 0.064 # flange tip corners on the cut ends
 fixtures = [
@@ -117,7 +118,7 @@ id = "u-channel"
 title = "U-Channel"
 folder = "Structure/{material}/2x U-Channel"
 name = "2x2x2x{holes} {material} U-Channel"
-material = ["Aluminum", "Steel"]
+material = ["Aluminum"]
 holes = { from = 1, to = 20 }
 flange = 1.017
 web = "29 mm" # so 0.0157 wider than 1.0 inside on aluminum. a 2x c-channel slides in
@@ -132,7 +133,7 @@ id = "angle-1x1"
 title = "1x1 Angle"
 folder = "Structure/{material}/1x1 Angle ({variant})"
 name = "1x1x{holes} {material} Angle ({variant})"
-material = ["Aluminum", "Steel"]
+material = ["Aluminum"]
 variant = ["Regular", "Cut 3x, Hole Edge", "Cut 3x, Between Holes"]
 holes = { from = 1, to = 35 }
 thickness = { Aluminum = 0.063 }
@@ -183,7 +184,7 @@ id = "bar-1x"
 title = "1x Bar"
 folder = "Structure/{material}"
 name = "1x{holes} {material} Bar"
-material = ["Aluminum", "Steel"]
+material = ["Steel"]
 holes = { from = 1, to = 35 }
 thickness = { Steel = 0.056 } # thicker than the rest, 275-1141
 diamond = 0.1129 # only the edge notches, its 1 wide. smaller than the plate ones (0.0798 deep)

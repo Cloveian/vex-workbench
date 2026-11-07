@@ -94,9 +94,9 @@ for fam in cat["family"]:
 
 # the cut 1x1 angles have no step, theyre half a 1x3x1 c-channel. two between-holes halves + the middle strip and its 10 holes = the channel
 g = cat["grid"]
-ch, half, edge = (metal.make(gen[n], cat) for n in ("1x3x1x10 Steel C-Channel", "1x1x10 Steel Angle (Cut 3x, Between Holes)", "1x1x10 Steel Angle (Cut 3x, Hole Edge)"))
+ch, half, edge = (metal.make(gen[n], cat) for n in ("1x3x1x10 Aluminum C-Channel", "1x1x10 Aluminum Angle (Cut 3x, Between Holes)", "1x1x10 Aluminum Angle (Cut 3x, Hole Edge)"))
 hole = g["hole"] ** 2 - (4 - math.pi) * g["round"] ** 2
-strip = (g["pitch"] * 10 * g["pitch"] - 10 * hole) * cat["metal"]["thickness"]["Steel"] * IN**3
+strip = (g["pitch"] * 10 * g["pitch"] - 10 * hole) * cat["metal"]["thickness"]["Aluminum"] * IN**3
 off = (2 * half.Volume + strip) / ch.Volume - 1
 b = edge.optimalBoundingBox()
 ok = abs(off) < 1e-6 and abs(b.ZLength / IN - 0.659) < 1e-6 and half.isValid() and edge.isValid()

@@ -148,7 +148,11 @@ class Browser(QtWidgets.QWidget):
         elif kind[0] == "menu":
             part = library.index()[2][self.narrow()["key"]]
         else:
-            part = library.variant(self.family, {p: b.currentText() for p, b in self.combos.items()})
+            try:
+                part = library.variant(self.family, {p: b.currentText() for p, b in self.combos.items()})
+            except ValueError as e:
+                ui.warn(str(e))
+                return
         doc = App.ActiveDocument or App.newDocument()
         import UtilsAssembly  # Assembly workbench
         link = ui.run("Place VEX part", lambda: library.place(doc, part, UtilsAssembly.activePartOrAssembly()))
