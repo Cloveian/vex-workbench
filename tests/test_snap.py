@@ -658,6 +658,16 @@ top = put[-1].Placement.Base.z / IN + spacers.length(library.part_of(put[-1])) /
 assert abs(bottom - 0.046) < 1e-6 and -1e-6 < (29 / 25.4 - 0.046) - top <= 1 / 64 + 1e-6, (bottom, top)
 got = moved([uu, *put])
 assert not got, got
+# a screw up through its bottom flange into a plate 0.25 over it, the spacer starts on the metal and stops under the plate
+pl = library.place(doc, gen["5x10 Steel Plate"], asm)
+pl.Placement = App.Placement(App.Vector(1, 40 - 0.046, 0.296) * IN, App.Rotation())
+doc.recompute()
+sc, nut, put = screws.fasten(doc, (uu, App.Vector(1.25, 0.204, 0) * IN, uu.Placement, on_u), (pl, App.Vector(0.25, 0.25, 0.046) * IN, pl.Placement, (asm, pl.Name + ".")), "star-screw", nylock, asm, 0.375)
+bottom = put[0].Placement.Base.z / IN
+top = put[-1].Placement.Base.z / IN + spacers.length(library.part_of(put[-1])) / IN
+assert abs(bottom - 0.046) < 1e-6 and -1e-6 < 0.296 - top <= 1 / 64 + 1e-6, (bottom, top, stacked(put))
+got = moved([sc, nut, *put])
+assert not got, got
 
 # duplicate brings the joints with both ends on copied parts. mirrored or turned the copies already sit where those joints say, a solve moves nothing
 q1 = library.place(doc, gen["5x10 Steel Plate"], asm)
