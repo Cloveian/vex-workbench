@@ -538,7 +538,7 @@ parts = [
 [[group]]
 folder = "Electronics/Legacy (Cortex)"
 parts = [
-  { sku = "276-2177", name = "2-Wire Motor 393", file = "2-Wire Motor 393 (276-2177).step" },
+  { sku = "276-2177", name = "2-Wire Motor 393", file = "2-Wire Motor 393 (276-2177).step", mass = "87.1 g" },
   { sku = "276-2162", name = "3-Wire Servo", file = "3-Wire Servo (276-2162).step" },
   { sku = "276-1456", name = "7.2V Robot Battery NiMH 2000mAh", file = "7.2V Robot Battery NiMH 2000mAh (276-1456).step" },
   { sku = "276-1491", name = "7.2V Robot Battery NiMH 3000mAh", file = "7.2V Robot Battery NiMH 3000mAh (276-1491).step" },
@@ -1036,21 +1036,21 @@ parts = [
 [[group]]
 folder = "Motion/Wheels"
 parts = [
-  { sku = "276-2168-002", name = "Double Bogie Wheel", file = "Double Bogie Wheel (276-2168-002).step" },
-  { sku = "276-1499", name = "Intake Rollers", file = "Intake Rollers (276-1499).step" },
-  { sku = "276-2168-003", name = "Single Bogie Wheel", file = "Single Bogie Wheel (276-2168-003).step" },
+  { sku = "276-2168-002", name = "Double Bogie Wheel", file = "Double Bogie Wheel (276-2168-002).step", mass = "0.078 lb" },
+  { sku = "276-1499", name = "Intake Rollers", file = "Intake Rollers (276-1499).step", mass = "7.26 g" },
+  { sku = "276-2168-003", name = "Single Bogie Wheel", file = "Single Bogie Wheel (276-2168-003).step", mass = "0.040 lb" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Mecanum Wheels/2 Inch/V1/Left"
 parts = [
-  { sku = "217-7400", name = "2\" Mecanum Wheel- Left", file = "2 Mecanum Wheel- Left (217-7400).step" },
+  { sku = "217-7400", name = "2\" Mecanum Wheel- Left", file = "2 Mecanum Wheel- Left (217-7400).step", mass = "55.34 g" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Mecanum Wheels/2 Inch/V1/Right"
 parts = [
-  { sku = "217-7400", name = "2\" Mecanum Wheel- Right", file = "2 Mecanum Wheel- Right (217-7400).step" },
+  { sku = "217-7400", name = "2\" Mecanum Wheel- Right", file = "2 Mecanum Wheel- Right (217-7400).step", mass = "55.34 g" },
 ]
 
 [[group]]
@@ -1068,7 +1068,7 @@ parts = [
 [[group]]
 folder = "Motion/Wheels/Mecanum Wheels/4 Inch"
 parts = [
-  { sku = "276-1447", name = "4\" Mecanum Wheel", file = "4 Mecanum Wheel (276-1447) .step" },
+  { sku = "276-1447", name = "4\" Mecanum Wheel", file = "4 Mecanum Wheel (276-1447) .step", mass = "186 g" },
 ]
 
 [[group]]
@@ -1080,49 +1080,49 @@ parts = [
 [[group]]
 folder = "Motion/Wheels/Omni Wheels/2.75 Inch/Antistatic"
 parts = [
-  { sku = "276-8106", name = "2.75\" (220mm Travel) Omni-Directional Anti-Static Wheel", file = "2.75 (220mm Travel) Omni-Directional Anti-Static Wheel (276-8106).step" },
+  { sku = "276-8106", name = "2.75\" (220mm Travel) Omni-Directional Anti-Static Wheel", file = "2.75 (220mm Travel) Omni-Directional Anti-Static Wheel (276-8106).step", mass = "70 g" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Omni Wheels/3.25 Inch/Antistatic"
 parts = [
-  { sku = "276-8026", name = "3.25\" (260mm Travel) Omni-Directional Anti-Static Wheel", file = "3.25 (260mm Travel) Omni-Directional Anti-Static Wheel (276-8026).step" },
+  { sku = "276-8026", name = "3.25\" (260mm Travel) Omni-Directional Anti-Static Wheel", file = "3.25 (260mm Travel) Omni-Directional Anti-Static Wheel (276-8026).step", mass = "60 g" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Omni Wheels/4 Inch/Antistatic"
 parts = [
-  { sku = "276-8107", name = "4\" (320mm Travel) Omni-Directional Anti-Static Wheel", file = "4 (320mm Travel) Omni-Directional Anti-Static Wheel (276-8107).step" },
+  { sku = "276-8107", name = "4\" (320mm Travel) Omni-Directional Anti-Static Wheel", file = "4 (320mm Travel) Omni-Directional Anti-Static Wheel (276-8107).step", mass = "105 g" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Traction Wheels/2.75 Inch/Antistatic"
 parts = [
-  { sku = "276-8098", name = "2.75\" (220mm Travel) Anti-Static Wheel", file = "2.75 (220mm Travel) Anti-Static Wheel (276-8098).step" },
+  { sku = "276-8098", name = "2.75\" (220mm Travel) Anti-Static Wheel", file = "2.75 (220mm Travel) Anti-Static Wheel (276-8098).step", mass = "44 g" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Traction Wheels/2.75 Inch/Legacy"
 parts = [
-  { sku = "276-1496", name = "2.75\" Wheel", file = "2.75 Wheel (276-1496) .step" },
+  { sku = "276-1496", name = "2.75\" Wheel", file = "2.75 Wheel (276-1496) .step", mass = "50 g" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Traction Wheels/3.25 Inch/Antistatic"
 parts = [
-  { sku = "276-7771", name = "3.25\" (260mm Travel) Anti-Static Wheel", file = "3.25 (260mm Travel) Anti-Static Wheel (276-7771).step" },
+  { sku = "276-7771", name = "3.25\" (260mm Travel) Anti-Static Wheel", file = "3.25 (260mm Travel) Anti-Static Wheel (276-7771).step", mass = "58 g" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Traction Wheels/4 Inch/Antistatic"
 parts = [
-  { sku = "276-8103", name = "4\" (320mm Travel) Anti-Static Wheel (2-Pack)", file = "4 (320mm Travel) Anti-Static Wheel (2-Pack) (276-8103).step" },
+  { sku = "276-8103", name = "4\" (320mm Travel) Anti-Static Wheel (2-Pack)", file = "4 (320mm Travel) Anti-Static Wheel (2-Pack) (276-8103).step", mass = "74 g" },
 ]
 
 [[group]]
 folder = "Motion/Wheels/Traction Wheels/4 Inch/Legacy"
 parts = [
-  { sku = "276-1497", name = "4\" Wheel", file = "4 Wheel (276-1497) .step" },
+  { sku = "276-1497", name = "4\" Wheel", file = "4 Wheel (276-1497) .step", mass = "90 g" },
   { sku = "276-1497-110", name = "4\" Wheel (High Strength Bore)", file = "4 Wheel (High Strength Bore) (276-1497-110).step" },
 ]
 

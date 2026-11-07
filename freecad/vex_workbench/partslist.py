@@ -12,7 +12,7 @@ def weight(src):
 
 
 def count(doc):
-    # name -> [count, g each, g all of them, guessed]. grams None with no listed mass or material, like the wheels and license plates
+    # name -> [count, g each, g all of them, guessed]. grams None with no listed mass or material, like inserts and license plates
     out = {}
 
     def walk(o, n):

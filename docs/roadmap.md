@@ -40,7 +40,7 @@ in build order, each one is something i can open and poke at
 - [ ] real colors and materials on every vex part
 	wheels repainted off vex's library photos (hub / rim), FreeCAD material cards on everything with a material, 24T HS gear is steel per the store. the 2" omni off the fusion library's appearances (black hub, 166 grey rollers). left: the V2 2" mecanum colors and wheel materials, the store's wheels page has no material tab
 - [x] weight for the step parts too, vex's listed mass where there is one, an estimate where there isnt
-	20 listed (electronics, flywheel weight, pneumatics), the rest off a material per folder from vex's store pages. wheels, inserts, kits and the small pneumatic fittings still a ?
+	35 listed (electronics, flywheel weight, pneumatics, the wheels, bogies, intake roller, 393), the rest off a material per folder from vex's store pages. listed ones checked against step volume, all 1.0 to 2.9 g/cm3. the 2" omni (90 g) and V2 2" mecanum (127 g) came out 5.5, way too heavy for that much plastic, so theyre left off. inserts, kits, the 4" HS bore wheel (no listing anywhere), the other sensors (pack or piece isnt clear) and the small pneumatic fittings still a ?
 
 ## Still need numbers for
 - [x] bend radius
