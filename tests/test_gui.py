@@ -119,6 +119,13 @@ try:
     w.tree.setCurrentItem(fam)
     got = {p: b.currentText() for p, b in w.combos.items()}
     assert got == {"Material": "Steel", "Size": "2", "Holes": "25"}, got
+    # searching again with it still picked moves its boxes too
+    w.search.setText("1x2x1x30 steel")
+    got = {p: b.currentText() for p, b in w.combos.items()}
+    assert w.tree.currentItem() is fam and got == {"Material": "Steel", "Size": "2", "Holes": "30"}, got
+    w.search.setText("c-channel")
+    got = {p: b.currentText() for p, b in w.combos.items()}
+    assert got == {"Material": "Steel", "Size": "2", "Holes": "30"}, got
     # a menu, picking Mecanum leaves just its sizes and kinds. a search starts on the part it finds
     w.search.setText("")
     wheels = w.tree.findItems("Wheels", QtCore.Qt.MatchExactly)[0]

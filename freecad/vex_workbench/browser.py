@@ -75,8 +75,12 @@ class Browser(QtWidgets.QWidget):
         for i in range(self.tree.topLevelItemCount()):
             walk(self.tree.topLevelItem(i))
         cur = self.tree.currentItem()
+        kind = cur.data(0, KIND) if cur is not None else None
         if cur is not None and cur.isHidden():
             self.tree.setCurrentItem(None)  # its boxes and Place would still drop the part the search hid
+        elif kind and kind[0] != "step" and words and not all(w in cur.text(0).lower() for w in words) and self.first(kind):
+            # already picked, its boxes go onto what got searched. "channel" is just its own name, those stay
+            self.picked(cur)
 
     def picked(self, it, _old=None):
         while self.form.rowCount():
