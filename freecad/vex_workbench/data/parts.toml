@@ -376,7 +376,20 @@ height = 0.09375 # 3/32
 bore = 0.165
 sink = 0.005
 
-# todo: nylon flange nut, nylock flange nut, wing nut
+[[family]]
+id = "flange-nut"
+title = "Flange Nut"
+folder = "Hardware/Nuts/8-32 Nuts"
+name = "Nylon Flange Nut"
+material = "Nylon"
+# fusion library's Flange Nut (8-32, Nylon), flange as wide as the hex corners
+hex = 0.328125 # 21/64
+height = 0.234375 # 15/64 with the flange
+collar = 0.379 # flange od
+lip = 0.035 # flange thickness
+bore = 0.134
+
+# todo: nylock flange nut, wing nut
 
 [[family]]
 id = "spacer"

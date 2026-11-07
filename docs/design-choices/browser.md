@@ -2,7 +2,7 @@
 how a part gets picked and placed
 
 ## Identify
-there's 22 families, 3 menus and 289 step parts and growing. finding a 1x2x1x25 steel c-channel shouldn't take a minute
+there's 23 families, 3 menus and 289 step parts and growing. finding a 1x2x1x25 steel c-channel shouldn't take a minute
 
 ### Relevant constraints/nice to haves:
 - The common stuff (channels, screws, nuts, shafts, spacers) gets used constantly

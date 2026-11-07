@@ -1,4 +1,4 @@
-# shafts, standoffs, spacers, washers: one section pushed along z, ends turned like on a lathe, bore down the middle
+# shafts, standoffs, spacers, washers, the plain nuts: one section pushed along z, ends turned like on a lathe, bore down the middle
 import math
 
 import Part
@@ -6,7 +6,7 @@ from FreeCAD import Vector
 
 from .metal import EPS, IN, square
 
-FAMILIES = ("ls-shaft", "hs-shaft", "pitch-shaft", "standoff", "extra-low-nut", "spacer", "washer")
+FAMILIES = ("ls-shaft", "hs-shaft", "pitch-shaft", "standoff", "extra-low-nut", "flange-nut", "spacer", "washer")
 O, Z = Vector(0, 0, 0), Vector(0, 0, 1)
 
 
@@ -70,6 +70,8 @@ def make(part, cat):
     solid = section(p).extrude(Z * h)
     if "end" in p:
         solid = solid.common(blank(h, p["end"]))
+    if "collar" in p:
+        solid = solid.fuse(Part.makeCylinder(p["collar"] / 2, p["lip"])).removeSplitter()
     if "bore" in p:
         solid = solid.cut(bores(p, h))
     solid.scale(IN)
