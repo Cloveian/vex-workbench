@@ -54,17 +54,20 @@ def bore(link, f):
     faces = library.cached(src, library.boxed)
     r = f.Placement.Rotation
     x, z = r.multVec(X), r.multVec(snap.Z)
-    start = f.Placement.Base - z * LEAD
-    # the loop it was found on, a ray across catches the thread bts in the 11W step. stock parts have none, theyre clean
-    loops = [w for w, c, _ in library.cached(src, library.holes) if (c - f.Placement.Base).Length < 1e-6]
-    half = library.across(loops[0]) / 2 if loops else library.hits(faces, start, x, far)[0]
+    base = f.Placement.Base
+    # the loop it was found on, nearest on the axis. a U-channel's inside flange frame sits out in the gap, so the probes start at the loop and the gap goes on top
+    on = min((((base - c).dot(z), w, c) for w, c, _ in library.cached(src, library.holes) if (c - base).cross(z).Length < 1e-6), key=lambda t: abs(t[0]), default=None)
+    gap, loop, c = on if on and abs(on[0]) < 0.05 * IN else (0, None, base)
+    start = c - z * LEAD
+    # across off the loop, a ray catches the thread bits in the 11W step. stock parts have none, theyre clean
+    half = library.across(loop) / 2 if loop else library.hits(faces, start, x, far)[0]
     # 5 rays down the hole, theyre all stopped by a bottom. the 11W step has bits of thread in there that stop some
     ends = library.down(faces, start, z, half / 2, far)
     if None not in ends:
-        return 2 * half, max(ends) + LEAD
+        return 2 * half, gap + max(ends) + LEAD
     # through, how long the wall around it is
     wall = library.hits(faces, start + x * half * 1.3, -z, far)
-    return 2 * half, wall[0] + LEAD if wall else None
+    return 2 * half, gap + wall[0] + LEAD if wall else None
 
 
 def tapped(link, across):

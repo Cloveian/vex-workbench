@@ -634,6 +634,9 @@ align.align((ch, App.Vector(0.26, 0.26, 0) * IN, ch.Placement, (ch, "")), (u, in
 doc.recompute()
 b = ch.Shape.optimalBoundingBox()
 assert abs(b.ZMin / IN - 0.046 - side) < 1e-6 and abs((29 / 25.4 - 0.046) - b.ZMax / IN - side) < 1e-6, (b.ZMin / IN, b.ZMax / IN)
+# a screw ending on that frame out in the gap still finds its hole, deep is the gap and the flange
+across, deep = screws.bore(u, library.hole_frame(u, inner))
+assert abs(across / IN - 0.182) < 1e-3 and abs(deep / IN - 0.046 - side) < 1e-4, (across / IN, deep / IN)
 
 # duplicate brings the joints with both ends on copied parts. mirrored or turned the copies already sit where those joints say, a solve moves nothing
 q1 = library.place(doc, gen["5x10 Steel Plate"], asm)
