@@ -94,7 +94,7 @@ try:
     bent(gen)
     sys.__stdout__.write(f"hero.png, align.png and bend.png in {OUT}\n")
     failed = False
-except Exception:
+except BaseException:  # Ctrl-C and sys.exit too, or the os._exit below never runs
     traceback.print_exc(file=sys.__stdout__)
     failed = True
 sys.__stdout__.flush()

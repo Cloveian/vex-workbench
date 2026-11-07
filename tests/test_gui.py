@@ -677,7 +677,7 @@ try:
     panel.reject()
     say("ok")
     failed = False
-except Exception:
+except BaseException:  # Ctrl-C and sys.exit too, or the os._exit below never runs
     say(traceback.format_exc())
     failed = True
 # closing the window always exits 0, and hangs offscreen once an assembly joint has solved, plain one too
