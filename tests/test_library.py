@@ -156,6 +156,7 @@ counts = partslist.count(doc)
 assert [row[0] for row in counts.values()] == [1] * 6 and counts[collar.Label][1] is None, counts
 sheet = partslist.fill(doc)
 assert sheet.get("A9") == "Total, 6 parts, 1 without a weight, 1 guessed (~)", sheet.get("A9")
+assert str(sheet.get("D9")).startswith("~"), sheet.get("D9")
 washer_row = next(r for r in range(2, 8) if sheet.get(f"A{r}") == w.Label)
 assert sheet.get(f"C{washer_row}").startswith("~"), sheet.get(f"C{washer_row}")
 

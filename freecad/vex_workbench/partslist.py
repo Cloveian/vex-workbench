@@ -68,7 +68,7 @@ def fill(doc):
     note = f", {unknown} without a weight" if unknown else ""
     note += f", {guessed} guessed (~)" if guessed else ""
     sheet.set(f"A{end}", f"Total, {parts} parts{note}")
-    sheet.set(f"D{end}", f"{grams:.1f}")
+    sheet.set(f"D{end}", f"{'~' if guessed else ''}{grams:.1f}")
     sheet.recompute()
     return sheet
 
