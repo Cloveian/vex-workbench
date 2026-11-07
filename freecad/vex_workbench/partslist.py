@@ -21,13 +21,16 @@ def count(doc):
             src = o.LinkedObject
             if hasattr(src, "VexName"):
                 g = weight(src)
-                row = out.setdefault(src.VexName, [0, g, None if g is None else 0, getattr(src, "VexGuess", False)])
+                row = out.setdefault(src.VexName, [0, None, None, False])
                 row[0] += n
+                row[3] = row[3] or getattr(src, "VexGuess", False)
                 if g is not None:
-                    row[1] = max(row[1], g)  # heaviest copy, a worked one with its holes changed has no plain source
-                    row[2] += n * g
+                    row[1] = g if row[1] is None else max(row[1], g)  # heaviest copy, a worked one with its holes changed has no plain source
+                    row[2] = (row[2] or 0) + n * g
                 return
-            o = src  # a linked sub-assembly, its parts n more times
+            if src is not None:
+                walk(src, n)  # a linked sub-assembly, or a plain link to a link, its parts n more times
+            return
         for child in getattr(o, "Group", []):
             walk(child, n)
 
@@ -35,7 +38,7 @@ def count(doc):
         walk(o, 1)
     # each = off the shelf weight, a bend adds a bit and a cut takes some off
     for src in getattr(doc.getObject(library.GROUP), "Group", []):
-        if getattr(src, "VexName", None) in out and not getattr(src, "VexSteps", ""):
+        if getattr(src, "VexName", None) in out and not getattr(src, "VexSteps", "") and weight(src) is not None:
             out[src.VexName][1] = weight(src)
     return out
 

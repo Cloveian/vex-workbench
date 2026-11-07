@@ -171,6 +171,13 @@ arr.ElementCount = 3
 doc.recompute()
 counts = partslist.count(doc)
 assert counts["1x2x1x20 Aluminum C-Channel"][0] == 4 and counts["1.000 Standoff (8-32, Aluminum)"][0] == 3, counts
+# a plain link to that array is 2 more, one to nothing is none
+doc.addObject("App::Link", "RowCopy").LinkedObject = row
+doc.addObject("App::Link", "Nothing")
+doc.recompute()
+got = partslist.count(doc)["1x2x1x20 Aluminum C-Channel"][0]
+assert got == 6, got
+doc.removeObject("Nothing")
 
 # a plate bent and one cut in half. each stays the plain one (the bend adds a bit), the total is what both really weigh
 p1, p2 = (library.place(doc, gen["5x10 Steel Plate"]) for _ in range(2))
