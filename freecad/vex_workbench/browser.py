@@ -74,6 +74,9 @@ class Browser(QtWidgets.QWidget):
             return hit or any(kids)
         for i in range(self.tree.topLevelItemCount()):
             walk(self.tree.topLevelItem(i))
+        cur = self.tree.currentItem()
+        if cur is not None and cur.isHidden():
+            self.tree.setCurrentItem(None)  # its boxes and Place would still drop the part the search hid
 
     def picked(self, it, _old=None):
         while self.form.rowCount():

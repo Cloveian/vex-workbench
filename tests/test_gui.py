@@ -143,6 +143,9 @@ try:
     w.tree.setCurrentItem(sprockets)
     got = {p: b.currentText() for p, b in w.combos.items()}
     assert got == {"Chain": "9P (High Strength)", "Teeth": "18", "Bore": "HS"}, got
+    # a search that hides it lets it go, Place goes grey
+    w.search.setText("smart motor")
+    assert w.tree.currentItem() is None and not w.button.isEnabled() and not w.combos, (w.tree.currentItem(), w.combos)
     w.search.setText("")
 
     # a click on the second element of a link array lands on that element's hole
