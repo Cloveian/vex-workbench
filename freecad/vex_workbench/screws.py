@@ -6,7 +6,7 @@ from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
 
 from . import derived, library, snap, spacers, stock, ui
-from .metal import IN
+from .metal import IN, X
 
 KINDS = {"Star": "star-screw", "Shoulder": "shoulder-screw"}
 BY_HAND = ("shoulder-screw",)  # no auto pick, the shoulder length is my call
@@ -15,7 +15,6 @@ NO_NUT = "No nut"
 TAPPED = 0.164 * IN  # mm, 8-32 major. a screw doesnt go through anything smaller so its a thread. 5.5W motor 0.136, 11W 0.1596 lead in
 THREAD = 0.375 * IN, library.MIN_THREAD  # mm in the thread, what it aims for and the least it takes
 LEAD = 0.01 * IN  # mm, probes start this far in past the face
-X = Vector(1, 0, 0)
 
 
 def nuts():

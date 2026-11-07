@@ -466,7 +466,7 @@ class Gridded:
         self.grid.setKeyboardTracking(False)  # one regrid per typed number
         self.show_grid = QtWidgets.QCheckBox("Show the grid")
         self.show_grid.setChecked(prefs.GetBool(prefix + "ShowGrid", False))
-        self.grids = {}  # (finder, source, grid) -> spots, worked sources get new names
+        self.grids = {}  # (finder, source key, grid) -> spots
         self.grid.valueChanged.connect(self.regrid)
         self.show_grid.toggled.connect(self.regrid)
         return [("Grid", self.grid), (self.show_grid,)]
@@ -479,7 +479,7 @@ class Gridded:
 
     def found(self, find, link):
         # find(link, grid mm), once per source and grid
-        key = (find, link.LinkedObject.Name, self.grid.value())
+        key = (find, *library.source_key(link.LinkedObject), self.grid.value())
         if key not in self.grids:
             self.grids[key] = find(link, self.grid.value() * IN)
         return self.grids[key]

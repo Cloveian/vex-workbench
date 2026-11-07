@@ -453,9 +453,14 @@ def prune(src):
         src.Document.removeObject(src.Name)
 
 
+def source_key(src):
+    # a source never changes, a reused object name comes with another VexName or VexSteps
+    return src.Document.Uid, src.Name, src.VexName, getattr(src, "VexSteps", "")
+
+
 def cached(src, what):
-    # what(shape) for a source, worked out once. a source never changes, a reused object name comes with another VexName or VexSteps
-    key = (src.Document.Uid, src.Name, src.VexName, getattr(src, "VexSteps", ""), what)
+    # what(shape) for a source, worked out once
+    key = (*source_key(src), what)
     if key not in CACHE:
         CACHE[key] = what(Part.getShape(src))
     return CACHE[key]
