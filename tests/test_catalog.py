@@ -112,6 +112,12 @@ assert catalog.by_folder(mat, "Motion/Wheels") is None
 for f, paint in cat["step_paint"].items():
     assert any(catalog.inside(g, f) for g in folders) and set(paint) == {"hub", "rim"}, (f, paint)
     assert all(c in cat["colors"] for c in paint.values()), (f, paint)
-assert by_name["4\" Mecanum Wheel"]["paint"] == {"hub": "Dark Grey", "rim": "Dark Green"}, by_name["4\" Mecanum Wheel"]["paint"]
+assert by_name["4\" Mecanum Wheel"]["paint"] == {"hub": "Old Grey Plastic", "rim": "Roller Grey"}, by_name["4\" Mecanum Wheel"]["paint"]
+
+# step colors: real folders and real colors, the steel gears stay steel, a color on the row wins
+for f, c in cat["step_color"].items():
+    assert any(catalog.inside(g, f) for g in folders) and c in cat["colors"], (f, c)
+got = [by_name[n]["color"] for n in ("36T Gear", "12T High Strength Metal Pinion", "12T Metal Gear", "Flat Bearing", "Large Turntable Bearing", "Turntable Mounting Bracket")]
+assert got == ["Red Acetal", "Steel", "Steel", "Bearing Black", "Red Acetal", None], got
 
 print(f"ok, {len(gen)} generated, {len(steps)} step parts")

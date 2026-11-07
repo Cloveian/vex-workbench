@@ -24,13 +24,19 @@ Steel = [0.55, 0.57, 0.60]
 Nylon = [0.93, 0.92, 0.86]
 Red = [0.80, 0.10, 0.12]
 Blue = [0.10, 0.25, 0.75]
-# wheels, off the photos in vex's library article on v5 wheels
-Black = [0.13, 0.13, 0.14]
-"Dark Grey" = [0.25, 0.26, 0.27]
-Grey = [0.47, 0.48, 0.49]
-"Light Grey" = [0.82, 0.82, 0.80]
-"Dark Green" = [0.20, 0.36, 0.22]
-"Roller Grey" = [0.65, 0.65, 0.65] # 166/255, the fusion library's "Roller Rubber" on its 2" omni
+# the rest off the fusion library's appearences, exact. most are n/255, a few autodesk floats
+PTFE = [0.92, 0.92, 0.92] # Plastic-016, the teflon washers
+"Red Acetal" = [1.0, 0.117647, 0.117647] # "VEX Red Acetal" 255,30,30, every acetal gear and sprocket
+"Bearing Black" = [0.099853, 0.099853, 0.099853] # Prism-113
+"Wheel Plastic" = [0.113725, 0.113725, 0.113725] # "VEX Wheel Plastic" 29
+"Dark Grey Plastic" = [0.145098, 0.145098, 0.145098] # "VEX Dark Grey Plastic" 37, antistatic wheel hubs
+"Old Grey Plastic" = [0.25, 0.25, 0.25] # "Old VEX Grey Plastic", 9P chain is the same 0.25
+"Roller Grey" = [0.65098, 0.65098, 0.65098] # "Roller Rubber" 166
+"New Grey Rubber" = [0.75, 0.75, 0.75] # "VEX New Grey Rubber", antistatic tires and rollers
+Charcoal = [0.145098, 0.156863, 0.164706] # InvGen-071 37,40,42, v5 electronics
+"Sensor Grey" = [0.329412, 0.345098, 0.352941] # 84,88,90, the 3-wire sensors
+"Bright Steel" = [0.854902, 0.878431, 0.913725] # "VEX Steel" 218,224,233 on the new pneumatics
+"Joint Grey" = [0.797738, 0.797738, 0.797738] # Prism-073, the universal joint
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -76,17 +82,26 @@ PTFE = "8ce226db-43ef-4471-93f1-07e7276aa276" # PTFE-Generic
 "Structure/Steel" = "Steel"
 
 # wheels repainted over their step colors (none, or green and red cad colors). rim = tread and rollers, hub the rest
-# no V2 2" mecanum, thats one solid
+# no V2 2" mecanum, thats one solid (and fusion only has the V1)
 [step_paint]
-"Motion/Wheels/Mecanum Wheels/2 Inch/V1" = { hub = "Black", rim = "Light Grey" }
-"Motion/Wheels/Mecanum Wheels/4 Inch" = { hub = "Dark Grey", rim = "Dark Green" }
-"Motion/Wheels/Omni Wheels/2 Inch" = { hub = "Black", rim = "Roller Grey" }
-"Motion/Wheels/Omni Wheels/2.75 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }
-"Motion/Wheels/Omni Wheels/3.25 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }
-"Motion/Wheels/Omni Wheels/4 Inch/Antistatic" = { hub = "Black", rim = "Light Grey" }
-"Motion/Wheels/Traction Wheels/2.75 Inch/Antistatic" = { hub = "Black", rim = "Grey" }
-"Motion/Wheels/Traction Wheels/3.25 Inch/Antistatic" = { hub = "Black", rim = "Grey" }
-"Motion/Wheels/Traction Wheels/4 Inch/Antistatic" = { hub = "Black", rim = "Grey" }
+"Motion/Wheels/Mecanum Wheels/2 Inch/V1" = { hub = "Charcoal", rim = "Roller Grey" }
+"Motion/Wheels/Mecanum Wheels/4 Inch" = { hub = "Old Grey Plastic", rim = "Roller Grey" }
+"Motion/Wheels/Omni Wheels/2 Inch" = { hub = "Wheel Plastic", rim = "Roller Grey" }
+"Motion/Wheels/Omni Wheels/2.75 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
+"Motion/Wheels/Omni Wheels/3.25 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
+"Motion/Wheels/Omni Wheels/4 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
+"Motion/Wheels/Traction Wheels/2.75 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
+"Motion/Wheels/Traction Wheels/3.25 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
+"Motion/Wheels/Traction Wheels/4 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
+
+# steps with no colors of their own and no material color (acetal, electronics). longest folder wins, a color on the row beats it
+[step_color]
+"Electronics/Sensors" = "Charcoal"
+"Electronics/Sensors/3-Wire" = "Sensor Grey"
+"Motion/Bearings" = "Bearing Black"
+"Motion/Chain Links/9P (High Strength Chain)" = "Old Grey Plastic"
+"Motion/Gears" = "Red Acetal"
+"Motion/Sprockets" = "Red Acetal"
 
 # generated parts
 
@@ -543,7 +558,7 @@ parts = [
 [[group]]
 folder = "Electronics/Brain & Battery Accessories"
 parts = [
-  { sku = "276-6020", name = "V5 Battery Clip", file = "V5 Battery Clip (276-6020).step" },
+  { sku = "276-6020", name = "V5 Battery Clip", file = "V5 Battery Clip (276-6020).step", color = "Charcoal" },
   { sku = "276-4810-003", name = "V5 Robot Brain Mounting Flange (Long)", file = "V5 Robot Brain Mounting Flange (Long) (276-4810-003).step" },
   { sku = "276-4810-002", name = "V5 Robot Brain Mounting Flange (Short)", file = "V5 Robot Brain Mounting Flange (Short) (276-4810-002).step" },
   { sku = "276-4810-030", name = "V5 Robot Brain Screen Protector", file = "V5 Robot Brain Screen Protector (276-4810-030).step" },
@@ -585,7 +600,7 @@ parts = [
   { sku = "276-2158", name = "Light Sensor", file = "Light Sensor (276-2158).step" },
   { sku = "276-2174", name = "Limit Switch", file = "Limit Switch (276-2174).step", mass = "13.6 g" },
   { sku = "276-2154", name = "Line Tracker", file = "Line Tracker (276-2154).step", mass = "15.4 g" },
-  { sku = "276-7417", name = "Potentiometer V2", file = "Potentiometer V2 (276-7417).step" },
+  { sku = "276-7417", name = "Potentiometer V2", file = "Potentiometer V2 (276-7417).step", color = "Old Grey Plastic" },
 ]
 
 [[group]]
@@ -722,7 +737,7 @@ parts = [
   { sku = "276-1843-001", name = "Shaft Coupler", file = "Shaft Coupler (276-1843-001).step" },
   { sku = "217-3288", name = "Short Shifter Shaft 2.65 Ratio Spread", file = "Short Shifter Shaft 2.65 Ratio Spread (217-3288).step" },
   { sku = "276-2045-020", name = "U-Joint", file = "U-Joint (276-2045-020).step" },
-  { sku = "276-2723", name = "Universal Joints", file = "Universal Joints (276-2723).step" },
+  { sku = "276-2723", name = "Universal Joints", file = "Universal Joints (276-2723).step", color = "Joint Grey" },
   { sku = "276-8794", name = "V5 Flywheel Weight", file = "V5 Flywheel Weight (276-8794).step", mass = "109 g" },
 ]
 
@@ -735,7 +750,7 @@ parts = [
   { sku = "276-1209", name = "Flat Bearing", file = "Flat Bearing (276-1209).step" },
   { sku = "276-7582-001", name = "High Strength Bushing Kit (1/8\" Thick)", file = "High Strength Bushing Kit (1_8 Thick) (276-7582-001).step" },
   { sku = "276-7582-002", name = "High Strength Bushing Kit (5/16\" Thick)", file = "High Strength Bushing Kit (5_16 Thick) (276-7582-002).step" },
-  { sku = "276-8383", name = "High Strength Pillow Block Bearing", file = "High Strength Pillow Block Bearing (276-8383).step", material = "Nylon" },
+  { sku = "276-8383", name = "High Strength Pillow Block Bearing", file = "High Strength Pillow Block Bearing (276-8383).step", material = "Nylon", color = "Bearing Black" },
   { sku = "276-3521", name = "High Strength Shaft Bearing", file = "High Strength Shaft Bearing (276-3521).step" },
   { sku = "276-8023", name = "Low Profile Bearing Flat", file = "Low Profile Bearing Flat (276-8023).step" },
   { sku = "276-8024", name = "Shaft Collar Retainer with Bearing Flat", file = "Shaft Collar Retainer with Bearing Flat (276-8024).step" },
@@ -913,7 +928,7 @@ parts = [
 [[group]]
 folder = "Motion/Pneumatics/New"
 parts = [
-  { name = "25mm Stroke Pneumatic Cylinder", file = "25mm Stroke Pneumatic Cylinder.step", mass = "33 g" },
+  { name = "25mm Stroke Pneumatic Cylinder", file = "25mm Stroke Pneumatic Cylinder.step", mass = "33 g", color = "Bright Steel" },
   { name = "50mm Stroke Pneumatic Cylinder", file = "50mm Stroke Pneumatic Cylinder.step", mass = "39 g" },
   { name = "75mm Stroke Pneumatic Cylinder", file = "75mm Stroke Pneumatic Cylinder.step", mass = "45 g" },
   { name = "Air Flow Valve Fitting", file = "Air Flow Valve Fitting.step" },
@@ -1042,8 +1057,8 @@ parts = [
 [[group]]
 folder = "Motion/Turntables"
 parts = [
-  { sku = "276-5652-000", name = "Large Turntable Bearing", file = "Large Turntable Bearing (276-5652-000).step" },
-  { sku = "276-5652-004", name = "Small Turntable Bearing", file = "Small Turntable Bearing (276-5652-004).step" },
+  { sku = "276-5652-000", name = "Large Turntable Bearing", file = "Large Turntable Bearing (276-5652-000).step", color = "Red Acetal" },
+  { sku = "276-5652-004", name = "Small Turntable Bearing", file = "Small Turntable Bearing (276-5652-004).step", color = "Red Acetal" },
   { sku = "276-5652-007", name = "Turntable Mounting Bracket", file = "Turntable Mounting Bracket (276-5652-007).step" },
 ]
 

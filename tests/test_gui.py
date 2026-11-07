@@ -103,6 +103,11 @@ try:
     got = nut.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
     assert all(abs(a - b) < 1e-6 for a, b in zip(got, steel)), got
     doc.removeObject(nut.Name)
+    # or its folders color off the fusion library, acetal has none
+    gear = library.place(doc, steps["Motion/Gears/Low Strength/36T Gear (276-2169-002).step"])
+    got = gear.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
+    assert all(abs(a - b) < 1e-6 for a, b in zip(got, library.cat()["colors"]["Red Acetal"])), got
+    doc.removeObject(gear.Name)
 
     Gui.runCommand("Vex_PartsList")
     sheet = doc.getObject("VexPartsList")
@@ -165,9 +170,9 @@ try:
     w.place()
     got = Gui.Selection.getSelection()[0]
     assert got.Label == "2\" Mecanum Wheel- Right" and got.VexStep.endswith("(217-7400).step"), got.Label
-    # repainted over its step colors, light grey rollers on black
+    # repainted over its step colors, fusion's grey rollers on a charcoal hub
     shades = {tuple(round(v, 2) for v in c[:3]) for c in got.LinkedObject.Group[0].ViewObject.DiffuseColor}
-    assert shades == {(0.13, 0.13, 0.14), (0.82, 0.82, 0.8)}, shades
+    assert shades == {(0.15, 0.16, 0.16), (0.65, 0.65, 0.65)}, shades
     # it has the boxes too, a new Type swaps it in place and the boxes under narrow to match
     assert (got.Type, got.Size, got.Kind) == ("Mecanum", "2", "V1, Right") and got.getEnumerationsOfProperty("Size") == ["2", "4"]
     got.Type = "Omni"

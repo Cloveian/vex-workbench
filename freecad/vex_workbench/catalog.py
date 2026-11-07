@@ -93,12 +93,17 @@ def by_folder(table, folder):
 
 
 def step_parts(cat):
-    # vex-step/{folder}/{file}, the pneumatics ones have no sku. a material or paint on the row beats the folders
+    # vex-step/{folder}/{file}, the pneumatics ones have no sku. a material, paint or color on the row beats the folders
     out = []
     for g in cat["group"]:
         f = g["folder"]
         defaults = {"material": by_folder(cat["step_material"], f), "paint": by_folder(cat["step_paint"], f)}
-        out += [{**defaults, **p, "folder": f} for p in g["parts"]]
+        color = by_folder(cat["step_color"], f)
+        for p in g["parts"]:
+            part = {**defaults, **p, "folder": f}
+            made = part["material"]
+            part.setdefault("color", made if made in cat["colors"] else color)  # a steel one in a gear folder stays steel
+            out.append(part)
     return out
 
 

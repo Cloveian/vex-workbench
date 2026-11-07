@@ -217,7 +217,7 @@ def source(doc, part, steps=()):
         # before the colors, a material can bring its own look
         import Materials
         solid.ShapeMaterial = Materials.MaterialManager().getMaterial(cat()["freecad_material"][made])
-    color = cat()["colors"].get(p.get("color", made))
+    color = cat()["colors"].get(p.get("color") or part.get("color") or made)  # license plates in params, steps get theirs in catalog.step_parts
     paint = "heads" in p and p["heads"].get(f"{p['length']:.3f}")
     if paint:
         # color coded star screws, just the head. it sits on z = 0
