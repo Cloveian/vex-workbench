@@ -646,6 +646,18 @@ assert abs(b.ZMin / IN - 0.046 - side) < 1e-6 and abs((29 / 25.4 - 0.046) - b.ZM
 # a screw ending on that frame out in the gap still finds its hole, deep is the gap and the flange
 across, deep = screws.bore(u, library.hole_frame(u, inner))
 assert abs(across / IN - 0.182) < 1e-3 and abs(deep / IN - 0.046 - side) < 1e-4, (across / IN, deep / IN)
+# spacers between its two inside flanges go metal to metal, the first joint held back from the frame out in the gap
+uu = library.place(doc, gen["2x2x2x10 Steel U-Channel"], asm)
+uu.Placement = App.Placement(App.Vector(0, 40, 0) * IN, App.Rotation())
+doc.recompute()
+on_u = (asm, uu.Name + ".")
+lid = App.Vector(0.25, 0.204, 29 / 25.4 - 0.046) * IN
+put = spacers.fill(doc, (uu, inner, uu.Placement, on_u), (uu, lid, uu.Placement, on_u), 0.5, asm)
+bottom = put[0].Placement.Base.z / IN
+top = put[-1].Placement.Base.z / IN + spacers.length(library.part_of(put[-1])) / IN
+assert abs(bottom - 0.046) < 1e-6 and -1e-6 < (29 / 25.4 - 0.046) - top <= 1 / 64 + 1e-6, (bottom, top)
+got = moved([uu, *put])
+assert not got, got
 
 # duplicate brings the joints with both ends on copied parts. mirrored or turned the copies already sit where those joints say, a solve moves nothing
 q1 = library.place(doc, gen["5x10 Steel Plate"], asm)

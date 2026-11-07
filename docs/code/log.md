@@ -12,7 +12,7 @@ Went through every module with a bug review before any of this gets pushed. most
 - the grid dots and the hole dots cached by source name only, an undo or a linked file can hand out the same name again. both key off `source_key()` now, same as the shape cache
 - parts list didnt count through a plain link to a link (an App::Link has no Group), and a copy with no weight could blank out one that had one
 
-And a few small ones: a gap under the 0.016 washer said "more than 8 spacers", `hole_dots` could get its saved property stuck empty, a removed menu id would KeyError on every change. all 791 parts with a generator build a valid single solid (the 635 metal ones take 570 s). left for later: a bend within ~2 mm of a hole fills part of it (the fold revolves the section at the line), and spacers between two U-channel inside flanges start from the gap frames, so they float 0.025 off each side
+And a few small ones: a gap under the 0.016 washer said "more than 8 spacers", `hole_dots` could get its saved property stuck empty, a removed menu id would KeyError on every change. all 791 parts with a generator build a valid single solid (the 635 metal ones take 570 s). spacers between two U-channel inside flanges started from the gap frames and floated 0.025 off each side (and a screw's spacer off one ovirshot into the next part), they start on the metal now with the first joint held back to it. left for later: a bend within ~2 mm of a hole fills part of it (the fold revolves the section at the line)
 
 ## 2026-11-06 - colors and weights
 
