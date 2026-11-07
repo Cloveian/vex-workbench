@@ -21,6 +21,8 @@ def pick(gap, od):
     if gap <= SLOP:
         return []
     items = [p for p in library.index()[1].values() if p["family"] == "washer" or (p["family"] == "spacer" and p["params"]["od"] == od)]
+    if gap + 1e-6 < min(length(p) for p in items):
+        return []  # under the 0.016 washer, as good as touching
     for k in range(1, MOST + 1):
         best, most = None, 0
         for combo in itertools.combinations_with_replacement(items, k):

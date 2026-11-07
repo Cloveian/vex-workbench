@@ -17,7 +17,7 @@ PICK_RADIUS = 14  # px from a dot that still clicks it
 SAME_SPOT = 3  # px, dots closer than this on screen (two sides of one hole) go to the one nearer the camera
 RELEASE = 1.0  # s after a dot press that a selection still counts as its release
 REFRESH = 100  # ms after the last change, the points get worked out again
-MOVES = ("Placement", "Visibility", "VisibilityList", "ElementCount", "LinkedObject", "Group")  # changes that move, hide or swap a part's holes. Group for one draged into another sub-assembly
+MOVES = ("Placement", "PlacementList", "Visibility", "VisibilityList", "ElementCount", "LinkedObject", "Group")  # changes that move, hide or swap a part's holes. Group for one draged into another sub-assembly
 
 
 def spot(root, sub, pt):
@@ -273,11 +273,11 @@ class Clicks:
         self.spots = []
         found = {}  # per source, copies share it
         for link, (root, path) in placed(self.doc):
-            src = link.LinkedObject.Name
-            if src not in found:
-                found[src] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.hole_dots(link) + self.extra(link)
+            key = library.source_key(link.LinkedObject)  # a linked sub-assembly's file can have a VexPart001 too
+            if key not in found:
+                found[key] = [] if library.part_of(link)["folder"].startswith(UNMARKED) else library.hole_dots(link) + self.extra(link)
             plc = placement(root, path)
-            self.spots += [(link, c, plc, (root, path)) for c in found[src]]
+            self.spots += [(link, c, plc, (root, path)) for c in found[key]]
 
     def extra(self, link):
         # more dots on link than its holes, link coords. the drill's grid

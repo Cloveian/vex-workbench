@@ -229,6 +229,11 @@ labels = stacked(put)
 assert labels == [("0.5 OD Spacer, 0.875 (Nylon)", 0.046), ("Washer, 0.375 OD, 0.032 (Nylon)", 0.921)], labels
 got = moved(put)
 assert not got, got
+# 1/64 and under is touching, so is anything under the 0.016 washer
+got = spacers.pick(0.0158 * IN, 0.5)
+assert got == [], got
+got = [p["name"] for p in spacers.pick(0.016 * IN, 0.5)]
+assert got == ["Washer, 0.375 OD, 0.016 (Nylon)"], got
 # a shorter spacer keeps its joint at the bottom end, the Top one up to the washer moved. back to 0.875 fixes that one
 seat = next(j for j in joints.Group if getattr(j, "JointType", "") == "Revolute" and j.Reference2[0] == put[0])
 for length in ("0.5", "0.875"):
