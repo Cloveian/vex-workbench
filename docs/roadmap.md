@@ -51,7 +51,7 @@ in build order, each one is something i can open and poke at
 - [x] HS spacer bore clearance: 0.252 across the flats on vex's steps, 0.002 over the shaft
 - [x] which spacer OD / length combos actually exist: whatever robosource sells is fine
 - [x] ~~drilled gear hole pattern~~ not a part, an LS gear drilled out by hand. Drill does LS gears now, straight through
-- [ ] HS lockbar
+- [x] HS lockbar: the fusion library's 3, 5 and 7 hole ones are a 1x steel bar (0.056, same notches) with a sharp 1/4 square for the middle hole. volume spot on, the 7 hole's one plain chamfered end looks like a slip in their model so its notched like the rest
 - [x] are the nylon / aluminum hex nuts just the steel shape? yes. robosource's nylon one is 11/32 across, 0.130 tall, "the same size as VEX EDR nuts", aluminum 8-32 nuts are ASME 11/32 x 1/8, and the fusion library's three are one shape. thats what the catalog does already
 - [x] shoulder screw thread = length - shoulder? yes, robosource: "Overall length of 0.375" includes shoulder and threads". thats how screw() already does it
 

@@ -54,11 +54,11 @@ assert b.Size == "5" and b.LinkedObject == was, (b.Size, b.LinkedObject.Label)
 c = library.place(doc, gen["1x1x5 Aluminum Angle (Regular)"])
 c.Variant = "Cut 3x, Between Holes"
 assert c.Label.startswith("1x1x5 Aluminum Angle (Cut 3x, Between Holes)"), c.Label
-# no generator (the HS lockbar), nothing gets left behind
+# no generator (every family has one, so a made up one), nothing gets left behind
 n = len(doc.Objects)
 try:
-    library.source(doc, next(p for p in gen.values() if p["family"] == "hs-lockbar"))
-    raise AssertionError("made a lockbar")
+    library.source(doc, {"family": "no-such-family", "name": "Nothing", "params": {}})
+    raise AssertionError("made something out of nothing")
 except ValueError:
     pass
 assert len(doc.Objects) == n, (len(doc.Objects), n)

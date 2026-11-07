@@ -459,7 +459,13 @@ id = "hs-lockbar"
 title = "HS Lockbar"
 folder = "Motion/Lock Bars"
 name = "{holes} Hole HS Lockbar"
-holes = [3, 5, 7] # todo dims
+holes = [3, 5, 7]
+# off the fusion library's f3ds, the 1x bar with a sharp 1/4 square middle hole for the shaft
+material = "Steel"
+thickness = { Steel = 0.056 }
+diamond = 0.1129
+root = 0.005
+shaft = 0.25
 
 [[family]]
 id = "license-plate"

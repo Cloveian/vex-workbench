@@ -133,5 +133,17 @@ ok = drilled.isValid() and len(drilled.Solids) == 1 and not drilled.isInside(wra
 bad += not ok
 print(f"{'ok ' if ok else 'BAD'} bend through a round hole: open at its near side {not drilled.isInside(wrapped(mid, 0.6), 1e-6, True)}, solid beside its far side {drilled.isInside(wrapped(side, 1.4), 1e-6, True)}")
 
+# HS lockbars vs the fusion library's (cm3, read off its f3ds), the 1/4 hole in the middle
+for holes, cm3 in ((3, 0.5357), (5, 0.9110), (7, 1.2863)):
+    bar = metal.make(gen[f"{holes} Hole HS Lockbar"], cat)
+    top = max(bar.Faces, key=lambda f: f.Area)
+    inner = [w for w in top.Wires if not w.isSame(top.OuterWire)]
+    sizes = sorted(round(w.BoundBox.XLength / IN, 3) for w in inner)
+    big = max(inner, key=lambda w: w.BoundBox.XLength)
+    centered = abs(big.BoundBox.Center.x - bar.BoundBox.Center.x) < 1e-3
+    ok = bar.isValid() and abs(bar.Volume / 1000 - cm3) < 1e-4 and sizes == [0.182] * (holes - 1) + [0.25] and centered
+    bad += not ok
+    print(f"{'ok ' if ok else 'BAD'} {holes} hole HS lockbar: {bar.Volume / 1000:.4f} cm3 vs fusion {cm3}, holes {sizes}, big one centered {centered}")
+
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)

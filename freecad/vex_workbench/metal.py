@@ -145,6 +145,7 @@ PROFILES = {
     "angle-3x3": angle(3),
     "plate-5x": flat(5),
     "bar-1x": flat(1),
+    "hs-lockbar": flat(1),
 }
 
 
@@ -170,10 +171,12 @@ def make(part, cat):
     # 2.1 s for a 1x5x1x35, mostly the relief cuts in the bends and the fuse
     cuts = [[] for _ in legs]
     hole = square(g["hole"], p.get("round", g["round"]))
+    shaft = square(p["shaft"], 0) if "shaft" in p else hole  # the HS lockbar's sharp middle one
+    middle = g["end"] + g["pitch"] * (p["holes"] // 2)
     for k, (main, between) in enumerate(legs):
         spots = [(a, g["end"] + g["pitch"] * i) for a in main for i in range(p["holes"])]
         spots += [(a, g["pitch"] * (i + 1)) for a in between for i in range(p["holes"] - 1)]
-        cuts[k] += [hole.translated(Vector(x, a, 0)) for a, x in spots]
+        cuts[k] += [(shaft if abs(x - middle) < 1e-9 else hole).translated(Vector(x, a, 0)) for a, x in spots]
     if "diamond" in p:
         # every grid point, edges included. the corner chamfers at the ends stay sharp
         h = p["diamond"] / 2**0.5
