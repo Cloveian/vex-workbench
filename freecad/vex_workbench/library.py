@@ -27,6 +27,7 @@ SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 CACHE = {}
 BREPS = Path(App.getUserCachePath()) / "VexWorkbench"  # read steps as brep + face colors, gone stale ones just sit there
+BREPS_VERSION = 1  # bump when colored() reads a step *dih*frently, old cached ones get skipped
 BUSY = set()  # (doc, link) names getting their menu boxes refilled
 
 
@@ -91,7 +92,7 @@ def remembered(part):
     # a step read once and kept as a brep, the 1" star drive coupler is 26 s as a step and 0.01 s as a brep. brep keeps the face order so the colors still line up
     read = catalog.stored(part)
     st = read.stat()
-    name = hashlib.sha1(f"{read}|{st.st_size}|{st.st_mtime_ns}".encode()).hexdigest()[:16]
+    name = hashlib.sha1(f"{BREPS_VERSION}|{read}|{st.st_size}|{st.st_mtime_ns}".encode()).hexdigest()[:16]
     brep, colors_file = BREPS / f"{name}.brep", BREPS / f"{name}.json"
     if colors_file.is_file() and brep.is_file():  # json written last, a half written brep never has one
         s = Part.Shape()
