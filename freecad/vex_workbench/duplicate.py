@@ -197,19 +197,24 @@ def along(doc, names, owns, mirror, turn):
     return n, left
 
 
+def tops(objs):
+    # a part in a picked group comes with it
+    return [o for o in objs if not any(up in objs for up in o.InListRecursive)]
+
+
 def duplicate(objs, mirror=None, turn=None):
     # copies of objs next to them, every vex part mirrored with mirror (a reflection matrix) or turned with turn (a placement)
     # labels back of the handed ones that went to their other hand, the ones that only got turned to the closest fit, how many joints came along and how many stayed behind
     doc = objs[0].Document
     swapped, handed = [], []
     names, owns = {}, {}  # original name -> its copy, copy name -> (own, exact) (mirror only)
-    objs = [o for o in objs if not any(up in objs for up in o.InListRecursive)]  # a part in a picked group comes with it
+    objs = tops(objs)
     for obj in objs:
         if not (vex(obj) or obj.TypeId in GROUPS):
             raise ValueError(f"{obj.Label} isn't a VEX part or a group of them")
         mine = under(obj)
         copies = doc.copyObject(mine, False)
-        parent = obj.getParentGeoFeatureGroup() or obj.getParentGroup()
+        parent = obj.getParentGroup() or obj.getParentGeoFeatureGroup()  # its folder first (None straight in a part), the part still gets it through the folder
         if parent:
             parent.addObject(copies[0])
         names.update((was.Name, cp) for was, cp in zip(mine, copies))
@@ -283,7 +288,7 @@ class Panel:
         p = App.ParamGet(ui.PARAMS)
         p.SetString("DuplicateHow", how)
         p.SetString("DuplicateAxis", axis)
-        objs = Gui.Selection.getSelection()
+        objs = tops(Gui.Selection.getSelection())
         if not objs:
             self.status.setText("select the parts or groups to copy first")
             return

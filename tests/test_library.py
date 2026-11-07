@@ -250,6 +250,16 @@ for p in corners(cp):
     have.add(App.Vector(*p))
 assert (want.Center - have.Center).Length < 0.01 and abs(want.DiagonalLength - have.DiagonalLength) < 0.01, (want, have)
 assert abs(Part.getShape(cp).Volume - Part.getShape(odd).Volume) < 1e-6 and cp.LinkedObject != odd.LinkedObject
+# a copy of one in a folder inside a part stays in that folder, turned in the part's coords
+side = doc.addObject("App::Part", "Side")
+side.Placement = App.Placement(App.Vector(10, 0, 0), App.Rotation(0, 0, 30))
+folder = side.newObject("App::DocumentObjectGroup", "Left")
+pl = library.place(doc, gen["5x10 Steel Plate"], folder)
+before = set(doc.Objects)
+duplicate.duplicate([pl], turn=App.Placement(App.Vector(0, 0, 3 * IN), App.Rotation()))
+cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
+up = duplicate.frame(cp).multiply(cp.Placement).Base - duplicate.frame(pl).multiply(pl.Placement).Base
+assert cp.getParentGroup() == folder and cp.getParentGeoFeatureGroup() == side and (up - App.Vector(0, 0, 3 * IN)).Length < 1e-6, (cp.getParentGroup(), up)
 
 App.closeDocument(doc.Name)
 print("ok")
