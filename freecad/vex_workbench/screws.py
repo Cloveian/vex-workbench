@@ -127,7 +127,11 @@ def fasten(doc, head, tail, family, nut, parent=None, od=None):
     # head, tail = snap.spot()s, head side first. nut None = into a thread, od = spacers that size in the gaps
     # screw, nut (None into a thread), spacers back
     (fa, a), (fb, b) = snap.hole(head), snap.hole(tail)
+    # a U-channel's inside flange frame sits out in the gap, everything from here on goes from the metal
+    ba, bb = library.off_metal(*head[:2]), library.off_metal(*tail[:2])
+    a, b = a.multiply(snap.offset(-ba, 0)), b.multiply(snap.offset(-bb, 0))
     across, deep = bore(tail[0], fb)
+    deep = None if deep is None else deep - bb
     threaded = nut is None or tapped(tail[0], across)
     got = snap.line(a, b)
     gap = -got[0] if got else 0
@@ -151,7 +155,7 @@ def fasten(doc, head, tail, family, nut, parent=None, od=None):
         n = library.place(doc, nut, parent)
         n.Placement = local.multiply(b).multiply(plc)
         if asm:
-            snap.revolute(asm, snap.ref(asm, tail, fb), snap.on(n, library.frame(n, plc.inverse(), "Seat")))
+            snap.revolute(asm, snap.ref(asm, tail, fb), snap.on(n, library.frame(n, plc.inverse(), "Seat")), bb)
     put = [o for at, parts in fills for o in spacers.stack(doc, at, parts, parent)]
     return s, n, put
 
@@ -159,12 +163,13 @@ def fasten(doc, head, tail, family, nut, parent=None, od=None):
 def drop(doc, head, screw, parent=None):
     # screw (a catalog part) in the clicked hole, under its head on that face, shank down -z
     fa, a = snap.hole(head)
+    back = library.off_metal(*head[:2])
     local, asm = snap.inside(parent)
     s = library.place(doc, screw, parent)
-    s.Placement = local.multiply(a)
-    # frames right on the hole frames, the joint doesnt move anything
+    s.Placement = local.multiply(a).multiply(snap.offset(-back, 0))
+    # Seat on the screw origin and the joint held back the same, it doesnt move anything
     if asm:
-        snap.revolute(asm, snap.ref(asm, head, fa), snap.on(s, library.frame(s, App.Placement(), "Seat")))
+        snap.revolute(asm, snap.ref(asm, head, fa), snap.on(s, library.frame(s, App.Placement(), "Seat")), back)
     return s
 
 

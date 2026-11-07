@@ -35,18 +35,12 @@ def pick(gap, od):
     raise ValueError(f"a {gap / IN:.3f}\" gap takes more than {MOST} spacers")
 
 
-def off_face(s):
-    # mm the hole frame clicked in s sits out off the metal, a U-channel's inside flange puts it out in the gap
-    link, pt, _, _ = s
-    return (library.hole_spot(link, pt)[0] - library.hole_at(link, pt)[0]).Length
-
-
 def stack(doc, s, parts, parent=None):
     # parts piled up out of the face clicked in s, centered on its hole. Revolute joints down the pile in an assembly
     f, a = snap.hole(s)
     local, asm = snap.inside(parent)
     below = asm and snap.ref(asm, s, f)
-    back = off_face(s)
+    back = library.off_metal(*s[:2])
     put, z = [], -back  # starts on the metal
     for p in parts:
         o = library.place(doc, p, parent)
@@ -65,7 +59,7 @@ def fill(doc, one, other, od, parent=None):
     got = snap.line(a, b)
     if got is None or got[1] > -1 + 1e-6 or got[0] <= 0:
         raise ValueError("those holes don't line up, click the two faces that face each other")
-    parts = pick(got[0] + off_face(one) + off_face(other), od)
+    parts = pick(got[0] + library.off_metal(*one[:2]) + library.off_metal(*other[:2]), od)
     if not parts:
         raise ValueError("those faces are touching, nothing to put in there")
     return stack(doc, one, parts, parent)
