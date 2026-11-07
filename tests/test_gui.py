@@ -78,6 +78,11 @@ try:
     plain = Part.read(str(catalog.step_path(motor)))
     assert abs(solid.Shape.Volume / plain.Volume - 1) < 1e-6, (solid.Shape.Volume, plain.Volume)
     assert len(library.holes(solid.Shape)) == len(library.holes(plain)), "holes differ"
+    # no colors in vex's hex nut step, so its steel
+    nut = library.place(doc, steps["Hardware/Nuts/8-32 Nuts/Hex Nuts/#8-32 Hex Nut (275-1028).step"])
+    got = nut.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
+    assert all(abs(a - b) < 1e-6 for a, b in zip(got, steel)), got
+    doc.removeObject(nut.Name)
 
     Gui.runCommand("Vex_PartsList")
     sheet = doc.getObject("VexPartsList")

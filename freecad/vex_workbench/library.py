@@ -2,6 +2,7 @@
 import collections
 import functools
 import json
+from pathlib import Path
 
 import FreeCAD as App
 import Part
@@ -83,6 +84,8 @@ def shape(part):
 
 def colored(path):
     # vex's own colors only come through ImportGui (Import.insert greys every face), which splits the step into peices
+    if b"COLOUR_RGB" not in Path(path).read_bytes():
+        return Part.read(path), None  # no colors at all, source() paints it by material
     import ImportGui
     active = App.ActiveDocument
     tmp = App.newDocument("VexImport", hidden=True)
@@ -182,7 +185,7 @@ def source(doc, part, steps=()):
         # before the colors, a material can bring its own look
         import Materials
         solid.ShapeMaterial = Materials.MaterialManager().getMaterial(cat()["freecad_material"][made])
-    color = cat()["colors"].get(p.get("color", p.get("material")))
+    color = cat()["colors"].get(p.get("color", made))
     paint = "heads" in p and p["heads"].get(f"{p['length']:.3f}")
     if paint:
         # color coded star screws, just the head. it sits on z = 0
