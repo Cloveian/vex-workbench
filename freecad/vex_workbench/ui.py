@@ -14,7 +14,10 @@ def run(title, fn):
     try:
         out = fn()
     except ValueError as e:
-        err = str(e)
+        err = str(e) or f"{title} didn't work"
+    except Exception:
+        App.closeActiveTransaction(True)  # a bug. undone, and the traceback still goes to the report view
+        raise
     finally:
         QtWidgets.QApplication.restoreOverrideCursor()
     if err is not None:

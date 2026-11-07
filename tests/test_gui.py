@@ -40,6 +40,14 @@ try:
     assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Bend", "Cut", "Drill", "Duplicate", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
+    # a bug in a tool still raises, and whatever it half built gets undone
+    from freecad.vex_workbench import ui
+    try:
+        ui.run("Broken", lambda: doc.addObject("App::FeaturePython", "Half") and 1 / 0)
+        raise AssertionError("ZeroDivisionError got eaten")
+    except ZeroDivisionError:
+        pass
+    assert App.getActiveTransaction() is None and doc.getObject("Half") is None, (App.getActiveTransaction(), doc.Objects)
     _, gen, steps = library.index()
     ch = library.place(doc, gen["1x2x1x5 Steel C-Channel"])
     steel = tuple(library.cat()["colors"]["Steel"])
