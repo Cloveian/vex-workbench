@@ -1,5 +1,13 @@
 # Log
 
+## 2026-11-06 - colors and weights
+
+- the 2" omni wasnt a photo job after all. the appearance asset in the f3d (`.protein`, a zip of autodesk binaries) is cut into 136 byte pages with an 8 byte header each, and with those stripped "VEX Wheel Plastic" is 29/255 grey and "Roller Rubber" 166/255, exact 8 bit steps, and the swatch thumbnails next to them agree. black hub and a new "Roller Grey". tried a `--colors` tool for every f3d but theres no property tags in there, picking the color out by "looks like n/255" got 4 of 6 right, so no tool
+- vex left ~half its steps with no `COLOUR_RGB` at all, every nut, every LS shaft, the retainers. those skip ImportGui now (faster too) and get their material's color like generated parts do, acetal has none so the gears look the same
+- 15 wheel and bogie rows got vex's listed weight. checked each against the step volume first, all 1.0 to 2.9 g/cm3 except the 2" omni (90 g) and the V2 2" mecanum (127 g), which come out 5.5, so not those
+- wheel painting took 130 s for the 10 repainted wheels. it was computing `Volume` on every piece twice just to see which rollers are the same, on those splines thats ~10 s a go for the 2.75 omni. counting faces / edges / vertexes gives the exact same colors on all 10, 7.8 s total
+- the slider limits: in 1.1.4 ondsel only switches a limit on inside a drag step, so a plain solve can never respect them. not our bug, and still cant drag from python
+
 ## 2026-11-06 - drilled gears and a fusion reader
 
 - joints made with freecad's own tool straight on a face, edge or corner of a plate died on any rework: the worked source gets a new solid (`Solid001`) with every face renumbered, so `Vex.Solid.Face431` pointed at nothing. `carry` looks them up again by where they are now, through the same `ways()` the frames use. a face counts if any of it is left (most overlap wins), edges and corners have to be right there. first go did a boolean against every plane in the face's box, which on a plate is ~400 hole walls, 3.6 s for one drill. only faces actually on the old face's surface get the boolean now, ~0.4 s
