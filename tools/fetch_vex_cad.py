@@ -291,7 +291,11 @@ def main():
     WAIT_FOR_ME = not args.headless
 
     profile = cookie_profile()
-    driver = open_firefox(profile, args.headless)
+    try:
+        driver = open_firefox(profile, args.headless)
+    except Exception:
+        shutil.rmtree(profile, ignore_errors=True)  # its a copy of the cookies
+        raise
     try:
         pages, rows = collect(driver)
         print(f"{pages} pages, {len(rows)} unique upload_ids", file=sys.stderr)
