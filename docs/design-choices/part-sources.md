@@ -6,7 +6,7 @@ every V5 part needs a solid, and the solid has to be *exact*. there's three plac
 
 ### Relevant constraints/nice to haves:
 - Exact: real planes and cylinders, the hole grid right to the thou
-- Every size: channels get cut to any length, screws come in 13 lengths, and vex only has steps for some of them
+- Every size: channels get cut to any length, screws come in 13 lengths (14 star), and vex only has steps for some of them
 - Shippable: whatever goes in the addon has to be allowed to go in the addon
 - Robosource parts too (thin nylocks, shoulder screws, 7/8 standoffs, the washers), they have no cad at all
 

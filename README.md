@@ -76,7 +76,7 @@ It's about a 140 MB download, mostly VEX's STEP files.
 
 ### VEX's STEP files
 
-The VEX parts you'd put on a V5 robot ship with the workbench, gzipped in `freecad/vex_workbench/steps/`. They're VEX's files, so this repo's license doesn't cover them. The kits, the field element, the Legacy (Cortex) parts and the V5 Controller don't ship, and neither do the steps the tests check the generated parts against. To get all of those, download everything into `vex-step/`:
+The VEX parts you'd put on a V5 robot ship with the workbench, gzipped in `freecad/vex_workbench/steps/`. They're VEX's files, so this repo's license doesn't cover them. The kits, the field element, the Legacy (Cortex) parts and the V5 Controller don't ship, and neither do the steps the tests check the generated parts against (except the two screws the generated ones are made from). To get all of those, download everything into `vex-step/`:
 
 ```
 uv run tools/fetch_vex_cad.py
