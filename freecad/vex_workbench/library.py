@@ -611,7 +611,8 @@ def hole_spot(link, point):
 
 def off_metal(link, point):
     # mm the hole_spot frame sits out off the metal, 0 but on a U-channel's flange insides
-    return (hole_spot(link, point)[0] - hole_at(link, point)[0]).Length
+    center = hole_at(link, point)[0]
+    return (into_gap(center, u_gap(link)) - center).Length
 
 
 def hole_frame(link, point):
