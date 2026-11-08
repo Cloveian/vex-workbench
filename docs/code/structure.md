@@ -7,10 +7,10 @@
 | `freecad/vex_workbench/`           | the workbench itself (new style addon, FreeCAD finds it by this path) |
 | `freecad/vex_workbench/init_gui.py` | registers the workbench, gui only                                    |
 | `freecad/vex_workbench/catalog.py` | `parts.toml` -> every part, no FreeCAD needed                         |
-| `freecad/vex_workbench/metal.py`   | channels, angles, plate, bar as Part shapes                           |
-| `freecad/vex_workbench/stock.py`   | shafts, standoffs, spacers, washers: a section with lathe ends and a bore |
+| `freecad/vex_workbench/metal.py`   | channels, angles, plate, bar, HS lockbars as Part shapes, and the bends, cuts and drilled holes on them |
+| `freecad/vex_workbench/stock.py`   | shafts, standoffs, spacers, washers, plain and flange nuts: a section with lathe ends and a bore |
 | `freecad/vex_workbench/derived.py` | parts cut out of a vex step: screws at any length, the thin nylock, other materials |
-| `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s. hole finding too (`holes`, `hole_at`, `hole_dots` kept on the source, `cached` per source). a size change or shop step moves frames and joints on holes that stayed put or turned with a bend onto the new source (`carry`, the bends from `metal.turned`), and joints straight on a face / edge / corner to whatever of it is left (`element`) and deletes the old worked one once nothing links it (`prune`) |
+| `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s. steps read once into freecad's cache folder as brep (`remembered`). hole finding too (`holes`, `hole_at`, `hole_dots` kept on the source, `cached` per source). a size change or shop step moves frames and joints on holes that stayed put or turned with a bend onto the new source (`carry`, the bends from `metal.turned`), and joints straight on a face / edge / corner to whatever of it is left (`element`) and deletes the old worked one once nothing links it (`prune`) |
 | `freecad/vex_workbench/browser.py` | the VEX parts dock                                                    |
 | `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`. plus the joint bits and the click panel (orange hole points, green picked ones) the screw, spacer, align and shop tools build on |
 | `freecad/vex_workbench/screws.py`  | Screw command, two hole clicks -> shortest screw + nut (or into a thread), jointed in an assembly |

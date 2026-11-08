@@ -1,5 +1,13 @@
 # Log
 
+## 2026-11-07 - fusion colors, bends round holes, the last families
+
+- step parts get read once and kept as a brep in freecad's cache folder, keyed on the file and a `BREPS_VERSION`. the 1" star drive coupler goes 26.7 s -> 0.012 s, and brep keeps the face order so vex's face colors still line up. headless doesnt use it and the gui test points it at a temp folder, so the tests never touch the real cache
+- colors off the fusion library's appearances for every step it has a match for and vex left grey, ~45 of them plus the 10 repainted wheels (steps with vex's own colors keep those, so the HS v2 gears stay grey). its acetal gears and sprockets are all "VEX Red Acetal" 255,30,30, which i did not expect. the wheels lost their photo colors too. first go let a folder color beat a row's material and the steel 12T Metal Gear came out red, the checker caught it
+- the metal vex doesnt make is gone: U and 1x1 aluminum only, bar steel only, and a family `skip` for the steel 3x c-channel. 795 -> 600 generated. asking for a skipped one says so, and on a placed one the box goes back
+- bends go on a band at a time wherever the strip's section changes, so a hole inside the bend wraps round it open. first version only looked at edge vertices and a round hole's far side isnt one, so a drilled hole came out half filled, half a rectangular slot. a 0.08 hole 0.02 short of the line: 0.17 of it stayed open on the old sweep, all of it now
+- nylon and nylock flange nuts and the 3 / 5 / 7 hole HS lockbars, measured off fusion's f3ds. a lockbar is just the 1x bar with a sharp 1/4 square middle hole, volume to 4 decimals. every family has a generator now, the wing nut is the only one left and theres no model of it anywhere
+
 ## 2026-11-06 - a review pass
 
 Went through every module with a bug review before any of this gets pushed. most of what came back was edge casses or "what if the catalog had a typo", the real ones:
