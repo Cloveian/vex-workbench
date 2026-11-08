@@ -50,6 +50,8 @@ was = b.LinkedObject
 b.Size = "3"
 doc.recompute()
 assert b.Size == "5" and b.LinkedObject == was, (b.Size, b.LinkedObject.Label)
+# the al 3x row only has some of its by_material, it still finds its box
+assert library.picks(library.index()[0]["c-channel"], gen["1x3x1x5 Aluminum C-Channel"])["Size"] == "3"
 
 # a cut down 1x1 is a variant like any other
 c = library.place(doc, gen["1x1x5 Aluminum Angle (Regular)"])

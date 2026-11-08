@@ -60,12 +60,31 @@ def axes(family):
     return out
 
 
+def merged(a, b):
+    # b over a, tables merge into each other (a row's by_material only has what it changes)
+    out = dict(a)
+    for k, v in b.items():
+        out[k] = merged(out[k], v) if isinstance(v, dict) and isinstance(out.get(k), dict) else v
+    return out
+
+
+def fits(row, params):
+    # row went into params, its tables only have to be part of theirs
+    for k, v in row.items():
+        if k not in params:
+            return False
+        both = isinstance(v, dict) and isinstance(params[k], dict)
+        if not (fits(v, params[k]) if both else params[k] == v):
+            return False
+    return True
+
+
 def variants(family):
     out = []
     for combo in itertools.product(*(c for _, c in axes(family))):
         params = {}
         for c in combo:
-            params.update(c)
+            params = merged(params, c)
         if any(s.items() <= params.items() for s in family.get("skip", [])):
             continue  # a combo vex doesnt make
         out.append({
@@ -78,7 +97,14 @@ def variants(family):
 
 
 def generated(cat):
-    return [v for fam in cat["family"] for v in variants(fam)]
+    out = [v for fam in cat["family"] for v in variants(fam)]
+    names = {v["name"]: v["params"] for v in out}
+    for v in out:
+        p = v["params"]
+        if p.get("variant") in p.get("cut", {}):
+            # sawn out of cut_from, that part's numbers for the material. the cut row goes on over them in metal.make
+            v["params"] = merged(p, names[p["cut_from"]]["by_material"][p["material"]])
+    return out
 
 
 def inside(folder, *tops):

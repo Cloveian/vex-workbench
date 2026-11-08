@@ -242,8 +242,8 @@ def source(doc, part, steps=()):
 
 def picks(family, part):
     # {property: label} that lands on part, the inverse of variant()
-    mine = part["params"].items()
-    return {prop: next(label(c) for c in choices if c.items() <= mine) for prop, choices in options(family)}
+    mine = part["params"]
+    return {prop: next(label(c) for c in choices if catalog.fits(c, mine)) for prop, choices in options(family)}
 
 
 def place(doc, part, parent=None):
