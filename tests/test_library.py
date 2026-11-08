@@ -1,4 +1,5 @@
 # placing parts in a document, run with: python tests/test_library.py (needs FreeCAD)
+import math
 import sys
 from pathlib import Path
 
@@ -102,6 +103,24 @@ finally:
     library.source = real
 assert [s["do"] for s in library.steps(pl)] == ["fold"], library.steps(pl)
 doc.removeObject(pl.Name)  # the parts list count further down doesnt want it
+
+# a hole drilled 0.02 short of a bend line wraps round the bend, through a Holes change too. clear of the square holes and diamonds
+plain, holed = (library.place(doc, gen["5x10 Steel Plate"]) for _ in range(2))
+doc.recompute()
+fold = shop.bend(plain, App.Vector(1.25, 0.25, 0.046) * IN, True, 0, 90)
+library.rework(plain, [fold])
+drill = shop.drill(holed, App.Vector(1.19, 1.5, 0.046) * IN, 0.08 * IN, False)
+library.rework(holed, [drill, fold])
+hole = math.pi * (0.04 * IN) ** 2 * 0.046 * IN  # mm3 it takes out flat
+gone = Part.getShape(plain.LinkedObject).Volume - Part.getShape(holed.LinkedObject).Volume
+assert abs(gone / hole - 1) < 0.05, gone / hole
+for o in (plain, holed):
+    o.Holes = "5"
+doc.recompute()
+gone = Part.getShape(plain.LinkedObject).Volume - Part.getShape(holed.LinkedObject).Volume
+assert [s["do"] for s in library.steps(holed)] == ["drill", "fold"] and abs(gone / hole - 1) < 0.05, (library.steps(holed), gone / hole)
+for o in (plain, holed):
+    doc.removeObject(o.Name)
 
 # undo / redo dont make another source
 doc.UndoMode = 1
