@@ -90,10 +90,9 @@ class Panel(snap.Clicks):
         super().__init__("VEX spacers", [("Spacer OD", self.od)])
 
     def act(self, one, other):
-        import UtilsAssembly
         od = od_from(self.od)
         doc = one[0].Document
-        put = ui.run("Place VEX spacers", lambda: fill(doc, one, other, od, UtilsAssembly.activePartOrAssembly()))
+        put = ui.run("Place VEX spacers", lambda: fill(doc, one, other, od, ui.active()))
         if not put:
             return None
         doc.recompute()

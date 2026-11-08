@@ -18,7 +18,7 @@ LEAD = 0.01 * IN  # mm, probes start this far in past the face
 
 def nuts():
     _, gen, steps = library.index()
-    # vex steps and our generated nuts, both by folder
+    # vex steps and the generated nuts, both by folder
     return {p["name"]: p for p in [*steps.values(), *gen.values()] if catalog.inside(p["folder"], NUT_FOLDER)}
 
 
@@ -277,12 +277,11 @@ class Panel(snap.Clicks):
 
     def act(self, pairs):
         # (head, tail) spots, tail None for one picked by hand
-        import UtilsAssembly
         p = App.ParamGet(ui.PARAMS)
         p.SetString("Screw", self.kind.currentText())
         p.SetBool("ScrewMine", self.mine.isChecked() if self.mine.isEnabled() else self.before)  # not the forced one shoulder screws get
         doc = pairs[0][0][0].Document
-        active = UtilsAssembly.activePartOrAssembly()
+        active = ui.active()
         if pairs[0][1] is None:
             p.SetString("ScrewPick", self.size.currentText())
             pick = library.index()[1][self.size.currentText()]

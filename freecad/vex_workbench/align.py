@@ -171,10 +171,9 @@ class Panel(snap.Clicks):
         self.ask(f"{s['moved'].Label} slides along {s['target'][0].Label} now\n")
 
     def act(self, mover, target):
-        import UtilsAssembly
         whole = self.whole.isChecked()
         App.ParamGet(ui.PARAMS).SetBool("AlignWhole", whole)
-        active = UtilsAssembly.activePartOrAssembly()
+        active = ui.active()
         got = ui.run("Align VEX part", lambda: align(mover, target, self.gap.value() * IN, active, whole, self.angle.value()))
         if got is None:
             return None

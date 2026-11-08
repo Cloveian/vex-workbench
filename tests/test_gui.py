@@ -135,6 +135,13 @@ try:
     assert QtWidgets.QApplication.overrideCursor() is None, "wait cursor stuck"
     got = Gui.Selection.getSelection()[0].Label
     assert got == "0.500, 0.18 Robosource Shoulder Screw (8-32, Steel)", got
+    # a source made the active part by a doubie click, the next one goes at the top
+    src = Gui.Selection.getSelection()[0].LinkedObject
+    Gui.ActiveDocument.ActiveView.setActiveObject("part", src)
+    w.place()
+    again = Gui.Selection.getSelection()[0]
+    assert again not in src.Group and not again.getParentGeoFeatureGroup(), [o.Label for o in src.Group]
+    Gui.ActiveDocument.ActiveView.setActiveObject("part", None)
     # search, words in any order
     w.search.setText("motor smart")
     hit = w.tree.findItems("Smart Motor", QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive)[0]

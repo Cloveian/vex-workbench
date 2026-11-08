@@ -154,8 +154,7 @@ class Browser(QtWidgets.QWidget):
                 ui.warn(str(e))
                 return
         doc = App.ActiveDocument or App.newDocument()
-        import UtilsAssembly  # Assembly workbench
-        link = ui.run("Place VEX part", lambda: library.place(doc, part, UtilsAssembly.activePartOrAssembly()))
+        link = ui.run("Place VEX part", lambda: library.place(doc, part, ui.active()))
         if link is None:
             return
         doc.recompute()

@@ -3,6 +3,8 @@ import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtCore, QtWidgets
 
+from . import library
+
 PARAMS = "User parameter:BaseApp/Preferences/Mod/VexWorkbench"
 
 
@@ -30,6 +32,14 @@ def run(title, fn):
 
 def warn(msg):
     QtWidgets.QMessageBox.warning(Gui.getMainWindow(), "VEX", msg)
+
+
+def active():
+    # active assembly or part to put new stuff in. double clicking a placed part makes its hidden source the active part, and whatever went in there showed up in every copy
+    import UtilsAssembly  # Assembly workbench
+    got = UtilsAssembly.activePartOrAssembly()
+    parent = got and got.getParentGroup()
+    return None if parent and parent.Name == library.GROUP else got
 
 
 def number(lo, hi, suffix, value=0.0, step=1.0, decimals=2):

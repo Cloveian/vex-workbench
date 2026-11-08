@@ -66,7 +66,7 @@ def own_mirror(shape):
             best, gone = m, k
         if not gone:
             break
-    # a few left can be where an edge got spilt, on a torx screw where vex's shank stub meets ours. those still land on an edge, a drilled hole's lands on flat metal
+    # a few left can be where an edge got spilt, on a torx screw where vex's shank stub meets the generated one. those still land on an edge, a drilled hole's lands on flat metal
     if 0 < len(gone) <= 20:
         edges = Part.Compound(shape.Edges)
         if all(edges.distToShape(Part.Vertex(p))[0] < SAME for p in gone):
@@ -283,7 +283,6 @@ class Panel:
         self.angle.setEnabled(how == "Turn")
 
     def go(self):
-        import UtilsAssembly
         how, axis = self.how.currentText(), self.axis.currentText()
         p = App.ParamGet(ui.PARAMS)
         p.SetString("DuplicateHow", how)
@@ -293,7 +292,7 @@ class Panel:
             self.status.setText("select the parts or groups to copy first")
             return
         # plane and axis in the active part or assembly, through its origin
-        active = UtilsAssembly.activePartOrAssembly()
+        active = ui.active()
         f = active.getGlobalPlacement() if active else Placement()
         n = f.Rotation.multVec(AXES[axis])
         if how == "Mirror":
