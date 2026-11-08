@@ -48,7 +48,7 @@ only B survives, so not much of a table
 - **Zero tolerance at the snaps.** frames sit on the exact nominal hole center, nothing baked in, so exact things are easy to build. real clearance (a 0.176 shoulder in a 0.182 hole) stays in the solids, the joint just centers it
 - **Joints center** whatever goes through the hole
 - **Hole finding on import** for step parts, the 0.182 square holes and 8-32 round ones, so motors and gears snap the same way
-- **Frames on click** (B). not settled, thats my default, nobody said yes to it yet
+- **Frames on click** (B), the tools put dots on the holes so theres something to click
 
 ---
 Back to [design choices](index.md) | [goals](../goals.md)

@@ -52,7 +52,7 @@ every V5 part needs a solid, and the solid has to be *exact*. there's three plac
 
 
 ### Decision
-C, generate what we can, ship the steps for the rest. 22 generated families in the catalog so far, all 289 steps stay listed as step parts, and the generated ones get checked against the matching steps.
+C, generate what we can, ship the steps for the rest. 25 generated families in the catalog, all 289 steps stay listed as step parts, and the generated ones get checked against the matching steps.
 
 todo before release: check vex's terms on redistributeing their steps. if it's a no, the workbench runs the fetch script on first launch instead
 

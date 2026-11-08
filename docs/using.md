@@ -3,7 +3,7 @@ how to actually build something with it, as it is right now
 
 ## Placing parts
 
-Pick the VEX workbench and hit **VEX parts** to open the dock. The families are at the top (greyed out ones dont have a generator yet), vex's own parts are in the folders under them, and the search box filters both. Pick a family, set its options, then **Place** (or just double-click). If theres an active assembly (or part) it goes in there.
+Pick the VEX workbench and hit **VEX parts** to open the dock. The families are at the top, vex's own parts are in the folders under them, and the search box filters both. Pick a family, set its options, then **Place** (or just double-click). If theres an active assembly (or part) it goes in there.
 
 - **Wheels**, **Gears** and **Sprockets** up top are vex's own step parts picked the same way (type, then size, then kind or whatever), each box only has what goes with the ones above it, so you cant land on a wheel that doesnt exist. theyre the same parts as in the folders, and a placed one has the boxes in its properties wherever it came from, so a 4" omni can turn into a 3.25 traction right where it is (joints on its holes only come along if the new one has a hole in the same spot)
 - the first time a variant gets placed it has to be built, a 35 long channel takes a few seconds (theres a wait cursor). after that its instant, every copy in that file links to the same source. a step part is slower the very first time, some take half a minute to read, then its kept as a brep in FreeCAD's cache folder (`~/.cache/FreeCAD/v1-1/Cache/VexWorkbench` on linux) and loads in a blink in every file after
