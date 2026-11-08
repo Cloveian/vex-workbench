@@ -119,7 +119,7 @@ by_material.Aluminum = { flange = 0.55, past_bend = 0.3, chamfer = 0.0783, mark 
 # between = the staggered row down the middle, only the 2 wide has it
 sizes = [
   { width = 2, between = true },
-  { width = 3, by_material.Aluminum = { flange = 0.546, thickness = { Aluminum = 0.063 } } }, # vex's 3x is its own again, steel height and a 0.063 wall
+  { width = 3, by_material.Aluminum = { flange = 0.546, thickness = { Aluminum = 0.063 }, chamfer = 0.05, mark = 0.06, mark_root = 0 } }, # vex's 3x is its own again, steel height and sharp marks
   { width = 5 },
 ]
 holes = { from = 1, to = 35 }

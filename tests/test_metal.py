@@ -25,7 +25,6 @@ steps = {Path(p["file"]).stem: p for p in catalog.step_parts(cat)}
 OFF = {
     "1x5x1x25 Steel C-Channel (275-1138)": "web holes 0.24 from one side",
     "1x5x1x35 Steel C-Channel (275-1139)": "web holes 0.24 from one side",
-    "1x3x1x35 Aluminum C-Channel (276-4359)": "0.23% light, every hole lines up, didnt find where",
 }
 
 
