@@ -94,7 +94,8 @@ for fam in cat["family"]:
 g = cat["grid"]
 ch, half, edge = (metal.make(gen[n], cat) for n in ("1x3x1x10 Aluminum C-Channel", "1x1x10 Aluminum Angle (Cut 3x, Between Holes)", "1x1x10 Aluminum Angle (Cut 3x, Hole Edge)"))
 hole = g["hole"] ** 2 - (4 - math.pi) * g["round"] ** 2
-strip = (g["pitch"] * 10 * g["pitch"] - 10 * hole) * 0.063 * IN**3  # the 3x's own wall
+wall = metal.thickness(gen["1x1x10 Aluminum Angle (Cut 3x, Between Holes)"]["params"], cat)  # the 3x's own, via cut_from
+strip = (g["pitch"] * 10 * g["pitch"] - 10 * hole) * wall * IN**3
 off = (2 * half.Volume + strip) / ch.Volume - 1
 b = edge.optimalBoundingBox()
 ok = abs(off) < 1e-6 and abs(b.ZLength / IN - 0.659) < 1e-6 and half.isValid() and edge.isValid()
