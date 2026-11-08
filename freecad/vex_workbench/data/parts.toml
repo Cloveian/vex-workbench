@@ -437,15 +437,16 @@ crown = { r = 0.1302, R = 0.0417, mouth = 0.2, deep = 0.009 } # 0.25 tall with i
 bore = 0.134
 
 [[family]]
-id = "hex-nut-6-32"
-title = "#6-32 Hex Nut"
-folder = "Hardware/Nuts/6-32 Nuts"
-name = "#6-32 Hex Nut"
+id = "piston-nut"
+title = "Piston Hex Nut"
+folder = "Hardware/Nuts"
+name = "Hex Nut (Piston, 6-40, Steel)"
 material = "Steel"
-# for the 6-32 screws (old pneumatics). no vex model of it, so ASME B18.6.3 #6
-hex = 0.3125 # 5/16
-height = 0.109375 # 7/64
+# fusion library's, the old pneumatic cylinders' rod nut. 0.00749 in3
+hex = 0.31
+height = 0.11
 bore = 0.138 # thread major, like the 8-32 nut's 0.165
+sink = 0.004
 
 [[family]]
 id = "spacer"

@@ -9,7 +9,7 @@
 - nylon and nylock flange nuts and the 3 / 5 / 7 hole HS lockbars, measured off fusion's f3ds. a lockbar is just the 1x bar with a sharp 1/4 square middle hole, volume to 4 decimals. every family has a generator now, the wing nut is the only one left (skipped later, vex doesnt have one)
 - aluminum c-channel is its own shape: 0.55 flanges, flange holes 0.3 off the web, 0.078 tip chamfers, 0.070 marks with round bottoms. every hole on all 5 al fixtures lines up. the 3x is its own again (0.546, 0.063 wall, 0.05 chamfers, sharp 0.06 marks), it was 0.23% light till slicing both every few hundredths along a mark showed the chamfers and marks off. its reliefs sit off center too but at -0.17% thats in with the other c-channels
 - the al numbers are written once now: a row's tables merge into the family's (`catalog.merged`, and `fits` so `picks` still finds the 3x's Size, it threw on placing one at first), and the cut 1x1s say `cut_from` the 3x and only keep their web
-- the #6-32 hex nut for the old pneumatics, ASME #6 (5/16, 7/64) cuz theres no vex model. fusion's "Hex Nut (8-32, Steel)" turned out to be vex's 275-1028, same volume, so the 8-32 ones were never off
+- the old pneumatics hex nut, ~~a #6-32 off ASME #6 (5/16, 7/64) cuz i couldnt find a model~~ fusion's "Hex Nut (Piston, 6-40, Steel)", the cylinder rod nut, 0.31 x 0.11 and 0.2% over its volume. it sat in Hardware/Nuts, not the 8-32 folder i was looking in. fusion's "Hex Nut (8-32, Steel)" turned out to be vex's 275-1028, same volume, so the 8-32 ones were never off
 
 ## 2026-11-06 - a review pass
 

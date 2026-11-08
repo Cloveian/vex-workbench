@@ -6,7 +6,7 @@ from FreeCAD import Vector
 
 from .metal import EPS, IN, square
 
-FAMILIES = ("ls-shaft", "hs-shaft", "pitch-shaft", "standoff", "extra-low-nut", "flange-nut", "nylock-flange-nut", "hex-nut-6-32", "spacer", "washer")
+FAMILIES = ("ls-shaft", "hs-shaft", "pitch-shaft", "standoff", "extra-low-nut", "flange-nut", "nylock-flange-nut", "piston-nut", "spacer", "washer")
 O, Z = Vector(0, 0, 0), Vector(0, 0, 1)
 
 
