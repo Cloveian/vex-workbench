@@ -122,6 +122,12 @@ assert [s["do"] for s in library.steps(holed)] == ["drill", "fold"] and abs(gone
 for o in (plain, holed):
     doc.removeObject(o.Name)
 
+# a lockbar's 1/4 square gets dots like its screw holes, both sides
+lb = library.place(doc, gen["3 Hole HS Lockbar"])
+doc.recompute()
+assert len(library.hole_dots(lb)) == 6, library.hole_dots(lb)
+doc.removeObject(lb.Name)
+
 # undo / redo dont make another source
 doc.UndoMode = 1
 doc.openTransaction("holes")

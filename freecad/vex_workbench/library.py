@@ -20,7 +20,7 @@ HOLE_MIN, HOLE_MAX = 0.1 * metal.IN, 0.5 * metal.IN
 # mm, what a screw goes in. 8-32 round from the 5.5W 0.132 thread up to clearance, square like the metal's 0.182
 ROUND = 0.125 * metal.IN, 0.2 * metal.IN
 SQUARE = 0.17 * metal.IN, 0.2 * metal.IN
-SHAFT = [(0.12 * metal.IN, 0.14 * metal.IN), (0.25 * metal.IN, 0.3 * metal.IN)]  # mm, LS 1/8 and HS 1/4 shaft holes on steps
+SHAFT = [(0.12 * metal.IN, 0.14 * metal.IN), (0.245 * metal.IN, 0.3 * metal.IN)]  # mm, LS 1/8 and HS 1/4 shaft holes on steps, and the lockbar's dead on 0.25
 OUT = 0.001 * metal.IN  # mm, the open-to-outside ray starts this far off the face
 MIN_THREAD = 0.25 * metal.IN  # mm, least a screw takes in a thread
 SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
@@ -568,15 +568,17 @@ def screwable(w):
 
 
 def dottable(w, step):
-    # screw holes, and round ones any size on generated metal (drilled, bigger holes). on vex's steps the 1/8 and 1/4 shaft holes, keyed or rouned corners, no slots or lightening holes
+    # screw holes, and round ones any size on generated metal (drilled, bigger holes) plus the lockbar's shaft one. on vex's steps the 1/8 and 1/4 shaft holes, keyed or rouned corners, no slots or lightening holes
     if screwable(w):
         return True
     curves = [e.Curve.TypeId for e in w.Edges]
-    if not step:
-        return all(c == "Part::GeomCircle" for c in curves)
+    if not step and all(c == "Part::GeomCircle" for c in curves):
+        return True
     b = w.BoundBox
     narrow, wide = sorted([b.XLength, b.YLength, b.ZLength])[1:]
     flats = 2 * w.distToShape(Part.Vertex(b.Center))[0]  # the 11W socket is a 1/4 square turned 45, 0.35 across its box
+    if not step:
+        return SHAFT[1][0] <= flats <= SHAFT[1][1]  # not the LS size, a plate diamond is 0.127 across its flats
     shaft = any(lo <= wide <= hi or lo <= flats <= hi for lo, hi in SHAFT)
     return shaft and narrow > 0.95 * wide and all(c in ("Part::GeomLine", "Part::GeomCircle") for c in curves)
 
