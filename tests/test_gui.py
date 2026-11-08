@@ -64,7 +64,7 @@ try:
     tops, rest = set(), set()
     for c, f in zip(sc.ViewObject.DiffuseColor, sc.Shape.Faces):
         (tops if f.BoundBox.ZMin > -1e-6 else rest).add(tuple(round(v, 2) for v in c[:3]))
-    assert tops == {(0.96, 0.0, 0.01)} and rest == {steel}, (tops, rest)
+    assert tops == {(0.96, 0.0, 0.01)} and rest == {tuple(round(v, 2) for v in steel)}, (tops, rest)
     got = plain.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
     assert all(abs(a - b) < 1e-6 for a, b in zip(got, steel)), got
     # a spacer's seam lines are nylon colored so they dont show, its end circles keep their lines
@@ -108,6 +108,17 @@ try:
     got = gear.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
     assert all(abs(a - b) < 1e-6 for a, b in zip(got, library.cat()["colors"]["Red Acetal"])), got
     doc.removeObject(gear.Name)
+    # vex's stand-in red on the HS v2 gears goes fusion red, the 84,88,90 core stays
+    hs = next(p for p in steps.values() if p["name"].startswith("36T High Strength Gear v2"))
+    gear = library.place(doc, hs)
+    shades = {tuple(round(v, 2) for v in c[:3]) for c in gear.LinkedObject.Group[0].ViewObject.DiffuseColor}
+    assert shades == {(1.0, 0.12, 0.12), (0.33, 0.35, 0.35)}, shades
+    doc.removeObject(gear.Name)
+    # a step thats all one grey takes its materal's
+    screw = library.place(doc, next(p for p in steps.values() if p["name"] == "#8-32 x 1/2\" Star Drive Screw"))
+    got = screw.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
+    assert all(abs(a - b) < 1e-6 for a, b in zip(got, steel)), got
+    doc.removeObject(screw.Name)
 
     Gui.runCommand("Vex_PartsList")
     sheet = doc.getObject("VexPartsList")

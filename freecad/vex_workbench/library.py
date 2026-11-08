@@ -136,6 +136,18 @@ def colored(path):
             App.setActiveDocument(active.Name)
 
 
+def stood_in(faces, color):
+    # vex's stand-in plastic faces get the part's color, a step thats all one color gets it all over (None)
+    if len(set(faces)) == 1:
+        return None
+    stand = cat()["stand_in"].values()
+    out = []
+    for f in faces:
+        vex = any(max(abs(a - b) for a, b in zip(f, c)) < 0.01 for c in stand)  # read back as floats off the step
+        out.append(tuple(color) if vex else f)
+    return out
+
+
 def painted(s, paint, faces):
     # face colors for a wheel off its hub and rim, over the step's own faces (or None)
     b = Part.makeCompound(s.Vertexes).BoundBox  # BoundBox on the legacy wheels' splines is an inch off, optimalBoundingBox is 20 s on an omni
@@ -192,6 +204,8 @@ def source(doc, part, steps=()):
         s, faces = shape(part)  # first, or no generator leaves an empty source behind
         if part.get("paint") and App.GuiUp:
             faces = painted(s, part["paint"], faces)
+        elif faces and part.get("color"):
+            faces = stood_in(faces, cat()["colors"][part["color"]])
     src = doc.addObject("App::Part", "VexPart")
     src.Label = f"{name} source" + (", worked" if steps else "")  # the placed copies get the plain name
     src.addProperty("App::PropertyString", "VexName", "VEX")

@@ -19,12 +19,12 @@ k = 0.44 # nuetral line for unrolling the bend, r + k*t. inventor's default
 
 # by material, or by color for the license plates. rgb 0-1, eyeballed
 [colors]
-Aluminum = [0.80, 0.81, 0.83]
-Steel = [0.55, 0.57, 0.60]
 Nylon = [0.93, 0.92, 0.86]
 Red = [0.80, 0.10, 0.12]
 Blue = [0.10, 0.25, 0.75]
 # the rest off the fusion library's appearences, exact. most are n/255, a few autodesk floats
+Aluminum = [0.959822, 0.96226, 0.965052] # Prism-028, al c-channels and standoffs
+Steel = [0.764706, 0.803922, 0.894118] # "VEX Steel" 195,205,228, screws collars brackets rails
 PTFE = [0.92, 0.92, 0.92] # Plastic-016, the teflon washers
 "Red Acetal" = [1.0, 0.117647, 0.117647] # "VEX Red Acetal" 255,30,30, every acetal gear and sprocket
 "Bearing Black" = [0.099853, 0.099853, 0.099853] # Prism-113
@@ -37,6 +37,7 @@ Charcoal = [0.145098, 0.156863, 0.164706] # InvGen-071 37,40,42, v5 electronics
 "Sensor Grey" = [0.329412, 0.345098, 0.352941] # 84,88,90, the 3-wire sensors
 "Bright Steel" = [0.854902, 0.878431, 0.913725] # "VEX Steel" 218,224,233 on the new pneumatics
 "Joint Grey" = [0.797738, 0.797738, 0.797738] # Prism-073, the universal joint
+"Black Oxide" = [0.1714, 0.1714, 0.1714] # Prism-626 43.7, vex's shoulder screws
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -96,7 +97,7 @@ PTFE = "8ce226db-43ef-4471-93f1-07e7276aa276" # PTFE-Generic
 "Motion/Wheels/Traction Wheels/2.75 Inch/Legacy" = { hub = "Wheel Plastic", rim = "Roller Grey" }
 "Motion/Wheels/Traction Wheels/4 Inch/Legacy" = { hub = "Wheel Plastic", rim = "Roller Grey" }
 
-# steps with no colors of their own and no material color (acetal, electronics). longest folder wins, a color on the row beats it
+# steps with no colors of their own (or all one) and no material color (acetal, electronics). longest folder wins, a color on the row beats it
 [step_color]
 "Electronics/Sensors" = "Charcoal"
 "Electronics/Sensors/3-Wire" = "Sensor Grey"
@@ -104,6 +105,12 @@ PTFE = "8ce226db-43ef-4471-93f1-07e7276aa276" # PTFE-Generic
 "Motion/Chain Links/9P (High Strength Chain)" = "Old Grey Plastic"
 "Motion/Gears" = "Red Acetal"
 "Motion/Sprockets" = "Red Acetal"
+
+# vex's cad stand-ins for plastic in its own steps, faces in these get the part's color
+[stand_in]
+green = [0.12549, 0.360784, 0.25098] # 32,92,64, the old acetal parts
+red = [0.65098, 0.098039, 0.180392] # 166,25,46, HS gears v2 and 6P sprockets
+"rack green" = [0.0, 0.501961, 0.0]
 
 # generated parts
 
@@ -714,7 +721,7 @@ parts = [
 [[group]]
 folder = "Hardware/Screws/8-32/Steel/Shoulder Screws"
 parts = [
-  { sku = "276-1408", name = "#8-32 Shoulder Screws", file = "#8-32 Shoulder Screws (276-1408).step" },
+  { sku = "276-1408", name = "#8-32 Shoulder Screws", file = "#8-32 Shoulder Screws (276-1408).step", color = "Black Oxide" },
 ]
 
 [[group]]
@@ -765,10 +772,10 @@ parts = [
 [[group]]
 folder = "Motion/Advanced"
 parts = [
-  { sku = "276-2045-066", name = "Cam Follower", file = "Cam Follower (276-2045-066).step" },
+  { sku = "276-2045-066", name = "Cam Follower", file = "Cam Follower (276-2045-066).step", color = "Red Acetal" },
   { sku = "276-1098", name = "Clutch", file = "Clutch (276-1098).step" },
   { sku = "276-2045-061", name = "Drop Off Cam", file = "Drop Off Cam (276-2045-061).step" },
-  { sku = "276-2045-001", name = "Hand Crank", file = "Hand Crank (276-2045-001).step" },
+  { sku = "276-2045-001", name = "Hand Crank", file = "Hand Crank (276-2045-001).step", color = "Red Acetal" },
   { sku = "276-2045-032", name = "Lead Screw", file = "Lead Screw (276-2045-032).step" },
   { sku = "276-2045-033", name = "Lead Screw Bracket", file = "Lead Screw Bracket (276-2045-033).step" },
   { sku = "276-2045-031", name = "Lead Screw Nut", file = "Lead Screw Nut (276-2045-031).step" },
@@ -968,8 +975,8 @@ parts = [
 folder = "Motion/Pneumatics/New"
 parts = [
   { name = "25mm Stroke Pneumatic Cylinder", file = "25mm Stroke Pneumatic Cylinder.step", mass = "33 g", color = "Bright Steel" },
-  { name = "50mm Stroke Pneumatic Cylinder", file = "50mm Stroke Pneumatic Cylinder.step", mass = "39 g" },
-  { name = "75mm Stroke Pneumatic Cylinder", file = "75mm Stroke Pneumatic Cylinder.step", mass = "45 g" },
+  { name = "50mm Stroke Pneumatic Cylinder", file = "50mm Stroke Pneumatic Cylinder.step", mass = "39 g", color = "Bright Steel" },
+  { name = "75mm Stroke Pneumatic Cylinder", file = "75mm Stroke Pneumatic Cylinder.step", mass = "45 g", color = "Bright Steel" },
   { name = "Air Flow Valve Fitting", file = "Air Flow Valve Fitting.step" },
   { name = "Air Pressure Regulator Mounting Bracket", file = "Air Pressure Regulator Mounting Bracket.step" },
   { name = "Elbow Fitting", file = "Elbow Fitting.step" },
