@@ -138,7 +138,7 @@ def colored(path):
 
 def painted(s, paint, faces):
     # face colors for a wheel off its hub and rim, over the step's own faces (or None)
-    b = s.BoundBox
+    b = Part.makeCompound(s.Vertexes).BoundBox  # BoundBox on the legacy wheels' splines is an inch off, optimalBoundingBox is 20 s on an omni
     size = [b.XLength, b.YLength, b.ZLength]
     k = size.index(min(size))  # thin way through it = the axle
     axis = Vector(*(float(i == k) for i in range(3)))

@@ -160,6 +160,7 @@ assert Part.getShape(w).Volume > 0
 colors = library.cat()["colors"]
 for f, hub, rim in [("Omni Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Omni-Directional Anti-Static Wheel (276-8106).step", "Dark Grey Plastic", "New Grey Rubber"),
                     ("Traction Wheels/2.75 Inch/Antistatic/2.75 (220mm Travel) Anti-Static Wheel (276-8098).step", "Dark Grey Plastic", "New Grey Rubber"),
+                    ("Traction Wheels/2.75 Inch/Legacy/2.75 Wheel (276-1496) .step", "Wheel Plastic", "Roller Grey"),
                     ("Omni Wheels/2 Inch/2” Omni-Directional Wheel (276-9044).step", "Wheel Plastic", "Roller Grey")]:
     wheel = steps["Motion/Wheels/" + f]
     s, _ = library.shape(wheel)

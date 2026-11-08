@@ -93,6 +93,8 @@ PTFE = "8ce226db-43ef-4471-93f1-07e7276aa276" # PTFE-Generic
 "Motion/Wheels/Traction Wheels/2.75 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
 "Motion/Wheels/Traction Wheels/3.25 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
 "Motion/Wheels/Traction Wheels/4 Inch/Antistatic" = { hub = "Dark Grey Plastic", rim = "New Grey Rubber" }
+"Motion/Wheels/Traction Wheels/2.75 Inch/Legacy" = { hub = "Wheel Plastic", rim = "Roller Grey" }
+"Motion/Wheels/Traction Wheels/4 Inch/Legacy" = { hub = "Wheel Plastic", rim = "Roller Grey" }
 
 # steps with no colors of their own and no material color (acetal, electronics). longest folder wins, a color on the row beats it
 [step_color]
