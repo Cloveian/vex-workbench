@@ -21,10 +21,11 @@ cat = catalog.load()
 gen = {p["name"]: p for p in catalog.generated(cat)}
 steps = {Path(p["file"]).stem: p for p in catalog.step_parts(cat)}
 
-# vex's file is off, ours is the nominal one
+# known diffrences, vex's file is off from the nominal one or its not clear why
 OFF = {
     "1x5x1x25 Steel C-Channel (275-1138)": "web holes 0.24 from one side",
     "1x5x1x35 Steel C-Channel (275-1139)": "web holes 0.24 from one side",
+    "1x3x1x35 Aluminum C-Channel (276-4359)": "0.23% light, every hole lines up, didnt find where",
 }
 
 
@@ -87,9 +88,6 @@ for fam in cat["family"]:
         note = ""
         if not ok and fx in OFF:
             note, ok = f" (known: {OFF[fx]})", True
-        if not ok and "Aluminum C-Channel" in fx:
-            # al c-channel steps are their own shape (0.55 tall, flange holes 0.3, the 5x flares), ours is the steel layout
-            note, ok = " (info, al step)", True
         bad += not ok
         print(f"{'ok ' if ok else 'BAD'} {fx}: {size} vol {vol * 100:+.2f}% {holes}, {ms:.0f} ms{note}")
 
@@ -97,7 +95,7 @@ for fam in cat["family"]:
 g = cat["grid"]
 ch, half, edge = (metal.make(gen[n], cat) for n in ("1x3x1x10 Aluminum C-Channel", "1x1x10 Aluminum Angle (Cut 3x, Between Holes)", "1x1x10 Aluminum Angle (Cut 3x, Hole Edge)"))
 hole = g["hole"] ** 2 - (4 - math.pi) * g["round"] ** 2
-strip = (g["pitch"] * 10 * g["pitch"] - 10 * hole) * cat["metal"]["thickness"]["Aluminum"] * IN**3
+strip = (g["pitch"] * 10 * g["pitch"] - 10 * hole) * 0.063 * IN**3  # the 3x's own wall
 off = (2 * half.Volume + strip) / ch.Volume - 1
 b = edge.optimalBoundingBox()
 ok = abs(off) < 1e-6 and abs(b.ZLength / IN - 0.659) < 1e-6 and half.isValid() and edge.isValid()

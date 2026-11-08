@@ -161,6 +161,7 @@ def make(part, cat):
         p = {**p, **sawn}
     elif p.get("variant", "Regular") != "Regular":
         raise ValueError(f"no dims for {p['variant']} angles yet")
+    p = {**p, **p.get("by_material", {}).get(p["material"], {})}  # al c-channel
     t = thickness(p, cat)
     pts, legs = PROFILES[part["family"]](p, g)
     d, n = frames(pts)
@@ -187,7 +188,7 @@ def make(part, cat):
     bends = []
     if last:
         # count marks + end chamfers on the free edges of the first and last leg
-        notch, cham = diamond(metal["mark"]), diamond(p["chamfer"])
+        notch, cham = diamond(p.get("mark", metal["mark"]), p.get("mark_root", 0)), diamond(p["chamfer"])
         every = metal["marks"] * g["pitch"]
         xs = [every * i for i in range(1, int(length / every - 1e-6) + 1)]
         # a sawn edge has neither

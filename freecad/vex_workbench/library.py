@@ -62,7 +62,7 @@ def label(choice):
     for v in choice.values():
         if isinstance(v, list):
             vals += v  # pairs (the shoulder screws) read flat, "0.29, 0.09"
-        elif not isinstance(v, bool):
+        elif not isinstance(v, (bool, dict)):  # a dict is a row's own numbers, the 3x c-channel's
             vals.append(v)
     return ", ".join(f"{v:g}" if isinstance(v, float) else str(v) for v in vals)
 

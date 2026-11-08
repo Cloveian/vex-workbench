@@ -113,8 +113,15 @@ title = "C-Channel"
 folder = "Structure/{material}/{width}x C-Channel"
 name = "1x{width}x1x{holes} {material} C-Channel"
 material = ["Aluminum", "Steel"]
+# vex's al steps and the fusion library's agree on thwse. fusion's 0.063 wall looks like a 0.062 model thickened to 1.6 mm, so 0.062
+# up here so the 3x row's own wins, params go on in this order
+by_material.Aluminum = { flange = 0.55, past_bend = 0.3, chamfer = 0.0783, mark = 0.0701, mark_root = 0.0197 }
 # between = the staggered row down the middle, only the 2 wide has it
-sizes = [{ width = 2, between = true }, { width = 3 }, { width = 5 }]
+sizes = [
+  { width = 2, between = true },
+  { width = 3, by_material.Aluminum = { flange = 0.546, past_bend = 0.3, thickness = { Aluminum = 0.063 }, chamfer = 0.0783, mark = 0.0701, mark_root = 0.0197 } }, # vex's 3x is its own again, steel height on al holes and wall
+  { width = 5 },
+]
 holes = { from = 1, to = 35 }
 skip = [{ material = "Steel", width = 3 }] # no steel 3x anywhere in vex's cad
 flange = 0.546
@@ -156,11 +163,11 @@ holes = { from = 1, to = 35 }
 thickness = { Aluminum = 0.063 }
 chamfer = 0.09
 fixtures = ["1x1x35 Aluminum Angle (217-6484)"] # regular, 0.5 legs
-# the other two are half a 1x3x1 c-channel cut down the middle, its flange + the web up to the cut. the channel's own wall and tip chamfer
+# the other two are half a 1x3x1 c-channel cut down the middle, its flange + the web up to the cut. the 3x's own numbers, its 0.063 wall is the angle's anyway
 # hole edge = along the side of the middle hole, 0.75 - 0.182 / 2
 [family.cut]
-"Cut 3x, Hole Edge" = { web = 0.659, flange = 0.546, chamfer = 0.064, thickness = {} }
-"Cut 3x, Between Holes" = { web = 0.5, flange = 0.546, chamfer = 0.064, thickness = {} }
+"Cut 3x, Hole Edge" = { web = 0.659, flange = 0.546, past_bend = 0.3, chamfer = 0.0783, mark = 0.0701, mark_root = 0.0197 }
+"Cut 3x, Between Holes" = { web = 0.5, flange = 0.546, past_bend = 0.3, chamfer = 0.0783, mark = 0.0701, mark_root = 0.0197 }
 
 [[family]]
 id = "angle-2x2"

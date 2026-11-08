@@ -6,7 +6,7 @@ in build order, each one is something i can open and poke at
 - [x] Design docs
 - [x] **Workbench skeleton**: `package.xml`, `init_gui.py`, icon. done when `freecad -M .` shows a VEX workbench in 1.1
 - [x] **Catalog reader**: `parts.toml` -> the actual list of parts, every family expanded. plain python, no FreeCAD. done when the test checks counts, unique names and that every fixture file exists
-- [x] **Metal generator**: channels, U-channel, angles, plate and bar are all one cross section stretched to length with square holes on every flat face, so one generator. editable `holes` / `material`. done when it matches the steel steps exactly (aluminum ones flare, looser check)
+- [x] **Metal generator**: channels, U-channel, angles, plate and bar are all one cross section stretched to length with square holes on every flat face, so one generator. editable `holes` / `material`. done when it matches the steel steps exactly (~~aluminum ones flare, looser check~~ the aluminum ones too)
 - [x] **Part browser + insert** - common families at the root, fusion folders under. step parts imported once and linked after
 - [x] **Snap to hole**. click a hole, frame at its exact center. two channels jointed hole to hole should be 0 apart
 - [x] **The other generators**: shafts, standoffs, spacers, washers, nuts (thin nylock = vex nylock shaved to 11/64), torx button screws, shoulder screws. each checked against its step where there is one
@@ -45,7 +45,7 @@ in build order, each one is something i can open and poke at
 ## Still need numbers for
 - [x] bend radius
 - [x] 1x1 angle variants: the official one, plus a 3x c-channel cut down the middle, along the middle hole's edge or between holes. ~~Regular 2-Wide, Thick 5-Wide, Thin 5-Wide, only fusion has them, as f3d~~ (made, Cut 3x Hole Edge and Cut 3x Between Holes)
-- [ ] is aluminum c-channel really the steel shape? vex's al steps arent: 0.55 tall flanges, flange holes at 0.3, the 5x flares, 100 to 245 hole loops that dont line up with ours (volume only -0.2 to -1.7%). needs calipers on a real one to know if its vex's cad or the metal
+- [x] is aluminum c-channel really the steel shape? no. vex's al steps and the fusion library agree: 0.55 tall flanges, flange holes at 0.3, a 0.078 tip chamfer, 0.070 count marks with round bottoms (~~the 5x flares~~ it doesnt, that was a loose BoundBox). the 3x is its own again, 0.546 tall with a 0.063 wall. the catalog makes them that way now, every hole on all 5 al fixtures lines up, ~~needs calipers on a real one~~
 - [x] which metal comes in which material (al bar? steel U-channel? steel 1x1? steel 3x c-channel?). none of the four, going by vex's cad: the zips off the aluminum kits and v5 structure pages (in downloads/) have al 1x1 angle, al U, al 3x c-channel and steel bar, and the 5x plates only in steel. the aluminum kits blurb still says "C-Channel, Plates, and Bars" tho and its own zip has neither. ~~the catalog still makes all of them in both, dropping them is a call to make~~ dropped: U and 1x1 are aluminum only, bar is steel only, and the c-channel family skips steel 3x
 - [ ] flange nuts (nylon, nylock), wing nut. nylon one is in, off the fusion library's, 21/64 hex on a flat 0.379 flange. nylock one too, 11/32 hex on a 15/32 flange with its domed crown, 1.8% heavy cuz fusion's has the crimp cap and nylon ring split by 0.003 slits and its corners chamfered. no wing nut anywhere yet
 - [x] HS spacer bore clearance: 0.252 across the flats on vex's steps, 0.002 over the shaft
