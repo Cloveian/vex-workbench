@@ -456,7 +456,7 @@ class BendPanel(Lined):
 
 
 class Gridded:
-    # Grid and Show the grid rows for a panel, the grid dots go in through extra(). prefix starts the prefs names
+    # Grid and Show grid rows for a panel, the grid dots go in through extra(). prefix starts the prefs names
     WORKS = staticmethod(is_metal)  # parts the grid shows on
 
     def grid_rows(self, prefix):
@@ -464,7 +464,7 @@ class Gridded:
         self.prefix = prefix
         self.grid = ui.number(0.05, 1, " in", prefs.GetFloat(prefix + "Grid", GRID / IN), step=0.05, decimals=3)
         self.grid.setKeyboardTracking(False)  # one regrid per typed number
-        self.show_grid = QtWidgets.QCheckBox("Show the grid")
+        self.show_grid = QtWidgets.QCheckBox("Show grid")
         self.show_grid.setChecked(prefs.GetBool(prefix + "ShowGrid", False))
         self.grids = {}  # (finder, source key, grid) -> spots
         self.grid.valueChanged.connect(self.regrid)

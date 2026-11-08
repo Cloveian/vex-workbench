@@ -180,12 +180,14 @@ class Panel(snap.Clicks):
     def __init__(self):
         p = App.ParamGet(ui.PARAMS)
         self.heads = []  # (spot, facing()) picked on the head side, waiting for a hole across
-        self.auto = QtWidgets.QCheckBox("Auto finish, one click across does them all")
+        self.auto = QtWidgets.QCheckBox("Auto finish")
+        self.auto.setToolTip("One click across does all the holes picked on the head side")
         self.auto.setChecked(p.GetBool("ScrewAuto", True))
         self.kind = QtWidgets.QComboBox()
         self.kind.addItems(list(KINDS))
         self.kind.setCurrentText(p.GetString("Screw", "Star"))
-        self.mine = QtWidgets.QCheckBox("Pick the screw myself")
+        self.mine = QtWidgets.QCheckBox("Pick screw")
+        self.mine.setToolTip("Pick one from the list, then click the hole it goes in. No nut or spacers")
         self.mine.setChecked(p.GetBool("ScrewMine", False))
         self.size = QtWidgets.QComboBox()
         self.nut = QtWidgets.QComboBox()

@@ -129,9 +129,10 @@ class Panel(snap.Clicks):
         self.gap = ui.number(-36, 36, " in", step=0.125, decimals=3)  # under 0 pushes it in, a shaft end through a hole. a 35 long channel is 17.5
         self.gap.setKeyboardTracking(False)  # one move per typed gap
         self.gap.valueChanged.connect(lambda: self.turn(0))
-        self.whole = QtWidgets.QCheckBox("Move its whole group")
+        self.whole = QtWidgets.QCheckBox("Whole group")
+        self.whole.setToolTip("Moves the whole group it's in")
         self.whole.setChecked(p.GetBool("AlignWhole", False))
-        self.slides = QtWidgets.QCheckBox("Slide along to another hole")
+        self.slides = QtWidgets.QCheckBox("Slide")
         self.slides.setToolTip("In an assembly, a third click on the same face makes it a slider between the two holes. Drag it to see it move")
         self.slides.setChecked(p.GetBool("AlignSlide", False))
         self.slides.toggled.connect(self.unslide)
