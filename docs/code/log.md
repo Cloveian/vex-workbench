@@ -1,5 +1,15 @@
 # Log
 
+## 2026-11-08 - align just moves, 0.2.0
+
+- placing a U-channel after two c-channels put one next to *each* of them. double clicking a placed part in the tree makes its hidden source the active part, and `activePartOrAssembly()` hands that back, so the U-channel went in the source and every copy showed it. place, align, screw, spacers and duplicate all ask `ui.active()` now, which skips sources
+- option boxes got cut to a word or two ("Auto finish", "Pick screw", "Whole group", "Show grid"), the rest went in tooltips
+- Align doesnt make joints anymore, and Slide is gone with it. joints are for a joint tool, the slider math is kept commented out for that. screws, nuts and spacers still get their Revolutes
+- Align > Flip turns the part over onto the same hole's other face, for an insert into a gear. which face is a ray down through the metal just past the hole's edge, first face out. the farthest loop on the axis would have been a channel's *other* flange
+- Screw > To the nylon: on a nylock the screw only has to reach the top of the hex flats, 0.139 up on vex's (0.193 tall), so two 0.046 plates take a 0.25 instead of the 0.29. the length already went by the nut picked, so a thin nylock or a hex nut was getting a shorter screw already
+- the 3.25" antistatic wheel stall didnt reproduce headless: 7.0 s the first time for the traction one (5.3 s of that reading its 14 MB step), 1.5 s from the brep cache after, the omni 1.0 / 0.4. drawing isnt in those numbers, so its still open. the old copy in my Mod folder predates the cache tho
+- a repro script called `wheel.py` hung freecad before it ran a line, cuz `wheel` is a pip package and something at startup imported mine. renamed it and it was fine ლ(¯ロ¯"ლ)
+
 ## 2026-11-07 - fusion colors, bends round holes, the last families, al channels
 
 - step parts get read once and kept as a brep in freecad's cache folder, keyed on the file and a `BREPS_VERSION`. the 1" star drive coupler goes 26.7 s -> 0.012 s, and brep keeps the face order so vex's face colors still line up. headless doesnt use it and the gui test points it at a temp folder, so the tests never touch the real cache
@@ -31,7 +41,7 @@ And a few small ones: a gap under the 0.016 washer said "more than 8 spacers", `
 - vex left ~half its steps with no `COLOUR_RGB` at all, every nut, every LS shaft, the retainers. those skip ImportGui now (faster too) and get their material's color like generated parts do, acetal has none so the gears look the same
 - 15 wheel and bogie rows got vex's listed weight. checked each against the step volume first, all 1.0 to 2.9 g/cm3 except the 2" omni (90 g) and the V2 2" mecanum (127 g), which come out 5.5, so not those
 - wheel painting took 130 s for the 10 repainted wheels. it was computing `Volume` on every piece twice just to see which rollers are the same, on those splines thats ~10 s a go for the 2.75 omni. counting faces / edges / vertexes gives the exact same colors on all 10, 7.8 s total. a review pointed out same counts isnt same shape (3 different size bushings would all go rim), so total edge length is in the key too, 0.05 s more
-- the slider limits: in 1.1.4 ondsel only switches a limit on inside a drag step, so a plain solve can never respect them. not our bug, and still cant drag from python
+- the slider limits: in 1.1.4 ondsel only switches a limit on inside a drag step, so a plain solve can never respect them. not my bug, and still cant drag from python
 
 ## 2026-11-06 - drilled gears and a fusion reader
 
@@ -127,7 +137,7 @@ And a few small ones: a gap under the 0.016 washer said "more than 8 spacers", `
 
 ## 2026-10-29 - screws
 
-- screw tool. click the head side hole, then the nut side, shortest screw thats all the way through the nut + the nut. star or hex and which nut are in the panel, kept in prefs. vex's step nuts get stood up with derived.upright() same as ours. inside an assembly both get a Fixed joint to their hole, their frames sit right on the hole frames so solving moves nothing
+- screw tool. click the head side hole, then the nut side, shortest screw thats all the way through the nut + the nut. star or hex and which nut are in the panel, kept in prefs. vex's step nuts get stood up with derived.upright() same as mine. inside an assembly both get a Fixed joint to their hole, their frames sit right on the hole frames so solving moves nothing
 - offscreen freecad hangs on close once any assembly joint has solved, a plain one with none of my code too, so the gui test os._exit()s. idk if a real window does it
 - metal legs are flat faces now, holes as inner wires (no boolean), only edge stuff gets a 2D cut, then bends fused on. 1x5x1x35 3.05 -> 2.09 s, 3x3x35 angle 3.77 -> 2.17, 5x35 plate 1.24 -> 0.17, bar 0.53 -> 0.09. same volume to 6 decimels and same faces as before. the rest is the relief cuts in the bends and the fuse, so ~1 s isnt happening without something smarter
 
@@ -146,7 +156,7 @@ And a few small ones: a gap under the 0.016 washer said "more than 8 spacers", `
 	| al U | 0.0898 | 0.44 |
 	| al 1x1 angle | 0.0934 (stretched) | 0.41 |
 
-	so ours is the populer one, 45 deg, 0.0898, k = 0.44 (inventor's default, and the U on the nose). built as a ruled loft of radial rectangles every 15 deg, the chord error is ~0.00003. angles went from +0.26 to +0.78% to within 0.03%, the U +0.01%, the 2x steel channel +0.13% (its the stretched one). test tolerance 1% -> 0.2%
+	so mine is the populer one, 45 deg, 0.0898, k = 0.44 (inventor's default, and the U on the nose). built as a ruled loft of radial rectangles every 15 deg, the chord error is ~0.00003. angles went from +0.26 to +0.78% to within 0.03%, the U +0.01%, the 2x steel channel +0.13% (its the stretched one). test tolerance 1% -> 0.2%
 
 - the plain `BoundBox` is ~0.011 loose around the loft faces, the test uses `optimalBoundingBox()` now. had me thinking the reliefs made the parts *bigger* for a sec lol
 - the bar's notch bottoms are r0.005, only the bottoms, the mouths and end chamfers are sharp and so are the plate's. the bar is face for face with vex now (48 r0.005s, 100 r0.02s, 254 planes)
@@ -156,9 +166,9 @@ And a few small ones: a gap under the 0.016 washer said "more than 8 spacers", `
 later, the small stuff
 
 - `stock.py`, shafts, standoffs, spacers, washers and the extra-low nut. they're all one section pushed along z (a square with its corners turned and/or rounded, a hex, a circle), cut by a turned blank, minus a bore. every turned end vex drew is one arc in the radius / length profile, so `end = { x, z, r }` covers all of them: the LS shaft only clips its corners, the pitch shaft gets a bullet nose, the standoff a tiny round, and the HS shaft is an r5 mm sphere 4 mm in (a 3-4-5 triangle, metric under the hood lol). standoffs past 1" are blind, 0.5 deep each end. everything matched vex first run, LS shafts and spacers exact, standoffs and pitch shafts within 0.02%
-- the "HS shafts run long" from the 26th was the loose bounding box again. the 2, 3 and 4" are actually 1 mm *short*, the 24" is right. ours are nominal
+- the "HS shafts run long" from the 26th was the loose bounding box again. the 2, 3 and 4" are actually 1 mm *short*, the 24" is right. mine are nominal
 - `end` has to be a table, a list in the toml is an axis and it made 3 variants out of one shaft. caught it before it went in
-- `derived.py`, parts cut out of a vex step. screws are vex's 1/2 screw stood up, head + a stub of shank and its tip kept, the tip moved out to length, our shank between. all 23 hex and star screws match vex dead on, so the torx recess never had to be drawn by hand. shoulder screws are the same with the 0.176 shoulder under the head, the thin nylock is vex's nylock shaved on the plain side (the toroids on the nylon end are still there, checked). every one comes out with the face that touches the part at z = 0, for the fastener tool later
+- `derived.py`, parts cut out of a vex step. screws are vex's 1/2 screw stood up, head + a stub of shank and its tip kept, the tip moved out to length, my shank between. all 23 hex and star screws match vex dead on, so the torx recess never had to be drawn by hand. shoulder screws are the same with the 0.176 shoulder under the head, the thin nylock is vex's nylock shaved on the plain side (the toroids on the nylon end are still there, checked). every one comes out with the face that touches the part at z = 0, for the fastener tool later
 - getting there: the bounding box (yes again) put the cuts in the wrong place, and the first cylinder on the star screw is a torx lobe, off the axis, so the shank came out crooked. the biggest cylinder is always on the axis
 - frame on hole picks by distance to the loop now, not its center. clicking right on a motor screw hole's edge went to a vent 11 times in 58 by center, 0 by loop
 - colors per material, `VexMass` from volume x density (a steel 1x2x1x10 is 48 g), and a Parts list button that fills a spreadsheet. step parts keep vex's own colors, but only through `ImportGui` with the gui up, `Import.insert` greys every face. so the motor is gold again
@@ -177,7 +187,7 @@ later, the small stuff
 
 ## 2026-10-27 - how its gonna work
 
-- went through how i want it to work and wrote it all down as [design choices](../design-choices/index.md): FreeCAD 1.1 only with the built in Assembly, generate what we can and ship steps for the rest, every part an `App::Part` with copies as `App::Link`s, nominal sizes, frames on exact hole centers with zero clearance, joints center, step parts get their holes found on import, the browser has common families at the root
+- went through how i want it to work and wrote it all down as [design choices](../design-choices/index.md): FreeCAD 1.1 only with the built in Assembly, generate what i can and ship steps for the rest, every part an `App::Part` with copies as `App::Link`s, nominal sizes, frames on exact hole centers with zero clearance, joints center, step parts get their holes found on import, the browser has common families at the root
 - frames get made on click, not on every hole. a 1x5x1x35 channel would be 490 frames, ~3,400 objects, for *one* channel
 - robosource washer numbers went in, steel small 0.354 OD / 0.169 bore / 0.031 and large 0.438 / 0.188 / 0.042, nylon 0.375 / 0.173 at 0.016, 0.032 and 0.062. the washer family is rows now, and vex's own two washers dont match any of them so theyre just step parts
 - shoulder screws are torx, shoulder is 0.176 (a 0.182 hole leaves 0.006, so its a pivot pin), and the pairs are `[screw length, shoulder length]` under a `length` key. `size` only means shaft width now
@@ -193,7 +203,7 @@ later, the actual workbench
 	- the 2x c-channel and the 2x2 / 3x3 angles have a staggered row down the middle (that 104 = 35\*2 + 34 from yesterday), the 3x and 5x channels dont
 	- plates have 0.127 diamonds on every grid point, the edge ones are the notches. the bar has the notches too but smaller (0.0798 deep), and its 0.056 thick
 	- notches every 5 holes on the free edges *and* through the bends, little count marks. not in yet
-- vs vex: plates 0.00%, bar -0.01%, angles and the 2x channel have every hole right and are +0.5 to +1.1% heavy till the count marks are in. the al channel steps are a different shape (0.55 tall, flange holes 0.3, ~~the 5x ones flare to 2.545~~ plain BoundBox lying, its 2.5) so theyre just reported. and vex's 5x steel channels have the web holes 0.24 from one side, ours are centered
+- vs vex: plates 0.00%, bar -0.01%, angles and the 2x channel have every hole right and are +0.5 to +1.1% heavy till the count marks are in. the al channel steps are a different shape (0.55 tall, flange holes 0.3, ~~the 5x ones flare to 2.545~~ plain BoundBox lying, its 2.5) so theyre just reported. and vex's 5x steel channels have the web holes 0.24 from one side, mine are centered
 - count marks are in on the free edges, and the tip chamfers on the cut ends (0.064 on the steel channel, 0.09 on the angles). angles are +0.26 to +0.78% now, the 2x steel channel +0.84%. whats left is the bend reliefs at the count marks, a 0.0898 x 0.0798 diamond wrapped round the inside of the bend, so helicoid sides. *bleh*
 - parts can go in a document now. a VEX parts dock (families up top, greyed out till they have a generator, the fusion folders under, a search box), pick the options, Place. each variant gets one hidden `App::Part` source under "VEX parts", every placed one is a plain `App::Link` to it with the params as properties (Holes, Material, Size...). change one and a document observer points just that link at the other variant. had to be a plain `App::Link`, not `App::LinkPython`, the assembly code checks `TypeId == "App::Link"` exactly
 - snap to hole works. click holes on placed parts, hit Frame on hole, and an LCS goes on each exact center, z out of the face, x along the length. the hole is the nearest inner loop on a flat face to where you clicked (anything up to 0.5" across), so round 8-32 holes on step parts *should* work too. the smart motor has 206 loops under 0.5" tho, most of them tiny detail, so a near miss could grab a vent or a logo. tried 4 of its screw holes: 0.02" off lands right every time, at 0.05" one of the 4 loses to a nieghbor loop. needs a size filter or something. the frame lives in the source, so every copy of that part has it. two channels on a Fixed joint frame to frame come out **0.0 mm** apart (`tests/test_snap.py`, headless, the Assembly module is fine without a gui) *Yippee.*
