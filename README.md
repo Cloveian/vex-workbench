@@ -40,9 +40,7 @@ The [usage guide](docs/using.md) goes through every tool.
 - **Duplicate**: copy a side of the robot mirrored across a plane or turned about an axis. Every part stays a real part, turned into its mirror spot instead of flipped inside out, and the joints come along too, onto the matching holes of whatever the copy is bolted to.
 - In an assembly, screws, nuts and spacers get revolute joints, so they can still spin.
 
-![crunchy align image](docs/img/align.png)
-
-(idk why so crunchy)
+![align](docs/img/align.png)
 
 ### Shop work
 

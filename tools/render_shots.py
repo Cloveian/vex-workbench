@@ -1,9 +1,12 @@
 # renders hero / align / bend pngs into downloads/ off the offscreen gui, software gl. no panels in them
 # env QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 freecad -M . tools/render_shots.py
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 import traceback
+from pathlib import Path
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -11,22 +14,25 @@ import FreeCADGui as Gui
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "downloads")
 sys.path.insert(0, ROOT)
-from freecad.vex_workbench import align, library, screws, shop  # noqa: E402
+from freecad.vex_workbench import align, library, screws, shop, snap  # noqa: E402
 from freecad.vex_workbench.metal import IN  # noqa: E402
 
 V, P, R = App.Vector, App.Placement, App.Rotation
+WIDTH, BORDER = 2400, 40  # px out, github shows them ~900 wide, 2x+ for hidpi
+SS = 3  # drawn this many times bigger then shrunk, software gl has no antialiasing and 1:1 came out crunchy
 
 
 def render(name, d, w, h):
-    # fitAll leaves a wide margin, magick trims it back to 40 px and 1200 wide
+    # w x h is the shape, drawn SS times that. fitAll leaves a wide margin, trimmed back to BORDER
     v = Gui.ActiveDocument.ActiveView
     v.setViewDirection(d)
     Gui.updateGui()
     v.fitAll()
     Gui.updateGui()
     path = os.path.join(OUT, name)
-    v.saveImage(path, w, h, "White")
-    subprocess.run(["magick", path, "-trim", "-bordercolor", "white", "-border", "40", "-resize", "1200x", path], check=True)
+    v.saveImage(path, w * SS, h * SS, "White")
+    subprocess.run(["magick", path, "-trim", "+repage", "-filter", "Lanczos", "-resize", f"{WIDTH - 2 * BORDER}x",
+                    "-bordercolor", "white", "-border", str(BORDER), path], check=True)
 
 
 def spot(link, x, y, z):
@@ -68,10 +74,7 @@ def lined_up(gen):
     doc.recompute()
     align.align(spot(wall, 0.26, 0.26, 0), spot(base, 0.76, 1.26, 0.046), 0)
     doc.recompute()
-    Gui.Control.showDialog(align.Panel())
-    Gui.updateGui()
-    render("align.png", (-1, -1.3, -1.1), 1600, 930)
-    Gui.Control.closeDialog()
+    render("align.png", (-1, -1.3, -1.1), 1600, 930)  # no panel, its dots show through from the far faces and look like noise
     App.closeDocument(doc.Name)
 
 
@@ -81,12 +84,16 @@ def bent(gen):
     doc.recompute()
     library.rework(plate, [shop.bend(plate, V(5.25, 0.25, 0.046) * IN, True, 0, -90)])
     doc.recompute()
-    render("bend.png", (-1, -1.3, -1.1), 2400, 1400)
+    render("bend.png", (-1, -1.3, -1.1), 1600, 930)
     App.closeDocument(doc.Name)
 
 
+breps = tempfile.mkdtemp(prefix="vex-breps")  # not my real step cache
 try:
     os.makedirs(OUT, exist_ok=True)
+    snap.MARK_SIZE *= SS  # px dots, shrunk with the rest
+    snap.PICK_SIZE *= SS
+    library.BREPS = Path(breps)
     App.addDocumentObserver(library.Observer())
     _, gen, steps = library.index()
     hero(gen, steps)
@@ -97,5 +104,6 @@ try:
 except BaseException:  # Ctrl-C and sys.exit too, or the os._exit below never runs
     traceback.print_exc(file=sys.__stdout__)
     failed = True
+shutil.rmtree(breps, ignore_errors=True)
 sys.__stdout__.flush()
 os._exit(1 if failed else 0)  # the gui wont quit on its own

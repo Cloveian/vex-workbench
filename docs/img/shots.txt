@@ -1,7 +1,5 @@
-the README images. right now theyre renders off tools/render_shots.py (it writes into downloads/, copy them over), models and hole dots only, no window or panels
-
-hero.png, a small frame: two channels, a motor, a few screws, hole dots showing
+hero.png, screenshot out of freecad. the script makes one too but its weird
 align.png, a channel lined up on a plate
 bend.png, a plate bent up 90 at a hole row
 
-real screenshots out of the FreeCAD window with the tool panel open would be better, same names, ~1200 px wide, dark theme or light just keep them the same
+real screenshots out of the FreeCAD window with the tool panel open would be better, same names, 2400 px wide, dark theme or light just keep them the same. the renders are drawn 3x that and shrunk, 1:1 was crunchy
