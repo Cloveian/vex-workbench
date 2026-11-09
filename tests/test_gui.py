@@ -263,7 +263,11 @@ try:
     Gui.Control.showDialog(panel)
     panel.kind.setCurrentText("Star")
     panel.mine.setChecked(False)  # whatever the last real use left in the prefs
+    panel.nut.setCurrentText(screws.NO_NUT)
+    assert not panel.nylon.isEnabled(), "To the nylon with no nut"
     panel.nut.setCurrentText("Nylock Nut")
+    assert panel.nylon.isEnabled()
+    panel.nylon.setChecked(False)
     panel.fill.setChecked(False)
     before = set(doc.Objects)
     Gui.Selection.clearSelection()

@@ -203,6 +203,7 @@ class Panel(snap.Clicks):
         self.od = spacers.od_box()
         self.kind.currentTextChanged.connect(self.relist)
         self.mine.toggled.connect(self.modes)
+        self.nut.currentTextChanged.connect(self.nylon_box)
         super().__init__("VEX screw", [("Screw", self.kind), (self.mine, self.size), ("Nut", self.nut), (self.nylon,), (self.fill, self.od), (self.auto,)])
         self.relist()
         self.size.setCurrentText(p.GetString("ScrewPick"))
@@ -221,13 +222,18 @@ class Panel(snap.Clicks):
         self.modes()
 
     def modes(self):
-        for w in (self.nut, self.nylon, self.fill, self.od, self.auto):
+        for w in (self.nut, self.fill, self.od, self.auto):
             w.setEnabled(not self.mine.isChecked())
+        self.nylon_box()
         self.size.setEnabled(self.mine.isChecked())
         if self.one():
             self.heads, self.first = [], None
             self.light([])
         self.ask()
+
+    def nylon_box(self, *_):
+        # no nut, nothing to stop short in
+        self.nylon.setEnabled(not self.mine.isChecked() and self.nut.currentText() != NO_NUT)
 
     def one(self):
         return self.mine.isChecked()
