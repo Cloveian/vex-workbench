@@ -83,6 +83,11 @@ nylock = screws.nuts()["Nylock Nut"]
 had = len(joints.Group)
 sc, nut, _ = screws.fasten(doc, head, tail, "star-screw", nylock, asm)
 assert sc.Label == "0.290 Torx (Star) Screw (8-32, Steel)", sc.Label
+# to the nylon it only has to reach the top of the nylock's hex, 0.139 up, so the 0.25 does. a plain hex nut is flats all the way up
+_, h, metal = screws.seat(library.source(doc, nylock))
+plain = screws.seat(library.source(doc, screws.nuts()["Hex Nut"]))
+assert abs(metal - 0.139 * IN) < 0.002 * IN and abs(plain[2] - plain[1]) < 1e-6, (metal / IN, plain[1:])
+assert screws.shortest("star-screw", 0.092 * IN + metal)["name"] == "0.250 Torx (Star) Screw (8-32, Steel)"
 # a Revolute joint each, and solving moves nothing
 new = joints.Group[had:]
 assert [(j.JointType, j.Reference1[0], j.Reference2[0]) for j in new] == [("Revolute", p1, sc), ("Revolute", p2, nut)], new

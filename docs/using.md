@@ -32,7 +32,7 @@ All the clicking tools (Align, Screw, Spacers, Bend, Cut, Drill) put an orange d
 
 ## Screws
 
-**Screw** opens a panel with the screw (Star or Shoulder) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Revolute joint to its hole, so it can spin on it.
+**Screw** opens a panel with the screw (Star or Shoulder) and the nut to use, it remembers both. click a hole on the head side, then the one on the nut side (the outside faces), and in goes the shortest screw that reaches all the way through the nut, nut and all. tick **To the nylon** and on a nylock it only has to reach the top of the hex where the nylon starts (0.139 up on vex's), so sometimes a size shorter for when theres no room. plain nuts dont care. it stays open for the next one till you hit Close. with an assembly active they go in it, each with a Revolute joint to its hole, so it can spin on it.
 
 Pick No nut, or click a threaded hole second (standoffs, and anything under 0.164 across like the motors), and the second click is the face the screw goes *into*. it aims for 3/8 of thread, takes 1/4 if the hole is shallower, and never goes past the bottom. Spacers in gaps fills every gap between the two clicked parts.
 

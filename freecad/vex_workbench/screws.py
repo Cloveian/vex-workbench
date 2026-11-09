@@ -116,14 +116,15 @@ def on_axis(a, p):
 
 
 def seat(src):
-    # plain face of the nut at z = 0 and its hieght. vex step nuts come in however they were drawn
+    # plain face of the nut at z = 0, its hieght, and how far up the hex flats go
     shape = Part.getShape(src)
     s, h = derived.upright(shape.copy(), IN)
-    return s.Placement.multiply(shape.Placement.inverse()), h
+    flats = [f.BoundBox.ZMax for f in s.Faces if f.Surface.TypeId == "Part::GeomPlane" and abs(f.normalAt(0, 0).z) < 1e-6]  # on a nylock up to where the round nylon crown starts, 0.139 on vex's
+    return s.Placement.multiply(shape.Placement.inverse()), h, min(max(flats, default=h), h)
 
 
-def fasten(doc, head, tail, family, nut, parent=None, od=None):
-    # head, tail = snap.spot()s, head side first. nut None = into a thread, od = spacers that size in the gaps
+def fasten(doc, head, tail, family, nut, parent=None, od=None, nylon=False):
+    # head, tail = snap.spot()s, head side first. nut None = into a thread, od = spacers that size in the gaps. nylon = only reach a nylock's nylon
     # screw, nut (None into a thread), spacers back
     (fa, a), (fb, b) = snap.hole(head), snap.hole(tail)
     # a U-channel's inside flange frame sits out in the gap, everything from here on goes from the metal
@@ -142,8 +143,8 @@ def fasten(doc, head, tail, family, nut, parent=None, od=None):
     if threaded:
         screw = into(family, gap, deep)
     else:
-        plc, h = seat(library.source(doc, nut))
-        screw = shortest(family, gap + h)
+        plc, h, metal = seat(library.source(doc, nut))
+        screw = shortest(family, gap + (metal if nylon else h))
     fills = []
     if od:
         fills = [(s, spacers.pick(t, od)) for s, t in gaps(head, tail, a, gap, max(across, bore(head[0], fa)[0]))]
@@ -194,12 +195,15 @@ class Panel(snap.Clicks):
         self.nut.addItems([*nuts(), NO_NUT])
         saved = p.GetString("Nut")
         self.nut.setCurrentText(saved if self.nut.findText(saved) >= 0 else "Nylock Nut")  # none saved, or one thats been renamed since
+        self.nylon = QtWidgets.QCheckBox("To the nylon")
+        self.nylon.setToolTip("On a nylock, the screw only reaches the nylon, for when you need the room. Off, it goes all the way through the nut")
+        self.nylon.setChecked(p.GetBool("ScrewNylon", False))
         self.fill = QtWidgets.QCheckBox("Spacers in gaps")
         self.fill.setChecked(p.GetBool("Fill", False))
         self.od = spacers.od_box()
         self.kind.currentTextChanged.connect(self.relist)
         self.mine.toggled.connect(self.modes)
-        super().__init__("VEX screw", [("Screw", self.kind), (self.mine, self.size), ("Nut", self.nut), (self.fill, self.od), (self.auto,)])
+        super().__init__("VEX screw", [("Screw", self.kind), (self.mine, self.size), ("Nut", self.nut), (self.nylon,), (self.fill, self.od), (self.auto,)])
         self.relist()
         self.size.setCurrentText(p.GetString("ScrewPick"))
 
@@ -217,7 +221,7 @@ class Panel(snap.Clicks):
         self.modes()
 
     def modes(self):
-        for w in (self.nut, self.fill, self.od, self.auto):
+        for w in (self.nut, self.nylon, self.fill, self.od, self.auto):
             w.setEnabled(not self.mine.isChecked())
         self.size.setEnabled(self.mine.isChecked())
         if self.one():
@@ -292,10 +296,12 @@ class Panel(snap.Clicks):
             p.SetString("Nut", self.nut.currentText())
             p.SetBool("Fill", self.fill.isChecked())
             p.SetBool("ScrewAuto", self.auto.isChecked())
+            p.SetBool("ScrewNylon", self.nylon.isChecked())
             family = KINDS[self.kind.currentText()]
             nut = None if self.nut.currentText() == NO_NUT else nuts()[self.nut.currentText()]
             od = spacers.od_from(self.od) if self.fill.isChecked() else None
-            put = ui.run("Place VEX screw", lambda: [fasten(doc, h, t, family, nut, active, od) for h, t in pairs])
+            nylon = self.nylon.isChecked()
+            put = ui.run("Place VEX screw", lambda: [fasten(doc, h, t, family, nut, active, od, nylon) for h, t in pairs])
         if not put:
             return None
         doc.recompute()
