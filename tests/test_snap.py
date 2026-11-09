@@ -758,6 +758,9 @@ assert duplicate.duplicate([side], turn=App.Placement(App.Vector(0, 0, 3 * IN), 
 twin = next(o for o in doc.Objects if o not in before and o.TypeId == "Assembly::AssemblyObject")
 mine = [j for j in UtilsAssembly.getJointGroup(twin).Group if hasattr(j, "Reference1")]
 assert len(mine) == 2 and all(j.Reference1[0] in twin.Group and j.Reference2[0] in twin.Group for j in mine), mine
+# the first two plates again, to the nylon through fasten itself
+sc, *_ = screws.fasten(doc, where(p1, App.Vector(1.27, 0.24, 0.046) * IN), where(p2, App.Vector(2.26, 0.26, 0) * IN), "star-screw", nylock, nylon=True)
+assert sc.Label == "0.250 Torx (Star) Screw (8-32, Steel)", sc.Label
 
 App.closeDocument(doc.Name)
 print(f"ok, holes {apart:.1e} mm apart, shaft {off:.1e} off the hole axis, screws pick the 0.29, 0.375 and 1.25")
