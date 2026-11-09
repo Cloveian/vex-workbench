@@ -9,7 +9,7 @@ from PySide import QtCore, QtWidgets
 from . import catalog, library, ui
 
 Z = Vector(0, 0, 1)
-OFF_AXIS = 0.01  # mm
+OFF_AXIS = library.ON_AXIS  # mm
 UNMARKED = ("Hardware/Screws", "Hardware/Nuts", "Motion/Spacers")  # what the tools put in
 MARK_SIZE = 9  # px
 PICK_SIZE = 14  # px, drawn over the orange one
@@ -143,14 +143,6 @@ def revolute(asm, r1, r2, gap=0, spin=0):
 def offset(gap, spin):
     # Offset2 for a revolute, what the joint panel's offset and rotation boxes show
     return App.Placement(Vector(0, 0, gap), App.Rotation(Z, -spin))
-
-
-def spin(j):
-    return -j.Offset2.Rotation.toEuler()[0]
-
-
-def gap(j):
-    return j.Offset2.Base.z
 
 
 class Clicks:

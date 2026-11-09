@@ -24,6 +24,8 @@ SHAFT = [(0.12 * metal.IN, 0.14 * metal.IN), (0.245 * metal.IN, 0.3 * metal.IN)]
 OUT = 0.001 * metal.IN  # mm, the open-to-outside ray starts this far off the face
 MIN_THREAD = 0.25 * metal.IN  # mm, least a screw takes in a thread
 SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
+ON_AXIS = 0.01  # mm, loop centers this close to a hole's axis are on it
+WALL_PROBE = 0.03 * metal.IN  # mm past a hole's edge, into the metal round it. square holes are 0.318 apart
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 CACHE = {}
 BREPS = Path(App.getUserCachePath()) / "VexWorkbench"  # read steps as brep + face colors, gone stale ones just sit there
@@ -689,6 +691,29 @@ def hole_at(link, point):
         near = [h for h in found if (h[1] - point).Length < HOLE_MAX] or found
         _, center, n = exact[0] if exact else min(near, key=lambda h: h[0].distToShape(v)[0])
     return center, n
+
+
+def far_side(link, point):
+    # the hole nearest point where it comes out the other side of the wall its in, link coords. None for a blind one
+    center, n = hole_at(link, point)
+    src = link.LinkedObject
+    shape = Part.getShape(src)
+    if getattr(link, "VexFamily", None) in stock.FAMILIES:
+        return next(c for c, m in ends(shape) if m.dot(n) < 0)
+    found = cached(src, holes)
+    w = next(h[0] for h in found if (h[1] - center).Length < 1e-6)
+    # down through the metal just past the hole's edge, the first face out is the wall's other side. the farthest loop on the axis would be a channel's other flange
+    x, y = square_to(n)
+    faces, far = boxed(shape), shape.BoundBox.DiagonalLength
+    for side in (x, -x, y, -y):
+        wall = hits(faces, center + side * (across(w) / 2 + WALL_PROBE) - n * OUT, -n, far)
+        if wall:
+            break
+    else:
+        return None
+    back = [c for _, c, m in found if m.dot(n) < -1 + 1e-6 and (c - center).cross(n).Length < ON_AXIS]
+    best = min(back, key=lambda c: abs((center - c).dot(n) - wall[0]), default=None)
+    return best if best is not None and abs((center - best).dot(n) - wall[0]) < SAME_HOLE else None
 
 
 def frame(link, plc, name="Hole"):

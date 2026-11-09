@@ -33,12 +33,12 @@ The [usage guide](docs/using.md) goes through every tool.
 ### Putting a robot together
 
 - **Hole dots**: while a tool is open, every hole you can use gets a dot to click, on both sides of the metal.
-- **Align**: click a hole on the part to move, then the hole it goes against. It keeps the way the part was turned (rounded to the angle step), and after that you can turn it by any angle or give it a gap. It can move a whole link array, or the whole sub-assembly a part is in. With Slide ticked, a third hole along the rail makes it slide between the two instead of spinning.
+- **Align**: click a hole on the part to move, then the hole it goes against. It keeps the way the part was turned (rounded to the angle step), and after that you can turn it by any angle or give it a gap. It can move a whole link array, or the whole sub-assembly a part is in. **Flip** turns it over on the hole, so its other side goes against the face, like an insert going into a gear. It only moves things, joints are up to you.
 - **Screw**: two clicks and the shortest screw that reaches through the nut goes in, nut and all, or 3/8" into a threaded hole (a standoff, a motor) with no nut. Pick a few holes on one face first and one click across does the lot. Or pick the screw yourself and place it with one click.
 - **Spacers**: click two holes facing each other, like inside a boxed channel, and the gap fills with spacers and washers. The screw tool can fill its gaps too.
 - **Frame on hole**: a frame on a hole's exact center, for joining parts by hand in the Assembly workbench.
 - **Duplicate**: copy a side of the robot mirrored across a plane or turned about an axis. Every part stays a real part, turned into its mirror spot instead of flipped inside out, and the joints come along too, onto the matching holes of whatever the copy is bolted to.
-- In an assembly, screws, nuts, spacers and aligned parts all get revolute joints, so they can still spin.
+- In an assembly, screws, nuts and spacers get revolute joints, so they can still spin.
 
 ![crunchy align image](docs/img/align.png)
 

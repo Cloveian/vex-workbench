@@ -2,11 +2,10 @@
 import math
 
 import FreeCAD as App
-import FreeCADGui as Gui
 from FreeCAD import Placement, Rotation, Vector
-from PySide import QtCore, QtWidgets
+from PySide import QtWidgets
 
-from . import snap, ui
+from . import library, snap, ui
 from .metal import IN
 
 FLIP = Rotation(Vector(1, 0, 0), 180)  # z against z, face to face
@@ -45,164 +44,118 @@ def spun(hole, at, step):
 
 
 def align(mover, target, gap, active=None, whole=False, step=0):
-    # mover, target = snap.spot()s, active = the active part or assembly. state for turning it after, and a Revolute joint if its an assembly
+    # mover, target = snap.spot()s, active = the active part or assembly. state for turning it after. just a move, joints are the joint tool's
     obj, world = moving(mover, active, whole)
-    asm = snap.inside(active)[1]
     if obj in target[3][0].getSubObjectList(target[3][1]):
         raise ValueError(f"{target[0].Label} would move along with it, click a hole on something else to line it up on")
-    fm, hole = snap.hole(mover)
-    ft, at = snap.hole(target)
+    hole = snap.hole(mover)[1]
+    at = snap.hole(target)[1]
     frame = world.inverse().multiply(hole)  # in obj coords
     # world placement of whatever obj sits in, its own placement taken back off the end
     parent = world.multiply(obj.Placement.inverse())
     spin = spun(hole, at, step)
     put(obj, frame, parent, at, gap, spin)
-    joint = asm and rejoint(asm, snap.ref(asm, target, ft), snap.ref(asm, mover, fm), gap, spin)
-    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": spin, "joint": joint, "target": target}
+    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": spin, "mover": mover, "target": target, "active": active, "whole": whole}
 
 
 def turn(s, gap):
-    # s from align() put at its spin and gap. the joint's presolve undoes a plain move
-    j = s["joint"]
-    if j and j in s["moved"].Document.Objects:
-        j.Offset2 = snap.offset(gap, s["spin"])
-    else:
-        put(s["moved"], s["frame"], s["parent"], s["at"], gap, s["spin"])
+    # s from align() put at its spin and gap
+    put(s["moved"], s["frame"], s["parent"], s["at"], gap, s["spin"])
 
 
-def rejoint(asm, r1, r2, gap, spin):
-    # one align joint per moving piece, an older one would drag it back
-    import UtilsAssembly
-    if r2:
-        for j in UtilsAssembly.getJointGroup(asm).Group:
-            if getattr(j, "VexAlign", False) and j.Reference2 and j.Reference2[0] == r2[0]:
-                asm.Document.removeObject(j.Name)
-    return ours(snap.revolute(asm, r1, r2, gap, spin))
+def flip(s, gap, step):
+    # s from align() done again off the same hole on the part's other face, so its turned over with that face on the target. inserts mostly
+    link, pt, _, (root, path) = s["mover"]
+    back = library.far_side(link, pt)
+    if back is None:
+        raise ValueError(f"{link.Label} has nothing on the other side of that hole to flip onto")
+    # where the link is now, the click's placement is from before the move
+    return align((link, back, snap.placement(root, path), (root, path)), s["target"], gap, s["active"], s["whole"], step)
 
 
-def ours(j):
-    if j:
-        j.addProperty("App::PropertyBool", "VexAlign", "VEX")
-        j.VexAlign = True
-    return j
-
-
-def slide(s, end):
-    # s from align(), its Revolute swapped for a Slider from the hole it went on to end, stopping at both
-    j = s["joint"]
-    if not j or j not in s["moved"].Document.Objects:
-        raise ValueError("no align joint to turn into a slider, line it up again with an assembly active")
-    at = s["at"]
-    b = snap.hole(end)[1]
-    along = b.Base - at.Base
-    z = at.Rotation.multVec(snap.Z)
-    if end[3] != s["target"][3] or along.Length < snap.OFF_AXIS or abs(along.dot(z)) > snap.OFF_AXIS:
-        raise ValueError(f"click another hole on the same face of {s['target'][0].Label}")
-    rail = Placement(at.Base, Rotation(z, along.cross(z), along, "ZXY"))  # z down the rail, x out of the face
-    moved = landed(at, snap.gap(j), snap.spin(j))
-    asm = j.Proxy.getAssembly(j)
-    refs = [[r[0], list(r[1])] for r in (j.Reference1, j.Reference2)]
-    asm.Document.removeObject(j.Name)
-    k = ours(snap.joint(asm, "Slider", *refs, at.inverse().multiply(rail), moved.inverse().multiply(rail)))
-    k.EnableLengthMin = k.EnableLengthMax = True
-    k.LengthMin, k.LengthMax = 0, along.Length
-    s["joint"] = k
-    return k
+# Slide, replaced by nothing yet. kept for the joint tool, its frames and limits check out, a plain solve just ignores the limits (ondsel)
+# def slide(s, end):
+#     # s from align(), its Revolute swapped for a Slider from the hole it went on to end, stopping at both
+#     j = s["joint"]
+#     if not j or j not in s["moved"].Document.Objects:
+#         raise ValueError("no align joint to turn into a slider, line it up again with an assembly active")
+#     at = s["at"]
+#     b = snap.hole(end)[1]
+#     along = b.Base - at.Base
+#     z = at.Rotation.multVec(snap.Z)
+#     if end[3] != s["target"][3] or along.Length < snap.OFF_AXIS or abs(along.dot(z)) > snap.OFF_AXIS:
+#         raise ValueError(f"click another hole on the same face of {s['target'][0].Label}")
+#     rail = Placement(at.Base, Rotation(z, along.cross(z), along, "ZXY"))  # z down the rail, x out of the face
+#     moved = landed(at, snap.gap(j), snap.spin(j))
+#     asm = j.Proxy.getAssembly(j)
+#     refs = [[r[0], list(r[1])] for r in (j.Reference1, j.Reference2)]
+#     asm.Document.removeObject(j.Name)
+#     k = ours(snap.joint(asm, "Slider", *refs, at.inverse().multiply(rail), moved.inverse().multiply(rail)))
+#     k.EnableLengthMin = k.EnableLengthMax = True
+#     k.LengthMin, k.LengthMax = 0, along.Length
+#     s["joint"] = k
+#     return k
 
 
 class Panel(snap.Clicks):
     PROMPTS = ("click a hole on the part to move", "now the hole it goes against")
-    END = "now another hole on that face, it slides between the two"
 
     def __init__(self):
-        self.rail = None  # align() state waiting on the slide's end click
         p = App.ParamGet(ui.PARAMS)
         self.angle = ui.number(-360, 360, " deg", p.GetFloat("AlignAngle", 90))
         back, ahead = QtWidgets.QPushButton("Rotate -"), QtWidgets.QPushButton("Rotate +")
         back.clicked.connect(lambda: self.turn(-1))
         ahead.clicked.connect(lambda: self.turn(1))
+        over = QtWidgets.QPushButton("Flip")
+        over.setToolTip("Turns it over on the hole, so the other side of it goes against the face. For inserts")
+        over.clicked.connect(self.flip)
         turns = QtWidgets.QWidget()
         row = QtWidgets.QHBoxLayout(turns)
         row.setContentsMargins(0, 0, 0, 0)
-        for w in (self.angle, back, ahead):
+        for w in (self.angle, back, ahead, over):
             row.addWidget(w)
         self.gap = ui.number(-36, 36, " in", step=0.125, decimals=3)  # under 0 pushes it in, a shaft end through a hole. a 35 long channel is 17.5
         self.gap.setKeyboardTracking(False)  # one move per typed gap
         self.gap.valueChanged.connect(lambda: self.turn(0))
         self.whole = QtWidgets.QCheckBox("Whole group")
-        self.whole.setToolTip("Moves the whole group it's in")
+        self.whole.setToolTip("Moves the part or sub-assembly it's in, the top one under the active assembly")
         self.whole.setChecked(p.GetBool("AlignWhole", False))
-        self.slides = QtWidgets.QCheckBox("Slide")
-        self.slides.setToolTip("In an assembly, a third click on the same face makes it a slider between the two holes. Drag it to see it move")
-        self.slides.setChecked(p.GetBool("AlignSlide", False))
-        self.slides.toggled.connect(self.unslide)
         self.last = None  # the last one aligned, what the buttons and the gap move
-        super().__init__("VEX align", [("Turn", turns), ("Gap", self.gap), (self.whole,), (self.slides,)])
-
-    def unslide(self, on):
-        App.ParamGet(ui.PARAMS).SetBool("AlignSlide", on)
-        if not on and self.rail:
-            self.rail = None
-            self.light([])
-            self.ask()
-
-    def ask(self, said=""):
-        if self.rail:
-            self.status.setText(said + self.END)
-        else:
-            super().ask(said)
-
-    def take(self, s):
-        if not self.rail:
-            return super().take(s)
-        self.light([s])
-        QtCore.QTimer.singleShot(0, lambda: self.slid(s))
-
-    def slid(self, end):
-        s, self.rail = self.rail, None
-        got = ui.run("Slide VEX part", lambda: slide(s, end))
-        Gui.Selection.clearSelection()
-        self.light([])
-        if got is None:
-            self.rail = s  # wrong hole, try again
-            self.ask()
-            return
-        self.last = None  # the buttons would turn it off the rail
-        s["moved"].Document.recompute()
-        self.ask(f"{s['moved'].Label} slides along {s['target'][0].Label} now\n")
+        super().__init__("VEX align", [("Turn", turns), ("Gap", self.gap), (self.whole,)])
 
     def act(self, mover, target):
         whole = self.whole.isChecked()
         App.ParamGet(ui.PARAMS).SetBool("AlignWhole", whole)
-        active = ui.active()
-        got = ui.run("Align VEX part", lambda: align(mover, target, self.gap.value() * IN, active, whole, self.angle.value()))
+        got = ui.run("Align VEX part", lambda: align(mover, target, self.gap.value() * IN, ui.active(), whole, self.angle.value()))
         if got is None:
             return None
         self.last = got
         got["moved"].Document.recompute()
-        if self.slides.isChecked() and got["joint"]:
-            self.rail = got
-        elif self.slides.isChecked():
-            return f"{got['moved'].Label} lined up on {target[0].Label}, but sliding needs an active assembly"
         return f"{got['moved'].Label} lined up on {target[0].Label}, the buttons and gap move it"
+
+    def still(self):
+        # the last one alegned, None once its deleted or undone
+        if self.last and self.last["moved"] not in self.doc.Objects:
+            self.last = None
+        return self.last
+
+    def flip(self):
+        s = self.still()
+        if not s:
+            return
+        got = ui.run("Flip VEX part", lambda: flip(s, self.gap.value() * IN, self.angle.value()))
+        if got:
+            self.last = got
+            got["moved"].Document.recompute()
 
     def turn(self, way):
         # way -1 / 1 for the buttons, 0 when the gap changed
-        s = self.last
-        # deleted or undone since
-        if not s or s["moved"] not in self.doc.Objects:
-            self.last = None
+        s = self.still()
+        if not s:
             return
         if way:
             App.ParamGet(ui.PARAMS).SetFloat("AlignAngle", self.angle.value())
-        if s["joint"] and s["joint"] in self.doc.Objects:
-            # turned or gapped in the joint panel since. a gap from there wins over the box on a button
-            s["spin"] = snap.spin(s["joint"])
-            if way:
-                self.gap.blockSignals(True)
-                self.gap.setValue(snap.gap(s["joint"]) / IN)
-                self.gap.blockSignals(False)
-        s["spin"] -= way * self.angle.value()  # + is counterclockwise looking at the face it went against, same as the joint's rotation box
+        s["spin"] -= way * self.angle.value()  # + is counterclockwise looking at the face it went against
         gap = self.gap.value() * IN
         ui.run("Turn VEX part", lambda: turn(s, gap))
         s["moved"].Document.recompute()

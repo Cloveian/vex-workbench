@@ -295,7 +295,7 @@ ch = library.place(doc, gen["1x2x1x25 Steel C-Channel"])
 doc.recompute()
 assert len(library.hole_dots(ch)) == len(library.holes(Part.getShape(ch.LinkedObject))) == 248
 
-# align a channel onto the (3.25, 0.25) top hole on p1, 0.25 off and turned 30. a Revolute joint holds the gap, solving moves nothing
+# align a channel onto the (3.25, 0.25) top hole on p1, 0.25 off and turned 30. just moved, no joint
 from freecad.vex_workbench import align  # noqa: E402
 
 bar = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
@@ -307,6 +307,12 @@ def where(link, pt, up=""):
     # the spot a click on that hole inside asm gives, up for the groups its in
     path = up + link.Name + "."
     return (link, pt, asm.getSubObject(path, retType=3), (asm, path))
+
+
+def pinned(mover, target, gap):
+    # aligned and held there by a Revolute, for the duplicate checks
+    s = align.align(mover, target, gap, asm)
+    return snap.revolute(asm, snap.ref(asm, target, snap.hole(target)[0]), snap.ref(asm, mover, snap.hole(mover)[0]), gap, s["spin"])
 
 
 had = len(joints.Group)
@@ -322,7 +328,7 @@ def turned(spin):
     return x(at) * math.cos(a) - at.Rotation.multVec(App.Vector(0, 1, 0)) * math.sin(a)
 
 
-# the joint's presolve keeps the turn it came with, then a turn to 30 goes through the joint too
+# it keeps the turn it came with, then a turn to 30
 (_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
 assert (x(got) - turned(s["spin"])).Length < 1e-9, (s["spin"], x(got))
 s["spin"] = 30
@@ -332,53 +338,26 @@ doc.recompute()
 d = got.Base - at.Base
 assert abs(d.dot(z(at)) - 0.25 * IN) < 1e-9 and d.cross(z(at)).Length < 1e-9, d
 assert abs(z(got).dot(z(at)) + 1) < 1e-9 and (x(got) - turned(30)).Length < 1e-9, (z(got), x(got))
-new = joints.Group[had:]
-assert [j.JointType for j in new] == ["Revolute"] and abs(new[0].Offset2.Base.z - 0.25 * IN) < 1e-9, new
-got = moved([p1, p2, bar])
-assert not got, got
+assert joints.Group[had:] == [], joints.Group[had:]
 # it keeps the turn a part already has, to the nearest step: 80 stays 80, or 90 on a 90 or 45 step
 h = App.Placement(App.Vector(), align.FLIP.multiply(App.Rotation(App.Vector(0, 0, 1), 80)))
 assert [round(align.spun(h, App.Placement(), s), 6) for s in (0, 90, 45)] == [80, 90, 90]
-# lined up again somewhere else, its old align joint goes
+# lined up again somewhere else, then flipped: the same hole's other face goes on the target, so the clicked face sits a wall out and faces away
 target = where(p1, App.Vector(2.75, 1.25, 0.046) * IN)
 s = align.align(where(bar, first), target, 0, asm)
 doc.recompute()
-mine = [j for j in joints.Group if getattr(j, "VexAlign", False) and j.Reference2[0] == bar]
-assert len(mine) == 1, mine
-got = moved([p1, p2, bar])
-assert not got, got
 assert (snap.hole(where(bar, first))[1].Base - snap.hole(target)[1].Base).Length < 1e-9
-
-# slide from there along to (4.75, 1.25). a Slider in place of the Revolute, stops on both holes
-for wrong in (target, where(p1, App.Vector(4.75, 1.25, 0) * IN), where(p2, App.Vector(0.25, 0.25, 0.046) * IN)):
-    try:
-        align.slide(s, wrong)
-        raise AssertionError(wrong)
-    except ValueError:
-        pass
-end = where(p1, App.Vector(4.75, 1.25, 0.046) * IN)
-k = align.slide(s, end)
+s = align.flip(s, 0, 0)
 doc.recompute()
-mine = [j for j in joints.Group if getattr(j, "VexAlign", False) and j.Reference2[0] == bar]
-assert mine == [k] and k.JointType == "Slider", mine
-got = moved([p1, p2, bar])
-assert not got, got
-a, b = snap.hole(target)[1].Base, snap.hole(end)[1].Base
-up = (b - a).normalize()
-
-
-def bar_at(nudge):
-    # bar pushed nudge mm up the rail and solved, how far up its hole is after
-    bar.Placement = App.Placement(bar.Placement.Base + up * nudge, bar.Placement.Rotation)
-    assert asm.solve() == 0
-    doc.recompute()
-    h = snap.hole(where(bar, first))[1].Base - a
-    assert h.cross(up).Length < 1e-6, h
-    return h.dot(up)
-
-
-assert abs(bar_at(1 * IN) - 1 * IN) < 1e-6 and abs(bar_at(-0.5 * IN) - 0.5 * IN) < 1e-6
-assert k.EnableLengthMin and k.EnableLengthMax and abs(k.LengthMax.Value - 2 * IN) < 1e-9, k.LengthMax
+(_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
+d = got.Base - at.Base
+assert abs(d.dot(z(at)) - 0.046 * IN) < 1e-6 and d.cross(z(at)).Length < 1e-6 and abs(z(got).dot(z(at)) - 1) < 1e-9, (d / IN, z(got))
+# and back
+s = align.flip(s, 0, 0)
+doc.recompute()
+(_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
+assert (got.Base - at.Base).Length < 1e-6 and abs(z(got).dot(z(at)) + 1) < 1e-9, (got.Base - at.Base) / IN
+assert joints.Group[had:] == [], joints.Group[had:]
 # a gap under 0 pushes a shaft end down through the hole, its axis on the hole axis
 sh = library.place(doc, gen["2.000 LS Shaft"])
 doc.recompute()
@@ -400,7 +379,7 @@ s = align.align(inner, target, 0, asm, whole=True)
 doc.recompute()
 (_, at), (_, got) = snap.hole(target), snap.hole(where(g1, first, grp.Name + "."))
 assert (got.Base - at.Base).Length < 1e-9 and g1.Placement.isSame(was[0], 1e-9) and g2.Placement.isSame(was[1], 1e-9), got.Base
-# turned through its joint the whole group swings, still nothing moves inside it
+# turned, the whole group swings, still nothing moves inside it
 s["spin"] += 90
 align.turn(s, 0)
 doc.recompute()
@@ -688,19 +667,18 @@ for q in (q1, q2):
     JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q)
 doc.recompute()
 qs, qn, _ = screws.fasten(doc, where(q1, App.Vector(1.27, 0.24, 0.046) * IN), where(q2, App.Vector(2.26, 0.26, 0) * IN), "star-screw", nylock, asm)
-jb = align.align(where(bar2, library.hole_dots(bar2)[0]), where(q1, App.Vector(3.25, 0.25, 0.046) * IN), 0.25 * IN, asm)["joint"]
+jb = pinned(where(bar2, library.hole_dots(bar2)[0]), where(q1, App.Vector(3.25, 0.25, 0.046) * IN), 0.25 * IN)
 jb.Offset2 = snap.offset(0.25 * IN, 30)
 assert asm.solve() == 0
 doc.recompute()
 for how in ({"mirror": duplicate.reflection(App.Vector(17, 0, 0) * IN, App.Vector(1, 0.3, 0))}, {"turn": App.Placement(App.Vector(0, 30, 0), App.Rotation(App.Vector(0, 0, 1), 70))}):
     before = set(doc.Objects)
-    aligned = sum(getattr(j, "VexAlign", False) for j in joints.Group)
     assert duplicate.duplicate([q1, q2, qs, qn, bar2], **how)[2:] == (3, 0), how
     new = [o for o in doc.Objects if o not in before and duplicate.vex(o)]
     for q in new[:2]:
         JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q)
     got = moved(new + [qs, qn, bar2])
-    assert not got and sum(getattr(j, "VexAlign", False) for j in joints.Group) == aligned + 1, (list(how), got)
+    assert not got, (list(how), got)
 # a motor only nearly mirrors, its joints come along where theres a hole for them, and the copies sit where those joints say
 q3 = library.place(doc, gen["5x10 Steel Plate"], asm)
 q3.Placement = App.Placement(App.Vector(30, 0, 0) * IN, App.Rotation())
@@ -708,14 +686,14 @@ mo = library.place(doc, steps["Electronics/V5 Smart Motor (276-4840).step"], asm
 JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q3)
 doc.recompute()
 dot = next(c for c in library.hole_dots(mo) if abs(c.x + 0.5 * IN) < 1e-6)
-align.align(where(mo, dot), where(q3, App.Vector(1.25, 0.25, 0.046) * IN), 0, asm)
+pinned(where(mo, dot), where(q3, App.Vector(1.25, 0.25, 0.046) * IN), 0)
 doc.recompute()
 ms, *_ = screws.fasten(doc, where(q3, App.Vector(1.26, 0.26, 0) * IN), where(mo, dot), "star-screw", None, asm)
 before = set(doc.Objects)
-# the Align one onto the motor's hole and the screw's in the plate (into a thread its just the one)
+# the Revolute onto the motor's hole and the screw's in the plate (into a thread its just the one)
 assert duplicate.duplicate([q3, mo, ms], mirror=duplicate.reflection(App.Vector(28, 0, 0) * IN, App.Vector(1, 0, 0))) == ([], [mo.Label], 2, 0)
 new = [o for o in doc.Objects if o not in before and duplicate.vex(o)]
-JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), new[0])  # just the plate, the motor hangs off its Align
+JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), new[0])  # just the plate, the motor hangs off its Revolute
 got = moved(new)
 assert not got, got
 # a bar on a plate that stays put, mirrored across the plate's middle, gets jointed to the plate's hole on the other side. turned too
@@ -724,7 +702,7 @@ q4.Placement = App.Placement(App.Vector(40, 0, 0) * IN, App.Rotation())
 b4 = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
 JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), q4)
 doc.recompute()
-align.align(where(b4, library.hole_dots(b4)[0]), where(q4, App.Vector(1.25, 0.25, 0.046) * IN), 0.125 * IN, asm)
+pinned(where(b4, library.hole_dots(b4)[0]), where(q4, App.Vector(1.25, 0.25, 0.046) * IN), 0.125 * IN)
 doc.recompute()
 for how, hole in (({"mirror": duplicate.reflection(App.Vector(42.5, 0, 0) * IN, App.Vector(1, 0, 0))}, (3.75, 0.25)),
                   ({"turn": App.Placement(App.Vector(), App.Rotation(App.Vector(0, 0, 1), 180), App.Vector(42.5, 1.25, 0) * IN)}, (3.75, 2.25))):
@@ -742,7 +720,7 @@ rail.Placement = App.Placement(App.Vector(0, 20, 0) * IN, App.Rotation())
 b5 = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
 JointObject.GroundedJoint(joints.newObject("App::FeaturePython", "Ground"), rail)
 doc.recompute()
-align.align(where(b5, library.hole_dots(b5)[0]), where(rail, App.Vector(2.028, 0.046, -2.098) * IN), 0, asm)
+pinned(where(b5, library.hole_dots(b5)[0]), where(rail, App.Vector(2.028, 0.046, -2.098) * IN), 0)
 doc.recompute()
 b = Part.getShape(rail.LinkedObject).BoundBox
 before = set(doc.Objects)

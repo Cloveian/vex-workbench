@@ -651,44 +651,34 @@ try:
     js = [j for j in asm.OutListRecursive if hasattr(j, "JointType")]
     assert sorted(j.Reference2[0].Name for j in js) == sorted([sc.Name, nut.Name]), js
     assert all(j.ViewObject.Proxy for j in js)
-    # align panel with the assembly active, Rotate + has to get through the joint's presolve
+    # align panel with the assembly active, just a move, Rotate + and Flip after it
     import JointObject
     import UtilsAssembly
     JointObject.GroundedJoint(UtilsAssembly.getJointGroup(asm).newObject("App::FeaturePython", "Ground"), p1)
     swing = library.place(doc, gen["1x2x1x5 Steel C-Channel"], asm)
     doc.recompute()
     Gui.ActiveDocument.ActiveView.setActiveObject("part", asm)
+    joints = len(UtilsAssembly.getJointGroup(asm).Group)
     panel = align.Panel()
     Gui.Control.showDialog(panel)
     panel.angle.setValue(90)
     panel.gap.setValue(0)
     hole = library.hole_dots(swing)[0]
-    panel.act((swing, hole, asm.getSubObject(swing.Name + ".", retType=3), (asm, swing.Name + ".")),
-              (p1, App.Vector(3.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
+    mover = (swing, hole, asm.getSubObject(swing.Name + ".", retType=3), (asm, swing.Name + "."))
+    on = (p1, App.Vector(2.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + "."))
+    panel.act(mover, on)
     yaw = swing.Placement.Rotation.toEuler()[0]
     panel.turn(1)
     assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 90) < 1e-6, (yaw, swing.Placement)
-    # turned another 45 and gapped 0.125 in the joint panel, the next Rotate + goes on from there and keeps the gap
-    j = panel.last["joint"]
-    j.Offset2 = App.Placement(App.Vector(0, 0, 0.125 * IN), App.Rotation(j.Offset2.Rotation.toEuler()[0] + 45, 0, 0))
-    doc.recompute()
-    panel.turn(1)
-    assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 225) < 1e-6, (yaw, swing.Placement)
-    assert abs(panel.gap.value() - 0.125) < 1e-9 and abs(j.Offset2.Base.z - 0.125 * IN) < 1e-9, (panel.gap.value(), j.Offset2)
+    flip = next(w for w in panel.form.findChildren(QtWidgets.QPushButton) if w.text() == "Flip")
+    flip.click()
+    flip.click()
+    now = (swing, hole, asm.getSubObject(swing.Name + ".", retType=3), (asm, swing.Name + "."))
+    assert (snap.hole(now)[1].Base - snap.hole(on)[1].Base).Length < 1e-6, "flipped twice and its not back"
+    assert len(UtilsAssembly.getJointGroup(asm).Group) == joints, "align made a joint"
     panel.reject()
-    # Slide on: lined up on (2.25, 1.25), it asks for the end, (4.25, 1.25) makes its joint a Slider
-    panel = align.Panel()
-    Gui.Control.showDialog(panel)
-    panel.slides.setChecked(True)
-    panel.done((swing, hole, asm.getSubObject(swing.Name + ".", retType=3), (asm, swing.Name + ".")),
-               (p1, App.Vector(2.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
-    assert panel.rail and panel.status.text().endswith(panel.END), panel.status.text()
-    panel.slid((p1, App.Vector(4.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
-    mine = [j for j in UtilsAssembly.getJointGroup(asm).Group if getattr(j, "VexAlign", False) and j.Reference2[0] == swing]
-    assert [j.JointType for j in mine] == ["Slider"] and panel.rail is None and panel.last is None, mine
-    assert "slides along" in panel.status.text(), panel.status.text()
-    panel.slides.setChecked(False)
-    panel.reject()
+    # pinned there by hand for the duplicate checks
+    snap.revolute(asm, snap.ref(asm, on, snap.hole(on)[0]), snap.ref(asm, mover, snap.hole(mover)[0]))
     # duplicate panel, the swinging channel mirrored across the assembly's YZ plane lands in it with the same source. its plate doesnt reach over there, so its joint stays
     from freecad.vex_workbench import duplicate
     panel = duplicate.Panel()
@@ -701,13 +691,13 @@ try:
     panel.go()
     cp = [o for o in doc.Objects if o not in had and duplicate.vex(o)]
     assert len(cp) == 1 and cp[0].LinkedObject == swing.LinkedObject and cp[0] in asm.Group, cp
-    assert panel.status.text() == "copied 1. 1 joint couldn't come along, Align it again", panel.status.text()
+    assert panel.status.text() == "copied 1. 1 joint couldn't come along, joint it again", panel.status.text()
     # no stry frame on the channel's end of that joint, and one undo takes the copy back out
     new = [o for o in doc.Objects if o not in had]
     assert not any(o.TypeId == "App::LocalCoordinateSystem" for o in new), [o.Label for o in new]
     doc.undo()
     assert set(doc.Objects) == had, [o.Label for o in set(doc.Objects) - had]
-    # across the plate's middle its slide comes along onto the mirror holes, one undo takes the copy, joint and new frames back out
+    # across the plate's middle its joint comes along onto the mirror hole, one undo takes the copy, joint and new frames back out
     panel.at.setValue(2.5)
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(swing)
@@ -715,7 +705,7 @@ try:
     assert panel.status.text() == "copied 1. 1 joint came along", panel.status.text()
     k = UtilsAssembly.getJointGroup(asm).Group[-1]
     on = p1.LinkedObject.getObject(k.Reference1[1][0].rstrip("."))
-    assert k.JointType == "Slider" and k.Reference1[0] == p1 and on not in had, (k.JointType, k.Reference1)
+    assert k.JointType == "Revolute" and k.Reference1[0] == p1 and on not in had, (k.JointType, k.Reference1)
     assert (on.Placement.Base - App.Vector(2.75, 1.25, 0.046) * IN).Length < 1e-6, on.Placement.Base / IN
     doc.undo()
     assert set(doc.Objects) == had, [o.Label for o in set(doc.Objects) - had]

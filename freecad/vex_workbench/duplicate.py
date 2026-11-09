@@ -9,7 +9,7 @@ import Part
 from FreeCAD import Matrix, Placement, Rotation, Vector
 from PySide import QtWidgets
 
-from . import align, library, metal, snap, ui
+from . import library, metal, snap, ui
 from .metal import IN
 
 AXES = {"X": Vector(1, 0, 0), "Y": Vector(0, 1, 0), "Z": Vector(0, 0, 1)}
@@ -191,8 +191,6 @@ def along(doc, names, owns, mirror, turn):
             setattr(k, p, getattr(j, p))
         k.EnableAngleMin, k.AngleMin = lo
         k.EnableAngleMax, k.AngleMax = hi
-        if getattr(j, "VexAlign", False):
-            align.ours(k)
         n += 1
     return n, left
 
@@ -308,7 +306,7 @@ class Panel:
         if joints:
             said.append(f"{joints} joint{'s' if joints > 1 else ''} came along")
         if left:
-            said.append(f"{left} joint{'s' if left > 1 else ''} couldn't come along, Align {'it' if left == 1 else 'them'} again")
+            said.append(f"{left} joint{'s' if left > 1 else ''} couldn't come along, joint {'it' if left == 1 else 'them'} again")
         if swapped:
             said.append(f"{', '.join(swapped)} went to the other hand")
         if handed:
