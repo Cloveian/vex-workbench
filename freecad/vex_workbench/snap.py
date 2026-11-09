@@ -183,6 +183,7 @@ class Clicks:
         self.overlay = coin.SoAnnotation()
         self.marks = self.dots(self.overlay, MARK_SIZE, (1.0, 0.35, 0.1))
         self.lit = self.dots(self.overlay, PICK_SIZE, (0.1, 0.9, 0.2))
+        self.show(self.lit, [])  # a fresh SoCoordinate3 isnt empty, it has one point at the origin
         self.view.getSceneGraph().addChild(self.overlay)
         self.clicks = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.clicked)
         self.show(self.marks, self.points)
