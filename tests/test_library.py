@@ -302,5 +302,57 @@ cp = next(o for o in doc.Objects if o not in before and duplicate.vex(o))
 up = duplicate.frame(cp).multiply(cp.Placement).Base - duplicate.frame(pl).multiply(pl.Placement).Base
 assert cp.getParentGroup() == folder and cp.getParentGeoFeatureGroup() == side and (up - App.Vector(0, 0, 3 * IN)).Length < 1e-6, (cp.getParentGroup(), up)
 
+# shaft inserts, their own part in the HS bore. flange on the face, the body in the bore square to its flats (turned 45 it would cut into the gear)
+from freecad.vex_workbench import inserts  # noqa: E402
+
+gear = library.place(doc, next(p for p in steps.values() if p["name"] == "24T High Strength Gear v2"))
+gear.Placement = App.Placement(App.Vector(1, 2, 3) * IN, App.Rotation(10, 20, 30))
+inserts.boxes(gear, "Square")
+doc.recompute()
+
+
+def seated(gear):
+    # the insert in the gear's coords, and how much of it is in the gear, mm3
+    ins = inserts.insert(gear)
+    s = Part.getShape(ins.LinkedObject).transformed(gear.Placement.inverse().multiply(ins.Placement).toMatrix())
+    return ins, s.BoundBox, s.common(Part.getShape(gear.LinkedObject)).Volume
+
+
+ins, b, inside = seated(gear)
+assert library.part_of(ins)["name"] == "Metal Shaft Inserts" and inside < 0.01, inside
+assert abs(b.ZMax - 0.3 * IN) < 1e-3 and abs(b.ZMin - 0.1 * IN) < 1e-3 and abs(b.Center.x) < 1e-3 and abs(b.Center.y) < 1e-3, b
+assert ins.LinkedObject.VexGuess and abs(ins.LinkedObject.VexMass.getValueAs("g").Value - 1.35) < 0.01, ins.LinkedObject.VexMass
+# it follows the gear, and goes in the other face flipped
+gear.Placement = App.Placement(App.Vector(-4, 0, 1) * IN, App.Rotation(0, 90, 0))
+doc.recompute()
+assert ins.Placement.isSame(gear.Placement.multiply(ins.VexSeat), 1e-9)
+gear.InsertFlip = True
+ins, b, inside = seated(gear)
+assert abs(b.ZMin + 0.3 * IN) < 1e-3 and inside < 0.01, (b, inside)
+assert len([o for o in doc.Objects if hasattr(o, "VexSeat")]) == 1
+gear.Insert = "Round"
+assert library.part_of(inserts.insert(gear))["name"] == "Plastic Shaft Inserts"
+assert abs(inserts.insert(gear).LinkedObject.VexMass.getValueAs("g").Value - 0.19) < 0.01
+# a copy gets one of its own
+before = set(doc.Objects)
+duplicate.duplicate([gear], turn=App.Placement(App.Vector(0, 3 * IN, 0), App.Rotation()))
+cp = next(o for o in doc.Objects if o not in before and hasattr(o, "VexInsert"))
+assert inserts.insert(cp) not in (None, inserts.insert(gear)) and seated(cp)[2] < 0.01
+# and copying the part its in, just the one
+box = doc.addObject("App::Part", "Gearbox")
+inner = library.place(doc, next(p for p in steps.values() if p["name"] == "36T High Strength Gear v2 (8-pack)"), box)
+inserts.boxes(inner, "Square")
+before = set(doc.Objects)
+duplicate.duplicate([box], turn=App.Placement(App.Vector(0, 0, 5 * IN), App.Rotation()))
+copied = next(o for o in doc.Objects if o not in before and o.TypeId == "App::Part")
+assert len([o for o in copied.Group if hasattr(o, "VexSeat")]) == 1, [o.Label for o in copied.Group]
+for g in [c for o in (box, copied) for c in o.Group if hasattr(c, "Insert")]:
+    g.Insert = "None"
+# a gear with no HS bore, and none, take it out
+cp.Type = "Low Strength"
+assert inserts.insert(cp) is None and "Gear" in cp.Label, cp.Label
+gear.Insert = "None"
+assert inserts.insert(gear) is None and not [o for o in doc.Objects if hasattr(o, "VexSeat")]
+
 App.closeDocument(doc.Name)
 print("ok")

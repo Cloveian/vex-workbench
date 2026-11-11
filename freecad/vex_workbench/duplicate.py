@@ -9,7 +9,7 @@ import Part
 from FreeCAD import Matrix, Placement, Rotation, Vector
 from PySide import QtWidgets
 
-from . import library, metal, snap, ui
+from . import inserts, library, metal, snap, ui
 from .metal import IN
 
 AXES = {"X": Vector(1, 0, 0), "Y": Vector(0, 1, 0), "Z": Vector(0, 0, 1)}
@@ -79,11 +79,11 @@ def vex(o):
 
 
 def under(obj):
-    # obj and every group and vex link in it, not the sources or an assembly's joints
+    # obj and every group and vex link in it, not the sources or an assembly's joints. or inserts, inserts.update() gives each copy its own
     out = [obj]
     if obj.TypeId in GROUPS:
         for c in obj.Group:
-            if vex(c) or c.TypeId in GROUPS:
+            if vex(c) and not hasattr(c, "VexSeat") or c.TypeId in GROUPS:
                 out += under(c)
     return out
 
@@ -174,6 +174,8 @@ def along(doc, names, owns, mirror, turn):
         ends = [j.Reference1, j.Reference2]
         if not all(ends) or not any(touches(r, names) for r in ends):
             continue
+        if any(hasattr(library.holder(obj, subs[0])[0], "VexSeat") for obj, subs in ends):
+            continue  # an insert's, inserts.update() gives the copy its own
         refs = [copied_ref(r, names, owns, mirror, turn) for r in ends]
         if None in refs:
             left += 1
@@ -249,6 +251,9 @@ def duplicate(objs, mirror=None, turn=None):
                 cp.PlacementList = [Placement(own.multiply(e.toMatrix()).multiply(own)) for e in was.PlacementList]
     doc.recompute()
     joints, left = along(doc, names, owns, mirror, turn)
+    for cp in names.values():
+        if hasattr(cp, "VexInsert"):
+            inserts.update(cp)
     doc.recompute()
     return swapped, handed, joints, left
 

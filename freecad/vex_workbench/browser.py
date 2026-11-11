@@ -4,7 +4,7 @@ import FreeCADGui as Gui
 import Part
 from PySide import QtCore, QtWidgets
 
-from . import catalog, library, ui
+from . import catalog, inserts, library, ui
 from .metal import IN
 
 KIND = QtCore.Qt.UserRole  # ("family", id), ("menu", id) or ("step", folder/file) on each item
@@ -121,7 +121,7 @@ class Browser(QtWidgets.QWidget):
     def picked(self, it, _old=None):
         while self.form.rowCount():
             self.form.removeRow(0)
-        self.combos, self.family, self.menu = {}, None, None
+        self.combos, self.family, self.menu, self.insert = {}, None, None, None
         kind = it.data(0, KIND) if it else None
         self.button.setEnabled(bool(kind))
         # searched "1x2x1x25 steel", start on that one
@@ -133,6 +133,11 @@ class Browser(QtWidgets.QWidget):
                 box.currentTextChanged.connect(lambda _: self.narrow())
                 self.form.addRow(axis, box)
                 self.combos[axis] = box
+            if any(p.get("inserts") for p in self.menu["parts"]):
+                self.insert = QtWidgets.QComboBox()
+                self.insert.addItems(inserts.kinds())
+                self.insert.setToolTip("Shaft insert in the HS bore, as its own part. Round is VEX's plastic one, Square the metal one")
+                self.form.addRow("Insert", self.insert)
             self.narrow(part)
         if not kind or kind[0] != "family":
             return
@@ -156,6 +161,10 @@ class Browser(QtWidgets.QWidget):
             box.addItems(choices)
             box.setCurrentText(part[axis])
             box.blockSignals(False)
+        if self.insert is not None:
+            self.insert.setEnabled(bool(part.get("inserts")))
+            if not part.get("inserts"):
+                self.insert.setCurrentText(inserts.NONE)
         return part
 
     def first(self, kind):
@@ -187,6 +196,7 @@ class Browser(QtWidgets.QWidget):
             box, parent = drawn(doc), ui.active()
             link = library.place(doc, part, parent)
             land(link, parent, box)
+            inserts.boxes(link, self.insert.currentText() if self.insert and self.insert.isEnabled() else inserts.NONE)
             return link
 
         link = ui.run("Place VEX part", go)

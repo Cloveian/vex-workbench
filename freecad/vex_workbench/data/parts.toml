@@ -46,6 +46,8 @@ Nylon = 1.14
 Acetal = 1.41
 "Glass-Filled Nylon" = 1.37
 PTFE = 2.20
+ABS = 1.06
+"Powdered Metal" = 6.8 # sintered iron, a guess, vex just says metal
 
 # uuid of FreeCAD's closest standard material card for each, theres no PA66 or glass filled one. weights still go off [density]
 [freecad_material]
@@ -55,9 +57,11 @@ Nylon = "9d59dc3b-ce66-4bec-82c9-b962082e7c9e" # PA6-Generic
 Acetal = "6d31c041-f189-4715-9911-f52e6de00bef" # POM-Copolymer-Generic
 "Glass-Filled Nylon" = "9d59dc3b-ce66-4bec-82c9-b962082e7c9e" # PA6-Generic
 PTFE = "8ce226db-43ef-4471-93f1-07e7276aa276" # PTFE-Generic
+ABS = "73371529-2983-47dd-b988-6739a2e20029" # ABS-Generic
+"Powdered Metal" = "90bbd8ef-8623-4d78-b3bf-e0bdb9b74dd3" # Steel-Generic
 
 # step parts with no listed mass get volume * density off this, longest folder wins. materials off vex's store pages and robosource, "plastic" counts as nylon
-# no wheels, inserts or electronics, theyre more than one thing. those get a mass = "..." on the row or a ?
+# no wheels or electronics, theyre more than one thing. those get a mass = "..." on the row or a ?
 [step_material]
 "Hardware" = "Steel"
 "Hardware/Retainers" = "Nylon"
@@ -306,7 +310,7 @@ fixtures = [
 id = "hex-screw"
 title = "Hex Screw"
 drive = "hex"
-base = "#8-32 x 1_2 Screw (275-1004)" # head and tip off this one, our shank between
+base = "#8-32 x 1_2 Screw (275-1004)" # head and tip off this one, a new shank between
 head = 0.087
 folder = "Hardware/Screws/8-32/Steel/Hex"
 name = "{length:.3f} Hex Screw (8-32, {material})"
@@ -516,6 +520,11 @@ name = "{color} License Plate"
 base = "V5RC License Plate (276-3938)"
 color = ["Red", "Blue"]
 
+# shaft inserts for a 1/4 square HS bore, a 0.16 round hole or a 1/8 square through them. menu rows with inserts = true take them
+[insert]
+Round = "Plastic Shaft Inserts"
+Square = "Metal Shaft Inserts"
+
 # --- place menus ---
 # vex's own step parts picked down a few boxes, like a family but only the combos listed. part = its name in the groups below
 
@@ -525,20 +534,20 @@ title = "Wheels"
 axes = ["Type", "Size", "Kind"]
 parts = [
   { Type = "Omni", Size = "2", Kind = "Standard", part = "2” Omni-Directional Wheel" },
-  { Type = "Omni", Size = "2.75", Kind = "Anti-Static", part = "2.75\" (220mm Travel) Omni-Directional Anti-Static Wheel" },
-  { Type = "Omni", Size = "3.25", Kind = "Anti-Static", part = "3.25\" (260mm Travel) Omni-Directional Anti-Static Wheel" },
-  { Type = "Omni", Size = "4", Kind = "Anti-Static", part = "4\" (320mm Travel) Omni-Directional Anti-Static Wheel" },
-  { Type = "Traction", Size = "2.75", Kind = "Anti-Static", part = "2.75\" (220mm Travel) Anti-Static Wheel" },
-  { Type = "Traction", Size = "2.75", Kind = "Legacy", part = "2.75\" Wheel" },
-  { Type = "Traction", Size = "3.25", Kind = "Anti-Static", part = "3.25\" (260mm Travel) Anti-Static Wheel" },
-  { Type = "Traction", Size = "4", Kind = "Anti-Static", part = "4\" (320mm Travel) Anti-Static Wheel (2-Pack)" },
+  { Type = "Omni", Size = "2.75", Kind = "Anti-Static", part = "2.75\" (220mm Travel) Omni-Directional Anti-Static Wheel", inserts = true },
+  { Type = "Omni", Size = "3.25", Kind = "Anti-Static", part = "3.25\" (260mm Travel) Omni-Directional Anti-Static Wheel", inserts = true },
+  { Type = "Omni", Size = "4", Kind = "Anti-Static", part = "4\" (320mm Travel) Omni-Directional Anti-Static Wheel", inserts = true },
+  { Type = "Traction", Size = "2.75", Kind = "Anti-Static", part = "2.75\" (220mm Travel) Anti-Static Wheel", inserts = true },
+  { Type = "Traction", Size = "2.75", Kind = "Legacy", part = "2.75\" Wheel", inserts = true },
+  { Type = "Traction", Size = "3.25", Kind = "Anti-Static", part = "3.25\" (260mm Travel) Anti-Static Wheel", inserts = true },
+  { Type = "Traction", Size = "4", Kind = "Anti-Static", part = "4\" (320mm Travel) Anti-Static Wheel (2-Pack)", inserts = true },
   { Type = "Traction", Size = "4", Kind = "Legacy", part = "4\" Wheel" },
-  { Type = "Traction", Size = "4", Kind = "Legacy, HS Bore", part = "4\" Wheel (High Strength Bore)" },
+  { Type = "Traction", Size = "4", Kind = "Legacy, HS Bore", part = "4\" Wheel (High Strength Bore)", inserts = true },
   { Type = "Mecanum", Size = "2", Kind = "V2, Left", part = "2” Mecanum Wheels V2 (Left)" },
   { Type = "Mecanum", Size = "2", Kind = "V2, Right", part = "2” Mecanum Wheels V2 (Right)" },
   { Type = "Mecanum", Size = "2", Kind = "V1, Left", part = "2\" Mecanum Wheel- Left" },
   { Type = "Mecanum", Size = "2", Kind = "V1, Right", part = "2\" Mecanum Wheel- Right" },
-  { Type = "Mecanum", Size = "4", Kind = "Standard", part = "4\" Mecanum Wheel" },
+  { Type = "Mecanum", Size = "4", Kind = "Standard", part = "4\" Mecanum Wheel", inserts = true },
 ]
 
 [[menu]]
@@ -546,16 +555,16 @@ id = "gears"
 title = "Gears"
 axes = ["Type", "Teeth"]
 parts = [
-  { Type = "High Strength v2", Teeth = "24", part = "24T High Strength Gear v2" },
-  { Type = "High Strength v2", Teeth = "36", part = "36T High Strength Gear v2 (8-pack)" },
-  { Type = "High Strength v2", Teeth = "48", part = "48T High Strength Gear v2 (8-Pack)" },
-  { Type = "High Strength v2", Teeth = "60", part = "60T High Strength Gear v2 (8-pack)" },
-  { Type = "High Strength v2", Teeth = "72", part = "72T High Strength Gear v2 (6-Pack)" },
-  { Type = "High Strength v2", Teeth = "84", part = "84T High Strength Gear v2 (4-pack)" },
+  { Type = "High Strength v2", Teeth = "24", part = "24T High Strength Gear v2", inserts = true },
+  { Type = "High Strength v2", Teeth = "36", part = "36T High Strength Gear v2 (8-pack)", inserts = true },
+  { Type = "High Strength v2", Teeth = "48", part = "48T High Strength Gear v2 (8-Pack)", inserts = true },
+  { Type = "High Strength v2", Teeth = "60", part = "60T High Strength Gear v2 (8-pack)", inserts = true },
+  { Type = "High Strength v2", Teeth = "72", part = "72T High Strength Gear v2 (6-Pack)", inserts = true },
+  { Type = "High Strength v2", Teeth = "84", part = "84T High Strength Gear v2 (4-pack)", inserts = true },
   { Type = "High Strength v1", Teeth = "12", part = "12T High Strength Metal Pinion" },
-  { Type = "High Strength v1", Teeth = "36", part = "36T High Strength Gear" },
-  { Type = "High Strength v1", Teeth = "60", part = "60T High Strength Gear" },
-  { Type = "High Strength v1", Teeth = "84", part = "84T High Strength Gear" },
+  { Type = "High Strength v1", Teeth = "36", part = "36T High Strength Gear", inserts = true },
+  { Type = "High Strength v1", Teeth = "60", part = "60T High Strength Gear", inserts = true },
+  { Type = "High Strength v1", Teeth = "84", part = "84T High Strength Gear", inserts = true },
   { Type = "Low Strength", Teeth = "12", part = "12T Gear" },
   { Type = "Low Strength", Teeth = "12, Metal", part = "12T Metal Gear" },
   { Type = "Low Strength", Teeth = "36", part = "36T Gear" },
@@ -571,21 +580,21 @@ id = "sprockets"
 title = "Sprockets"
 axes = ["Chain", "Teeth", "Bore"]
 parts = [
-  { Chain = "6P", Teeth = "8", Bore = "Standard", part = "8T Sprocket, 6P" },
-  { Chain = "6P", Teeth = "16", Bore = "Standard", part = "16T Sprocket, 6P" },
-  { Chain = "6P", Teeth = "24", Bore = "Standard", part = "24T Sprocket, 6P" },
-  { Chain = "6P", Teeth = "32", Bore = "Standard", part = "32T Sprocket, 6P" },
-  { Chain = "6P", Teeth = "40", Bore = "Standard", part = "40T Sprocket, 6P" },
+  { Chain = "6P", Teeth = "8", Bore = "Standard", part = "8T Sprocket, 6P", inserts = true },
+  { Chain = "6P", Teeth = "16", Bore = "Standard", part = "16T Sprocket, 6P", inserts = true },
+  { Chain = "6P", Teeth = "24", Bore = "Standard", part = "24T Sprocket, 6P", inserts = true },
+  { Chain = "6P", Teeth = "32", Bore = "Standard", part = "32T Sprocket, 6P", inserts = true },
+  { Chain = "6P", Teeth = "40", Bore = "Standard", part = "40T Sprocket, 6P", inserts = true },
   { Chain = "9P (High Strength)", Teeth = "6", Bore = "Standard", part = "6T High Strength Sprocket" },
-  { Chain = "9P (High Strength)", Teeth = "6", Bore = "HS", part = "6T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "6", Bore = "HS", part = "6T High Strength Sprocket (HS Bore)", inserts = true },
   { Chain = "9P (High Strength)", Teeth = "12", Bore = "Standard", part = "12T High Strength Sprocket" },
-  { Chain = "9P (High Strength)", Teeth = "12", Bore = "HS", part = "12T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "12", Bore = "HS", part = "12T High Strength Sprocket (HS Bore)", inserts = true },
   { Chain = "9P (High Strength)", Teeth = "18", Bore = "Standard", part = "18T High Strength Sprocket" },
-  { Chain = "9P (High Strength)", Teeth = "18", Bore = "HS", part = "18T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "18", Bore = "HS", part = "18T High Strength Sprocket (HS Bore)", inserts = true },
   { Chain = "9P (High Strength)", Teeth = "24", Bore = "Standard", part = "24T High Strength Sprocket" },
-  { Chain = "9P (High Strength)", Teeth = "24", Bore = "HS", part = "24T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "24", Bore = "HS", part = "24T High Strength Sprocket (HS Bore)", inserts = true },
   { Chain = "9P (High Strength)", Teeth = "30", Bore = "Standard", part = "30T High Strength Sprocket" },
-  { Chain = "9P (High Strength)", Teeth = "30", Bore = "HS", part = "30T High Strength Sprocket (HS Bore)" },
+  { Chain = "9P (High Strength)", Teeth = "30", Bore = "HS", part = "30T High Strength Sprocket (HS Bore)", inserts = true },
 ]
 
 # --- step parts ---
@@ -935,8 +944,8 @@ folder = "Motion/Inserts"
 parts = [
   { sku = "276-8034", name = "High Strength Shaft Adapter (#8 Round Bore, 1/2\" Long)", file = "High Strength Shaft Adapter (#8 Round Bore, 1_2 Long) (276-8034).step" },
   { sku = "276-8235", name = "High Strength Shaft Adapter (1/8\" Square Bore, 1/2\" Long)", file = "High Strength Shaft Adapter (1_8 Square Bore, 1_2 Long) (276-8235).step" },
-  { sku = "276-3881-002", name = "Metal Shaft Inserts", file = "Metal Shaft Inserts (276-3881-002).step" },
-  { sku = "276-3881-001", name = "Plastic Shaft Inserts", file = "Plastic Shaft Inserts (276-3881-001).step" },
+  { sku = "276-3881-002", name = "Metal Shaft Inserts", file = "Metal Shaft Inserts (276-3881-002).step", material = "Powdered Metal" },
+  { sku = "276-3881-001", name = "Plastic Shaft Inserts", file = "Plastic Shaft Inserts (276-3881-001).step", material = "ABS" },
 ]
 
 [[group]]

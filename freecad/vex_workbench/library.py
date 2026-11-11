@@ -321,10 +321,15 @@ def restep(link, key):
     # a placed step part onto another step, the steps that still fit and its menu boxes along
     link.VexStep = key
     refit(link)
-    menu = menus().get(getattr(link, "VexMenu", ""))
-    part = menu and next((p for p in menu["parts"] if p["key"] == key), None)
+    part = row(link)
     if part:
-        boxes(link, menu, part)
+        boxes(link, menus()[link.VexMenu], part)
+
+
+def row(link):
+    # a placed step part's menu row, None off the menus
+    menu = menus().get(getattr(link, "VexMenu", ""))
+    return menu and next((p for p in menu["parts"] if p["key"] == link.VexStep), None)
 
 
 def variant(family, picked):
@@ -736,8 +741,12 @@ class Observer:
         if doc.Restoring or doc.Transacting:
             return
         menu = hasattr(obj, "VexMenu") and menus().get(obj.VexMenu)
+        from . import inserts  # it imports this
         if menu and prop in menu["axes"] and (doc.Name, obj.Name) not in BUSY:
             remenu(obj)
+            inserts.boxes(obj, getattr(obj, "Insert", inserts.NONE))  # the bore moved, or its gone
+        elif prop in ("Insert", "InsertFlip") and hasattr(obj, "VexInsert") and (doc.Name, obj.Name) not in BUSY:
+            inserts.update(obj)
         if not hasattr(obj, "VexFamily"):
             return
         if prop == "VexSteps":

@@ -83,9 +83,10 @@ assert not path.exists(), path
 names = [p["name"] for p in steps]
 for m in cat["menu"]:
     picks = [tuple(p[a] for a in m["axes"]) for p in m["parts"]]
-    assert len(set(picks)) == len(picks) and all(len(set(p) - {"part"}) == len(m["axes"]) for p in m["parts"]), m["id"]
+    assert len(set(picks)) == len(picks) and all(set(p) - {"part", "inserts"} == set(m["axes"]) for p in m["parts"]), m["id"]
     for p in m["parts"]:
         assert names.count(p["part"]) == 1 and catalog.shipped(steps[names.index(p["part"])]).is_file(), p["part"]
+assert all(names.count(n) == 1 for n in cat["insert"].values()), cat["insert"]
 # the boxes only offer what goes with the picks above, a pick that doesnt fit anymore goes to the first
 wheels = next(m for m in cat["menu"] if m["id"] == "wheels")
 rows, part = catalog.narrowed(wheels, {"Type": "Mecanum", "Size": "2.75", "Kind": "V1, Right"})

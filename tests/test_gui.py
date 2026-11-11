@@ -226,6 +226,15 @@ try:
     w.tree.setCurrentItem(sprockets)
     got = {p: b.currentText() for p, b in w.combos.items()}
     assert got == {"Chain": "9P (High Strength)", "Teeth": "18", "Bore": "HS"}, got
+    # an HS bore takes an insert, placed with it as its own part
+    from freecad.vex_workbench import inserts
+    assert w.insert.isEnabled()
+    w.insert.setCurrentText("Square")
+    w.place()
+    got = Gui.Selection.getSelection()[0]
+    assert got.Insert == "Square" and library.part_of(inserts.insert(got))["name"] == "Metal Shaft Inserts", got.VexInsert
+    w.combos["Bore"].setCurrentText("Standard")
+    assert not w.insert.isEnabled() and w.insert.currentText() == "None"
     # a search that hides it lets it go, Place goes grey
     w.search.setText("smart motor")
     assert w.tree.currentItem() is None and not w.button.isEnabled() and not w.combos, (w.tree.currentItem(), w.combos)

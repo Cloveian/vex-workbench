@@ -38,7 +38,7 @@ Pick No nut, or click a threaded hole second (standoffs, and anything under 0.16
 
 For a row of them, click a few holes on the head side first (all on one face, a second click on one unpicks it), then across. with **Auto finish** on, one click on the far face does every hole that has one lined up under it, off and its a click across for each. any without a hole across stay picked.
 
-Tick **Pick screw** and pick one from the list next to it, then its one click: the hole it goes in, head on that face, no nut and no spacers. Shoulder screws only go in this way, the shoulder length is your call.
+Tick **Pick screw** and pick one from the list next to it, then its one click: the hole it goes in, head on that face, no nut and no spacers. Shoulder screws only go in this way, since it cant tell what shoulder length you want.
 
 **Spacers** does just the filling: click holes on two faces across from each other, fewest spacers + washers within 1/64 under the gap, never over. spacer OD is a setting, 0.375 to start.
 
@@ -64,7 +64,7 @@ Bends, cuts and drilled holes all go on that copy in the order you did them, and
 
 ## Parts list
 
-**Parts list** counts every placed VEX part by name into a spreadsheet in the document ("VEX parts list"), with the weight of each and the total. each is the plain part off the shelf, the total is what the placed ones really weigh, so a cut down copy counts lighter (a bent one a hair heavier). vex's step parts get vex's listed weight where there is one (the motors, brain, battery, most sensors, most wheels), otherwise one material for the whole thing off its folder, which is a guess and shows a ~ (so does the grand total if any of those are in it). inserts, a few wheels and anything else with neither show a ?, same as the license plates, and both get counted at the bottom. it counts every element of a link array and every copy of a linked sub-assembly too.
+**Parts list** counts every placed VEX part by name into a spreadsheet in the document ("VEX parts list"), with the weight of each and the total. each is the plain part off the shelf, the total is what the placed ones really weigh, so a cut down copy counts lighter (a bent one a hair heavier). vex's step parts get vex's listed weight where there is one (the motors, brain, battery, most sensors, most wheels), otherwise one material for the whole thing off its folder, which is a guess and shows a ~ (so does the grand total if any of those are in it). a few wheels and anything else with neither show a ?, same as the license plates, and both get counted at the bottom. it counts every element of a link array and every copy of a linked sub-assembly too.
 
 ---
 Back to [main index](index.md)
