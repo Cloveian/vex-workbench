@@ -288,7 +288,7 @@ try:
         return next(k for k, p in enumerate(panel.points) if (p - at).Length < 1e-6)
 
     def click(at):
-        # what clicked() does once its found the dot under the mouse
+        # what pressed() does once its found the dot under the mouse
         panel.take(panel.spots[mark(at)])
 
     before = set(doc.Objects)
@@ -360,17 +360,29 @@ try:
     k = mark(App.Vector(3.75, 0.25, 0.046) * IN)
     assert panel.points[snap.nearest(screen, screen[mark(App.Vector(3.75, 0.25, 0) * IN)][:2])] == panel.points[k]
     assert snap.nearest(screen, (-100, -100)) is None
-    # a real press + release 2 px off that dot, through the viewer like a click would go
     from pivy import coin
 
-    def mouse(state, x, y):
-        ev = coin.SoMouseButtonEvent()
-        ev.setButton(coin.SoMouseButtonEvent.BUTTON1)
-        ev.setState(state)
+    # the one matmul lands where coin puts them one at a time
+    vv = view.getCameraNode().getViewVolume(region.getViewportAspectRatio())
+    w, h = region.getViewportSizePixels().getValue()
+    for i in (0, k, len(screen) - 1):
+        p = panel.points[i]
+        s = vv.projectToScreen(coin.SbVec3f(p.x, p.y, p.z)).getValue()
+        assert abs(s[0] * w - screen[i][0]) < 0.01 and abs(s[1] * h - screen[i][1]) < 0.01, (s, screen[i])
+
+    # through the viewer like a real event would go
+    def send(ev, x, y):
         ev.setPosition(coin.SbVec2s(round(x), round(y)))
         act = coin.SoHandleEventAction(region)
         act.setEvent(ev)
         act.apply(view.getViewer().getSoRenderManager().getSceneGraph())
+
+    # a real press + release 2 px off that dot
+    def mouse(state, x, y):
+        ev = coin.SoMouseButtonEvent()
+        ev.setButton(coin.SoMouseButtonEvent.BUTTON1)
+        ev.setState(state)
+        send(ev, x, y)
 
     # isHandled() is no use here, FreeCAD's own selection node marks every press handled
     Gui.Selection.clearSelection()
@@ -383,6 +395,16 @@ try:
     mouse(coin.SoButtonEvent.DOWN, 1, 1)
     mouse(coin.SoButtonEvent.UP, 1, 1)
     assert len(panel.picked) == 1, panel.picked
+
+    # hovering lights the one a click would take, yellow, and nothing off the dots. second time writing this test. love that
+    def move(x, y):
+        send(coin.SoLocation2Event(), x, y)
+
+    move(screen[k][0] + 2, screen[k][1])
+    assert panel.under == k and panel.hover.point.getNum() == 1, panel.under
+    assert (App.Vector(*panel.hover.point[0].getValue()) - panel.points[k]).Length < 1e-3
+    move(1, 1)
+    assert panel.under is None and panel.hover.point.getNum() == 0
     overlay, root = panel.overlay, view.getSceneGraph()
     panel.reject()
     assert root.findChild(overlay) == -1

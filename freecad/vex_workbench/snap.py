@@ -3,6 +3,7 @@ import time
 
 import FreeCAD as App
 import FreeCADGui as Gui
+import numpy as np
 from FreeCAD import Vector
 from PySide import QtCore, QtWidgets
 
@@ -36,15 +37,15 @@ def spot(root, sub, pt):
 
 
 def nearest(dots, at, scale=1):
-    # index of the dot a click lands on, None for none. at and dots are (x, y[, depth]) on screen, px. scale = device px per screen px
-    def apart(a, b):
-        return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2) ** 0.5
-
-    close = [i for i, d in enumerate(dots) if apart(d, at) <= PICK_RADIUS * scale]
-    if not close:
+    # index of the dot a click lands on, None for none. dots are (x, y, depth) and at (x, y) on screen, px. scale = device px per screen px
+    dots = np.asarray(dots, float).reshape(-1, 3)
+    off = np.hypot(dots[:, 0] - at[0], dots[:, 1] - at[1])
+    close = off <= PICK_RADIUS * scale
+    if not close.any():
         return None
-    best = dots[min(close, key=lambda i: apart(dots[i], at))]
-    return min((i for i in close if apart(dots[i], best) <= SAME_SPOT * scale), key=lambda i: dots[i][2])
+    best = dots[np.argmin(np.where(close, off, np.inf))]
+    same = close & (np.hypot(dots[:, 0] - best[0], dots[:, 1] - best[1]) <= SAME_SPOT * scale)
+    return int(np.argmin(np.where(same, dots[:, 2], np.inf)))
 
 
 def placement(root, path):
@@ -168,11 +169,6 @@ class Clicks:
         Gui.Selection.addObserver(self)
         App.addDocumentObserver(self)
 
-    @property
-    def points(self):
-        # world point of each orange dot, same order as spots
-        return [plc.multVec(c) for _, c, plc, _ in self.spots]
-
     def draw(self):
         # coin only, not in the document. SoAnnotation draws them last with no depth test, so through solids too
         from pivy import coin
@@ -182,10 +178,15 @@ class Clicks:
         self.took = 0  # when the last press took a dot, s
         self.overlay = coin.SoAnnotation()
         self.marks = self.dots(self.overlay, MARK_SIZE, (1.0, 0.35, 0.1))
+        self.hover = self.dots(self.overlay, PICK_SIZE, (1.0, 0.85, 0.1))
         self.lit = self.dots(self.overlay, PICK_SIZE, (0.1, 0.9, 0.2))
-        self.show(self.lit, [])  # a fresh SoCoordinate3 isnt empty, it has one point at the origin
+        self.under = None  # index of the yellow one
+        # a fresh SoCoordinate3 isnt empty, it has one point at the origin. this feels familar for ***some reason***
+        self.show(self.hover, [])
+        self.show(self.lit, [])
         self.view.getSceneGraph().addChild(self.overlay)
-        self.clicks = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.clicked)
+        self.clicks = self.view.addEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.pressed)
+        self.moves = self.view.addEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.moved)
         self.show(self.marks, self.points)
 
     def undraw(self):
@@ -193,6 +194,7 @@ class Clicks:
             return  # its document went, the view with it
         from pivy import coin
         self.view.removeEventCallbackPivy(coin.SoMouseButtonEvent.getClassTypeId(), self.clicks)
+        self.view.removeEventCallbackPivy(coin.SoLocation2Event.getClassTypeId(), self.moves)
         self.view.getSceneGraph().removeChild(self.overlay)
         self.view = None
 
@@ -201,6 +203,7 @@ class Clicks:
         if self.view is not None:
             self.mark()
             self.show(self.marks, self.points)
+            self.light_under(None)
 
     @staticmethod
     def dots(parent, size, color):
@@ -233,26 +236,35 @@ class Clicks:
 
     def on_screen(self, region):
         # (x, y, depth) of every orange dot, px from the bottom left
-        from pivy import coin
-        cam = self.view.getCameraNode()
-        vv = cam.getViewVolume(region.getViewportAspectRatio())
+        vv = self.view.getCameraNode().getViewVolume(region.getViewportAspectRatio())
+        m = np.array(vv.getMatrix().getValue())  # coin multiplies row vectors, p @ m
         w, h = region.getViewportSizePixels().getValue()
-        out = []
-        for p in self.points:
-            s = vv.projectToScreen(coin.SbVec3f(p.x, p.y, p.z)).getValue()
-            out.append((s[0] * w, s[1] * h, s[2]))
-        return out
+        p = np.c_[self.world, np.ones(len(self.world))] @ m  # 0.05 ms for 543 dots, projectToScreen() per dot is ~6 ms. timed before the restore. trust me
+        return ((p[:, :3] / p[:, 3:]) + 1) / 2 * (w, h, 1)  # -1..1 -> 0..1, like projectToScreen
 
-    def clicked(self, cb):
+    def under_mouse(self, cb):
+        # index of the dot a click right here would take
+        region = cb.getAction().getViewportRegion()
+        w, h = region.getViewportSizePixels().getValue()
+        x, y = cb.getEvent().getNormalizedPosition(region).getValue()
+        # region is device px, 2x on a hidpi screen
+        return nearest(self.on_screen(region), (x * w, y * h), Gui.getMainWindow().devicePixelRatioF())
+
+    def light_under(self, i):
+        if i != self.under:
+            self.under = i
+            self.show(self.hover, [] if i is None else [self.points[i]])
+
+    def moved(self, cb):
+        self.light_under(self.under_mouse(cb))
+
+    def pressed(self, cb):
+        # named so FreeCAD doesnt call it, clicked() on a task panel gets its buttons. so Close threw. cool
         from pivy import coin
         ev = cb.getEvent()
         if ev.getButton() != coin.SoMouseButtonEvent.BUTTON1 or ev.getState() != coin.SoButtonEvent.DOWN:
             return
-        region = cb.getAction().getViewportRegion()
-        w, h = region.getViewportSizePixels().getValue()
-        x, y = ev.getNormalizedPosition(region).getValue()
-        # region is device px, 2x on a hidpi screen
-        i = nearest(self.on_screen(region), (x * w, y * h), Gui.getMainWindow().devicePixelRatioF())
+        i = self.under_mouse(cb)
         if i is None:
             self.took = 0
             return
@@ -271,6 +283,8 @@ class Clicks:
                 found[key] = [] if catalog.inside(library.part_of(link)["folder"], *UNMARKED) else library.hole_dots(link) + self.extra(link)
             plc = placement(root, path)
             self.spots += [(link, c, plc, (root, path)) for c in found[key]]
+        self.points = [plc.multVec(c) for _, c, plc, _ in self.spots]  # world, same order as spots
+        self.world = np.array([(p.x, p.y, p.z) for p in self.points]).reshape(-1, 3)
 
     def extra(self, link):
         # more dots on link than its holes, link coords. the drill's grid
@@ -284,7 +298,7 @@ class Clicks:
         self.status.setText(said + (self.ONE if self.one() else self.PROMPTS[self.first is not None]))
 
     def addSelection(self, doc, obj, sub, pnt):
-        # a face click, the dots come in through clicked()
+        # a face click, the dots come in through pressed()
         if time.monotonic() - self.took < RELEASE:  # what was under a dot that already got taken
             self.took = 0
             QtCore.QTimer.singleShot(0, Gui.Selection.clearSelection)
