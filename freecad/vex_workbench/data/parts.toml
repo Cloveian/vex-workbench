@@ -186,7 +186,8 @@ id = "angle-2x2"
 title = "2x2 Angle"
 folder = "Structure/{material}/2x2 Angle"
 name = "2x2x{holes} {material} Angle"
-material = ["Steel"]
+material = ["Aluminum", "Steel"]
+# no al step, the fusion library's matches at 0.063 (-0.06%) minus a 0.1 tab off one end vex's steel one doesnt have. 0.062 like the c-channels
 holes = { from = 1, to = 35 }
 between = true
 chamfer = 0.09
@@ -208,7 +209,8 @@ id = "plate-5x"
 title = "5x Plate"
 folder = "Structure/{material}"
 name = "5x{holes} {material} Plate"
-material = ["Steel"]
+material = ["Aluminum", "Steel"]
+# al same story as the 2x2 angle, fusion's is exact at 0.063 once its two 0.1 tabs are off. their steel one is exact too
 holes = { from = 1, to = 35 }
 # sharp squares, diamonds on every grid point. the edge ones are the notches and corner chamfers
 round = 0

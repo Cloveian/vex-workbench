@@ -417,6 +417,10 @@ def build(recs, mm):
                     sys.exit(f"shell {shell} has subshells, not handled")
                 fids = list(chain(recs, s[2], "face"))
                 faces = [make_face(recs, fi, edges, mm) for fi in fids]
+                if len(faces) == 1 and faces[0].Surface.TypeId == "Part::GeomPlane":
+                    # surface bodies, a sheet on each face of the metal ones (2x2 angle, 5x plate)
+                    print(f"body {bi}: shell {shell} is one flat face, skipped", file=sys.stderr)
+                    continue
                 sh = Part.Shell(faces)
                 sh.sewShape()
                 if sh.ShapeType != "Shell":
@@ -432,7 +436,7 @@ def build(recs, mm):
                     print(f"body {bi}: shell {shell} isnt closed", file=sys.stderr)
                 shells.append(sh)
             if not shells:
-                sys.exit(f"body {bi}: lump {lump} has no shells")
+                continue  # all sheets
             so = Part.Solid(shells[0] if len(shells) == 1 else Part.Compound(shells))
             if not so.isValid():
                 print(f"body {bi}: lump {lump} isnt a valid solid", file=sys.stderr)
