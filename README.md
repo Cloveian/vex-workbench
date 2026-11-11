@@ -32,8 +32,10 @@ The [usage guide](docs/using.md) goes through every tool.
 
 ### Putting a robot together
 
-- **Hole dots**: while a tool is open, every hole you can use gets a dot to click, on both sides of the metal.
-- **Align**: click a hole on the part to move, then the hole it goes against. It keeps the way the part was turned (rounded to the angle step), and after that you can turn it by any angle or give it a gap. It can move a whole link array, or the whole sub-assembly a part is in. **Flip** turns it over on the hole, so its other side goes against the face, like an insert going into a gear. It only moves things, joints are up to you.
+- **Hole dots**: while a tool is open, every hole you can use gets a dot to click, on both sides of the metal. The one a click would take lights up under the mouse.
+- **Align**: click a hole on the part to move, then the hole it goes against. It keeps the way the part was turned (rounded to the angle step), and after that you can turn it by any angle or give it a gap. It can move a whole link array, or the whole sub-assembly a part is in. **Flip** turns it over on the hole, so its other side goes against the face, like an insert going into a gear. It only moves things, joints are the Joint tool's.
+- **Joint**: with an assembly active, click a hole on the part that moves and the hole it's on for a spin or fixed joint, or a third hole along the same face for a slide that stops at both ends. It's set to where the parts already are, so nothing jumps when it solves.
+- **Shaft inserts**: anything with a high strength bore can get VEX's round or square shaft insert when you place it. The insert is its own part and stays in the bore wherever the gear goes.
 - **Screw**: two clicks and the shortest screw that reaches through the nut goes in, nut and all, or 3/8" into a threaded hole (a standoff, a motor) with no nut. Pick a few holes on one face first and one click across does the lot. Or pick the screw yourself and place it with one click.
 - **Spacers**: click two holes facing each other, like inside a boxed channel, and the gap fills with spacers and washers. The screw tool can fill its gaps too.
 - **Frame on hole**: a frame on a hole's exact center, for joining parts by hand in the Assembly workbench.

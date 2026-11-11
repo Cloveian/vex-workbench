@@ -1,5 +1,18 @@
 # Log
 
+## 2026-11-10 - the redo
+
+My whole system corrpted and i had to restore from a snapshot from the 9th, so everything after it was *gone*. tonight was doing it all again off my list, measured and worked out again from the steps and the fusion files, not copied from anything. it went faster the second time at least, and some of it came out better _:(´□`」 ∠):_
+
+- hover: the dot a click would take goes yellow under the mouse. every dot's screen spot is one numpy matmul off the view volume's matrix now, 0.04 ms for 543, projectToScreen one at a time was ~6 ms (that ones from before the restore, didnt time it again). checked against coin's own to 0.01 px
+- the mouse callback on the click panel was called `clicked()`, which is what FreeCAD calls on a task panel with its *buttons*, so Close threw into the report view on every panel. its `pressed()` now
+- place: a new part lands 1" off the +x side of whats drawn (coin's box of the whole scene, taken before it goes in), bottoms level, one undo step. **Then align** opens Align after
+- shaft inserts: an Insert box (None / Round / Square) on the wheels, gears and sprockets with a 1/4 square HS bore. ~~29~~ 28 of them, measured this time: every one has exactly one square loop 0.25 to 0.339 across on each face, and the 12T HS pinion is a 1/8 bore so it doesnt count. the insert is 0.395 square flange 0.05 thick, then a 0.248 body 0.15 long, a 0.16 round hole (plastic) or 1/8 square (metal). its own link, Placement = `gear.Placement * VexSeat` as an expression, and a Fixed joint when its in an assembly. the gear first had a PropertyLink back to it, which made a dependency loop with the expression, so Duplicate's `tops()` saw the gear inside itself and copied nothing. its the insert's name in a string now. ABS 1.06 and powdered metal 6.8 (a guess) give 0.19 g and 1.35 g, flagged ~
+- joint tool: Spin, Fixed or Slide, the slide math that sat commented out in align.py lives in `joints.py` now. offsets off where the parts already are, a solve moves nothing (tested for all three)
+- step dots cached on disk next to the brep. the rays were 11.0 s on the 4" antistatic traction wheel, 8.7 on the 84T HS v2, 9.5 on the 40T 6P sprocket, every new document. now once
+
+still lost, not redone yet: the chain tool and its 6P and 3P links, the 3P sprockets, every fusion-measured family (flex wheels, VersaHex and the VersaHub, legacy omnis and traction, the turned parts, the linear slide, ratchet and pawl), the 3/8 HS spacer, aluminum 2x2 angle and 5x plate. thats the next few nights i guess
+
 ## 2026-11-08 - align just moves, 0.2.0
 
 - placing a U-channel after two c-channels put one next to *each* of them. double clicking a placed part in the tree makes its hidden source the active part, and `activePartOrAssembly()` hands that back, so the U-channel went in the source and every copy showed it. place, align, screw, spacers and duplicate all ask `ui.active()` now, which skips sources
