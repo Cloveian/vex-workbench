@@ -42,6 +42,12 @@ def active():
     return None if parent and parent.Name == library.GROUP else got
 
 
+def view(doc):
+    # docs 3d view. a spreadsheet or techdraw page in front has no scene
+    gd = Gui.getDocument(doc.Name)
+    return gd.ActiveView if hasattr(gd.ActiveView, "getSceneGraph") else gd.mdiViewsOfType("Gui::View3DInventor")[0]
+
+
 def number(lo, hi, suffix, value=0.0, step=1.0, decimals=2):
     box = QtWidgets.QDoubleSpinBox()
     box.setRange(lo, hi)

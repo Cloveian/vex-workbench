@@ -172,9 +172,7 @@ class Clicks:
     def draw(self):
         # coin only, not in the document. SoAnnotation draws them last with no depth test, so through solids too
         from pivy import coin
-        gd = Gui.getDocument(self.doc.Name)
-        # a spreadsheet or techdraw page in front has no scene
-        self.view = gd.ActiveView if hasattr(gd.ActiveView, "getSceneGraph") else gd.mdiViewsOfType("Gui::View3DInventor")[0]
+        self.view = ui.view(self.doc)
         self.took = 0  # when the last press took a dot, s
         self.overlay = coin.SoAnnotation()
         self.marks = self.dots(self.overlay, MARK_SIZE, (1.0, 0.35, 0.1))

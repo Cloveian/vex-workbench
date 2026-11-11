@@ -1,12 +1,35 @@
 # VEX parts dock. families and menus up top, the fusion folders under, options for the picked one
 import FreeCAD as App
 import FreeCADGui as Gui
+import Part
 from PySide import QtCore, QtWidgets
 
 from . import catalog, library, ui
+from .metal import IN
 
 KIND = QtCore.Qt.UserRole  # ("family", id), ("menu", id) or ("step", folder/file) on each item
+CLEAR = IN  # past whats drawn
 _dock = None
+
+
+def drawn(doc):
+    # (min, max) round everything shown in the 3d view, None for nothing
+    from pivy import coin
+    act = coin.SoGetBoundingBoxAction(coin.SbViewportRegion())
+    act.apply(ui.view(doc).getSceneGraph())
+    b = act.getBoundingBox()
+    return None if b.isEmpty() else (App.Vector(*b.getMin().getValue()), App.Vector(*b.getMax().getValue()))
+
+
+def land(link, parent, box):
+    # off the +x side of box, bottoms level. definitely the first time writing this
+    if box is None:
+        return
+    world = parent.getGlobalPlacement() if parent else App.Placement()
+    b = Part.getShape(link).transformed(world.toMatrix()).BoundBox
+    plc = link.Placement
+    plc.Base += world.Rotation.inverted().multVec(App.Vector(box[1].x + CLEAR - b.XMin, 0, box[0].z - b.ZMin))
+    link.Placement = plc
 
 
 class Browser(QtWidgets.QWidget):
@@ -21,10 +44,15 @@ class Browser(QtWidgets.QWidget):
         self.tree = QtWidgets.QTreeWidget(headerHidden=True)
         self.form = QtWidgets.QFormLayout()
         self.button = QtWidgets.QPushButton("Place", enabled=False)
+        self.align = QtWidgets.QCheckBox("Then align")
+        self.align.setToolTip("Opens Align once it's placed, to put it on a hole")
+        self.align.setChecked(App.ParamGet(ui.PARAMS).GetBool("PlaceAlign", False))
+        self.align.toggled.connect(lambda on: App.ParamGet(ui.PARAMS).SetBool("PlaceAlign", on))
         lay = QtWidgets.QVBoxLayout(self)
         lay.addWidget(self.search)
         lay.addWidget(self.tree, 1)
         lay.addLayout(self.form)
+        lay.addWidget(self.align)
         lay.addWidget(self.button)
 
         self.fill()
@@ -154,12 +182,22 @@ class Browser(QtWidgets.QWidget):
                 ui.warn(str(e))
                 return
         doc = App.ActiveDocument or App.newDocument()
-        link = ui.run("Place VEX part", lambda: library.place(doc, part, ui.active()))
+
+        def go():
+            box, parent = drawn(doc), ui.active()
+            link = library.place(doc, part, parent)
+            land(link, parent, box)
+            return link
+
+        link = ui.run("Place VEX part", go)
         if link is None:
             return
         doc.recompute()
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(link)
+        if self.align.isChecked() and not Gui.Control.activeDialog():
+            from . import align
+            Gui.Control.showDialog(align.Panel())
 
 
 class ShowBrowser:

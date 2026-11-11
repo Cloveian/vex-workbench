@@ -138,10 +138,34 @@ try:
     # a source made the active part by a doubie click, the next one goes at the top
     src = Gui.Selection.getSelection()[0].LinkedObject
     Gui.ActiveDocument.ActiveView.setActiveObject("part", src)
+    lo, hi = browser.drawn(doc)
     w.place()
     again = Gui.Selection.getSelection()[0]
     assert again not in src.Group and not again.getParentGeoFeatureGroup(), [o.Label for o in src.Group]
     Gui.ActiveDocument.ActiveView.setActiveObject("part", None)
+    # clear of everything already drawn, 1 in off the +x side, bottoms level
+    b = again.Shape.BoundBox
+    assert abs(b.XMin - hi.x - 25.4) < 0.01 and abs(b.ZMin - lo.z) < 0.01, (b, lo, hi)
+    # then align opens on it, like it always did :)
+    from freecad.vex_workbench import align
+    opened, real = [], align.Panel
+
+    class Seen(real):
+        def __init__(self):
+            super().__init__()
+            opened.append(self)
+
+    align.Panel = Seen
+    w.align.setChecked(True)
+    try:
+        w.place()
+    finally:
+        align.Panel = real
+        w.align.setChecked(False)
+    third = Gui.Selection.getSelection()[0]
+    assert len(opened) == 1 and Gui.Control.activeDialog(), opened
+    opened[0].reject()
+    doc.removeObject(third.Name)
     # search, words in any order
     w.search.setText("motor smart")
     hit = w.tree.findItems("Smart Motor", QtCore.Qt.MatchContains | QtCore.Qt.MatchRecursive)[0]
