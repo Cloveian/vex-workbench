@@ -1,5 +1,12 @@
 # Log
 
+## 2026-11-11 - more parts
+
+- 3/8" HS spacer. vex has no step for it, so its their 1/2" with 1/8" cut out of the middle. theyre molded with draft both ways off a parting line in the middle (0.3937 across there, ~0.0088"/in a side smaller going out), so the two halves meet on the same section and it just looks molded. 0.02158 in3, 1.7% under halfway between the 1/4 and the 1/2, which is 0.007 g. the four real ones are fixtures now too, which is how the 1/16" (actually 1.6 mm, 0.063) turned out to be getting a 0.0005" sliver cut out of it. not anymore
+- aluminum 2x2 angle and 5x plate, off the fusion library's f3ds. same shape as the steel ones: at 0.063 the plate is exact and the angle is -0.06%, theyre 0.062 like the c-channels. fusion's have a lil 0.1" tab sticking out one end (0.705 wide on the angle, two 0.32 ones on the plate) that vex's steel steps dont, *no* idea why, mine dont either. also fusion's "25 - 2x2 Angle" is the 35 hole one
+- read_f3d skips shells that are one flat face. fusion's metal files have a surface body on every face of the part and those were stopping it
+- 6P chain links, generated. every number on fusion's link is a round mm (3.25, 4.45, 5.65, 4.4 tall, a 3.2 barrel, 2 mm peg into a 2.1 hole) and mine xors against it at 0.000000%. *Yippee.* the 3P link is toroids and splines all over its snap pin, thats a whole other night
+
 ## 2026-11-10 - the redo
 
 My whole system corrpted and i had to restore from a snapshot from the 9th, so everything after it was *gone*. tonight was doing it all again off my list, measured and worked out again from the steps and the fusion files, not copied from anything. it went faster the second time at least, and some of it came out better _:(´□`」 ∠):_
