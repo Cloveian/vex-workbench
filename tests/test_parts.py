@@ -1,4 +1,4 @@
-# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts) vs vex's steps, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
+# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
 import re
 import sys
 from pathlib import Path
@@ -72,6 +72,14 @@ vol = hs[0.375].Volume / ((hs[0.25].Volume + hs[0.5].Volume) / 2) - 1
 ok = got[0] == 0.375 and abs(vol) < 0.02
 bad += not ok
 print(f"{'ok ' if ok else 'BAD'} 3/8 hs spacer: {got} vol {vol * 100:+.2f}% off halfway")
+
+# 6P link vs the fusion library's f3d
+link = library.GENERATORS["chain-link"](next(p for p in gen if p["name"] == "Chain Link (6P)"), cat)
+got = size(link)
+vol = link.Volume / IN**3 / 0.010145 - 1
+ok = got == [0.1732, 0.4232, 0.4449] and abs(vol) < 0.0005 and link.isValid()
+bad += not ok
+print(f"{'ok ' if ok else 'BAD'} 6P chain link: {got} vol {vol * 100:+.3f}%")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)

@@ -529,6 +529,18 @@ name = "{color} License Plate"
 base = "V5RC License Plate (276-3938)"
 color = ["Red", "Blue"]
 
+[[family]]
+id = "chain-link"
+title = "Chain Link"
+folder = "Motion/Chain Links"
+name = "Chain Link ({chain})"
+material = "Acetal"
+color = "Sensor Grey" # fusion's 84,88,90
+# off the fusion library's 6P f3d, exact. x = out from the middle along the pins, pin 0 on the origin, next pin at +y
+sizes = [
+  { chain = "6P", pitch = 0.25, inner = "3.25 mm", joggle = "4.45 mm", outer = "5.65 mm", height = "4.4 mm", step = ["2.6 mm", "3.75 mm"], corner = "0.5 mm", barrel = "3.2 mm", peg = "2 mm", hole = "2.1 mm" },
+]
+
 # shaft inserts for a 1/4 square HS bore, a 0.16 round hole or a 1/8 square through them. menu rows with inserts = true take them
 [insert]
 Round = "Plastic Shaft Inserts"
