@@ -21,13 +21,13 @@ def refs(asm, mover, target):
 
 
 def rail(target, end):
-    # placement at the target hole with z down the slide to end, its length mm. None and why for an end thats no good
+    # placement at the target hole with z down the slide to end, and its length mm
     b = snap.hole(target)[1]
     e = snap.hole(end)[1]
     along = e.Base - b.Base
     z = b.Rotation.multVec(snap.Z)
     if end[3] != target[3] or along.Length < snap.OFF_AXIS or abs(along.dot(z)) > snap.OFF_AXIS:
-        return None, f"click another hole on the same face of {target[0].Label}, where it stops"
+        raise ValueError(f"click another hole on the same face of {target[0].Label}, where it stops")
     return Placement(b.Base, Rotation(z, along.cross(z), along, "ZXY")), along.Length  # x out of the face
 
 
@@ -36,8 +36,6 @@ def join(asm, kind, mover, target, end=None):
     r1, r2, b, a = refs(asm, mover, target)
     if kind == "Slide":
         on, length = rail(target, end)
-        if on is None:
-            raise ValueError(length)
         # stops at both ends. a plain solve ignores them, the drag one doesnt (ondsel)
         j = snap.joint(asm, "Slider", r1, r2, b.inverse().multiply(on), a.inverse().multiply(on))
         j.EnableLengthMin = j.EnableLengthMax = True
@@ -82,11 +80,9 @@ class Panel(snap.Clicks):
             self.ask()
             return
         try:
-            on, why = rail(self.mid, s)
+            rail(self.mid, s)
         except ValueError as e:
-            on, why = None, str(e)  # no holes on it
-        if on is None:
-            self.ask(why + "\n")  # still waiting on the end
+            self.ask(f"{e}\n")  # still waiting on the end
             return
         a, b, self.first, self.mid, self.end = self.first, self.mid, None, None, s
         self.light([a, b, s])

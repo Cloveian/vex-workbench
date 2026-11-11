@@ -372,7 +372,11 @@ assert j.JointType == "Revolute" and asm.solve() == 0 and bar.Placement.isSame(w
 doc.removeObject(j.Name)
 # a slide runs down the face to another hole on it, stops at both. the other face of the same hole is no end
 end = where(p1, App.Vector(4.75, 1.25, 0.046) * IN)
-assert jt.rail(target, where(p1, App.Vector(3.75, 1.25, -0.046) * IN))[0] is None
+try:
+    jt.rail(target, where(p1, App.Vector(3.75, 1.25, -0.046) * IN))
+    raise AssertionError("the other face made a rail")
+except ValueError:
+    pass
 j = jt.join(asm, "Slide", where(bar, first), target, end)
 rail = snap.hole(target)[1].multiply(j.Offset1)
 down = (snap.hole(end)[1].Base - snap.hole(target)[1].Base).normalize()
