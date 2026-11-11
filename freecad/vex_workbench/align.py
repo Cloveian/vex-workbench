@@ -73,30 +73,6 @@ def flip(s, gap, step):
     return align((link, back, snap.placement(root, path), (root, path)), s["target"], gap, s["active"], s["whole"], step)
 
 
-# Slide, replaced by nothing yet. kept for the joint tool, its frames and limits check out, a plain solve just ignores the limits (ondsel)
-# def slide(s, end):
-#     # s from align(), its Revolute swapped for a Slider from the hole it went on to end, stopping at both
-#     j = s["joint"]
-#     if not j or j not in s["moved"].Document.Objects:
-#         raise ValueError("no align joint to turn into a slider, line it up again with an assembly active")
-#     at = s["at"]
-#     b = snap.hole(end)[1]
-#     along = b.Base - at.Base
-#     z = at.Rotation.multVec(snap.Z)
-#     if end[3] != s["target"][3] or along.Length < snap.OFF_AXIS or abs(along.dot(z)) > snap.OFF_AXIS:
-#         raise ValueError(f"click another hole on the same face of {s['target'][0].Label}")
-#     rail = Placement(at.Base, Rotation(z, along.cross(z), along, "ZXY"))  # z down the rail, x out of the face
-#     moved = landed(at, snap.gap(j), snap.spin(j))
-#     asm = j.Proxy.getAssembly(j)
-#     refs = [[r[0], list(r[1])] for r in (j.Reference1, j.Reference2)]
-#     asm.Document.removeObject(j.Name)
-#     k = ours(snap.joint(asm, "Slider", *refs, at.inverse().multiply(rail), moved.inverse().multiply(rail)))
-#     k.EnableLengthMin = k.EnableLengthMax = True
-#     k.LengthMin, k.LengthMax = 0, along.Length
-#     s["joint"] = k
-#     return k
-
-
 class Panel(snap.Clicks):
     PROMPTS = ("click a hole on the part to move", "now the hole it goes against")
 

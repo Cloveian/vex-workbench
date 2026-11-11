@@ -363,6 +363,33 @@ doc.recompute()
 (_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
 assert (got.Base - at.Base).Length < 1e-6 and abs(z(got).dot(z(at)) + 1) < 1e-9, (got.Base - at.Base) / IN
 assert joints.Group[had:] == [], joints.Group[had:]
+# the joint tool holds it right where align put it, a solve moves nothing
+from freecad.vex_workbench import joints as jt  # noqa: E402
+
+was = bar.Placement
+j = jt.join(asm, "Spin", where(bar, first), target)
+assert j.JointType == "Revolute" and asm.solve() == 0 and bar.Placement.isSame(was, 1e-6), bar.Placement
+doc.removeObject(j.Name)
+# a slide runs down the face to another hole on it, stops at both. the other face of the same hole is no end
+end = where(p1, App.Vector(4.75, 1.25, 0.046) * IN)
+assert jt.rail(target, where(p1, App.Vector(3.75, 1.25, -0.046) * IN))[0] is None
+j = jt.join(asm, "Slide", where(bar, first), target, end)
+rail = snap.hole(target)[1].multiply(j.Offset1)
+down = (snap.hole(end)[1].Base - snap.hole(target)[1].Base).normalize()
+assert j.JointType == "Slider" and (z(rail) - down).Length < 1e-9 and abs(j.LengthMax.Value - 2 * IN) < 1e-9 and j.EnableLengthMax, (z(rail), j.LengthMax)
+assert asm.solve() == 0 and bar.Placement.isSame(was, 1e-6), bar.Placement
+doc.removeObject(j.Name)
+j = jt.join(asm, "Fixed", where(bar, first), target)
+assert j.JointType == "Fixed" and asm.solve() == 0 and bar.Placement.isSame(was, 1e-6)
+doc.removeObject(j.Name)
+# spin on two holes that arent lined up says so, and nothing outside an assembly
+for args in ((asm, "Spin", where(bar, first), where(p1, App.Vector(4.75, 1.25, 0.046) * IN)), (None, "Fixed", where(bar, first), target)):
+    try:
+        jt.join(*args)
+        raise AssertionError(args[1])
+    except ValueError:
+        pass
+assert joints.Group[had:] == [], joints.Group[had:]
 # a gap under 0 pushes a shaft end down through the hole, its axis on the hole axis
 sh = library.place(doc, gen["2.000 LS Shaft"])
 doc.recompute()

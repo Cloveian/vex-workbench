@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="8" fill="#c8102e"/>
+  <!-- the one its on -->
+  <rect x="8" y="34" width="48" height="14" rx="2" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5"/>
+  <!-- the one on top, turned on the same hole -->
+  <rect x="22" y="10" width="14" height="38" rx="2" fill="#d9dde1" stroke="#7a8189" stroke-width="1.5" transform="rotate(-30 29 41)"/>
+  <circle cx="29" cy="41" r="4" fill="#3a3f45"/>
+  <path d="M43 20 A16 16 0 0 1 45 46" fill="none" stroke="#f2c230" stroke-width="3"/>
+  <path d="M39 44 L45 47 L48 41" fill="none" stroke="#f2c230" stroke-width="3"/>
+</svg>

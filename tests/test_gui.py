@@ -42,7 +42,7 @@ try:
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
-    assert tools == ["VEX parts", "Frame on hole", "Align", "Screw", "Spacers", "Bend", "Cut", "Drill", "Duplicate", "Parts list"], tools
+    assert tools == ["VEX parts", "Frame on hole", "Align", "Joint", "Screw", "Spacers", "Bend", "Cut", "Drill", "Duplicate", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
     # a bug in a tool still raises, and whatever it half built gets undone
@@ -736,8 +736,27 @@ try:
     assert (snap.hole(now)[1].Base - snap.hole(on)[1].Base).Length < 1e-6, "flipped twice and its not back"
     assert len(UtilsAssembly.getJointGroup(asm).Group) == joints, "align made a joint"
     panel.reject()
-    # pinned there by hand for the duplicate checks
-    snap.revolute(asm, snap.ref(asm, on, snap.hole(on)[0]), snap.ref(asm, mover, snap.hole(mover)[0]))
+    # joint panel, a slide's end on the other face keeps it waiting for a good one
+    from freecad.vex_workbench import joints as jt
+    panel = jt.Panel()
+    Gui.Control.showDialog(panel)
+    panel.kind.setCurrentText("Slide")
+    panel.take(now)
+    panel.take(on)
+    panel.take((p1, App.Vector(3.25, 1.25, -0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
+    assert panel.mid is not None and panel.status.text().startswith("click another hole on the same face"), panel.status.text()
+    panel.take((p1, App.Vector(4.25, 1.25, 0.046) * IN, p1.Placement, (asm, p1.Name + ".")))
+    QtWidgets.QApplication.processEvents()
+    k = UtilsAssembly.getJointGroup(asm).Group[-1]
+    assert k.JointType == "Slider" and panel.mid is None and panel.status.text().startswith("slide joint"), panel.status.text()
+    doc.removeObject(k.Name)
+    # spin, it stays there for the duplicate checks
+    panel.kind.setCurrentText("Spin")
+    panel.take(now)
+    panel.take(on)
+    QtWidgets.QApplication.processEvents()
+    assert UtilsAssembly.getJointGroup(asm).Group[-1].JointType == "Revolute", panel.status.text()
+    panel.reject()
     # duplicate panel, the swinging channel mirrored across the assembly's YZ plane lands in it with the same source. its plate doesnt reach over there, so its joint stays
     from freecad.vex_workbench import duplicate
     panel = duplicate.Panel()
