@@ -233,6 +233,10 @@ try:
     w.place()
     got = Gui.Selection.getSelection()[0]
     assert got.Insert == "Square" and library.part_of(inserts.insert(got))["name"] == "Metal Shaft Inserts", got.VexInsert
+    # its dots get kept next to its brep, the next document reads them off disk
+    dots = library.hole_dots(got)
+    kept = library.BREPS / f"{library.kept(library.part_of(got))}.dots{library.DOTS_VERSION}.json"
+    assert dots and kept.is_file() and library.step_dots(library.part_of(got), None) == dots, kept
     w.combos["Bore"].setCurrentText("Standard")
     assert not w.insert.isEnabled() and w.insert.currentText() == "None"
     # a search that hides it lets it go, Place goes grey

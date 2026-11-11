@@ -30,6 +30,7 @@ NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() 
 CACHE = {}
 BREPS = Path(App.getUserCachePath()) / "VexWorkbench"  # read steps as brep + face colors, gone stale ones just sit there
 BREPS_VERSION = 1  # bump when colored() reads a step *dih*frently, old cached ones get skipped
+DOTS_VERSION = 1  # same for outermost()
 BUSY = set()  # (doc, link) names getting their menu boxes refilled
 
 
@@ -90,11 +91,16 @@ def shape(part):
     raise ValueError(f"no generator for {part['family']} yet")
 
 
-def remembered(part):
-    # a step read once and kept as a brep, the 1" star drive coupler is 26 s as a step and 0.01 s as a brep. brep keeps the face order so the colors still line up
+def kept(part):
+    # file name in BREPS for a step, without the extension
     read = catalog.stored(part)
     st = read.stat()
-    name = hashlib.sha1(f"{BREPS_VERSION}|{read}|{st.st_size}|{st.st_mtime_ns}".encode()).hexdigest()[:16]
+    return hashlib.sha1(f"{BREPS_VERSION}|{read}|{st.st_size}|{st.st_mtime_ns}".encode()).hexdigest()[:16]
+
+
+def remembered(part):
+    # a step read once and kept as a brep, the 1" star drive coupler is 26 s as a step and 0.01 s as a brep. brep keeps the face order so the colors still line up
+    name = kept(part)
     brep, colors_file = BREPS / f"{name}.brep", BREPS / f"{name}.json"
     if colors_file.is_file() and brep.is_file():  # json written last, a half written brep never has one
         s = Part.Shape()
@@ -611,12 +617,32 @@ def hole_dots(link):
         return [c for c, _ in ends(Part.getShape(src))]
     # kept on the source, the 11W's rays take a while
     if not hasattr(src, "VexHoleDots"):
-        dots = outermost(Part.getShape(src), hasattr(link, "VexStep"))  # before the property, one that throws would leave it empty for good
+        step = hasattr(link, "VexStep")
+        # before the property, one that throws would leave it empty for good
+        if step and App.GuiUp and not getattr(src, "VexSteps", ""):
+            dots = step_dots(part_of(link), Part.getShape(src))
+        else:
+            dots = outermost(Part.getShape(src), step)
         src.addProperty("App::PropertyVectorList", "VexHoleDots", "VEX")
         src.setPropertyStatus("VexHoleDots", "Hidden")
         src.VexHoleDots = dots
     gap = u_gap(link)
     return [into_gap(c, gap) for c in src.VexHoleDots]
+
+
+def step_dots(part, shape):
+    # a plain step's dots, kept next to its brep. 11 s of rays on the 4" antistatic wheel, evry time. not anymore
+    path = BREPS / f"{kept(part)}.dots{DOTS_VERSION}.json"
+    if path.is_file():
+        return [Vector(*c) for c in json.loads(path.read_text())]
+    dots = outermost(shape, True)
+    try:
+        BREPS.mkdir(parents=True, exist_ok=True)
+        Path(f"{path}.part").write_text(json.dumps([tuple(c) for c in dots]))
+        os.replace(f"{path}.part", path)
+    except OSError:
+        pass  # works it out again next time
+    return dots
 
 
 def outermost(shape, rays):
