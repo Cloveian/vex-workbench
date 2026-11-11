@@ -1,4 +1,4 @@
-# parts made out of a vex step: screws at any length, shoulder screws, the thin nylock, other materials and colors
+# parts made out of a vex step: screws at any length, shoulder screws, the thin nylock, the 3/8 hs spacer, other materials and colors
 import functools
 
 import Part
@@ -45,7 +45,7 @@ def upright(s, u=1.0):
 
 
 def screw(s, p):
-    # base screw head + a stub of shank, its tip moved out to length, our shank between. under the head at z = 0, shank down -z
+    # base screw head + a stub of shank, its tip moved out to length, a new shank between. under the head at z = 0, shank down -z
     s, h = upright(s)
     head, stub, tip = p["head"], 0.05, 0.1
     length, under = p["length"] if "shoulder" in p else (p["length"], 0)
@@ -69,6 +69,17 @@ def thin(s, p):
     return s
 
 
+def middle_out(s, p):
+    # base step down to length, cut out of the middle. its drafted both ways off the parting line there, so the halves meet on the same secton
+    b = s.optimalBoundingBox()
+    mid, cut = (b.ZMin + b.ZMax) / 2, (b.ZLength - p["length"]) / 2
+    if cut < 0.001:  # vex's 1/16 is 1.6 mm
+        return s
+    top = s.common(slab(mid + cut, b.ZMax + 1))
+    top.translate(Vector(0, 0, -2 * cut))
+    return s.common(slab(b.ZMin - 1, mid - cut)).fuse(top).removeSplitter()
+
+
 FAMILIES = {
     "hex-screw": screw,
     "star-screw": screw,
@@ -76,7 +87,7 @@ FAMILIES = {
     "thin-nylock": thin,
     "hex-nut": lambda s, p: upright(s)[0],  # same shape, other material
     "license-plate": lambda s, p: s,
-    "hs-spacer": lambda s, p: s,
+    "hs-spacer": middle_out,
 }
 
 

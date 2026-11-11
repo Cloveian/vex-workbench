@@ -17,7 +17,7 @@ cat = catalog.load()
 gen = catalog.generated(cat)
 steps = {Path(p["file"]).stem: p for p in catalog.step_parts(cat)}
 
-# vex's file is off, ours is the nominal one
+# vex's file is off, the generated one is nominal
 OFF = {
     "2 High Strength Shaft (276-3440)": "1 mm short, the 24 isnt",
     "3 High Strength Shaft (276-3522)": "1 mm short, the 24 isnt",
@@ -64,6 +64,14 @@ for fam in cat["family"]:
         bad += not ok
         if not ok or "fixtures" not in fam:
             print(f"{'ok ' if ok else 'BAD'} {p['name']}: builds")
+
+# the 3/8 hs spacer has no step. 0.02158 in3, within 2% of halfway between the 1/4 and 1/2 (0.02195)
+hs = {p["params"]["length"]: library.GENERATORS["hs-spacer"](p, cat) for p in gen if p["family"] == "hs-spacer"}
+got = size(hs[0.375])
+vol = hs[0.375].Volume / ((hs[0.25].Volume + hs[0.5].Volume) / 2) - 1
+ok = got[0] == 0.375 and abs(vol) < 0.02
+bad += not ok
+print(f"{'ok ' if ok else 'BAD'} 3/8 hs spacer: {got} vol {vol * 100:+.2f}% off halfway")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)
