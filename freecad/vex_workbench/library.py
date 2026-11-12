@@ -763,7 +763,7 @@ def frame(link, plc, name="Hole"):
 
 
 class Observer:
-    # a VEX param or menu box changed on a placed copy -> point it at that variant
+    # placed copies: a VEX param or menu box changing points it at that variant, one going takes its insert
     def slotChangedObject(self, obj, prop):
         doc = obj.Document
         # undo / redo puts LinkedObject back itself, retargetting made a second source
@@ -788,6 +788,16 @@ class Observer:
                 was = index()[1].get(getattr(obj.LinkedObject, "VexName", None))
                 if was:
                     setattr(obj, prop, picks(index()[0][obj.VexFamily], was)[prop])
+
+    def slotDeletedObject(self, obj):
+        # a part going takes its insert with it, undo brings both back
+        doc = obj.Document
+        if doc.Restoring or doc.Transacting or not getattr(obj, "VexInsert", ""):
+            return
+        from . import inserts
+        ins = inserts.insert(obj)
+        if ins:
+            inserts.take_out(ins)
 
 
 def refit(link):

@@ -354,6 +354,14 @@ assert inserts.insert(cp) is None and "Gear" in cp.Label, cp.Label
 gear.Insert = "None"
 assert inserts.insert(gear) is None and not [o for o in doc.Objects if hasattr(o, "VexSeat")]
 
+# deleting a gear takes its insert with it
+gone = library.place(doc, next(p for p in steps.values() if p["name"] == "24T High Strength Gear v2"))
+inserts.boxes(gone, "Square")
+name = gone.VexInsert
+assert doc.getObject(name) is not None, name
+doc.removeObject(gone.Name)
+assert doc.getObject(name) is None, "insert left behind"
+
 # dots: a flex wheel's 3/8 hex bore and an adapter's 1/4 square, both faces each, and every hole of a rail both sides
 for name, n in (("2 Flex Wheel (45A)", 2), ("Plastic VersaHex Adapter (0.25 Long)", 2), ("6 Hole Linear Rail", 12)):
     dots = library.hole_dots(library.place(doc, gen[name]))
