@@ -359,8 +359,15 @@ gone = library.place(doc, next(p for p in steps.values() if p["name"] == "24T Hi
 inserts.boxes(gone, "Square")
 name = gone.VexInsert
 assert doc.getObject(name) is not None, name
+doc.openTransaction("delete")
 doc.removeObject(gone.Name)
+doc.commitTransaction()
 assert doc.getObject(name) is None, "insert left behind"
+# undo puts the part back with its insert still on it
+doc.undo()
+back = next(o for o in doc.Objects if getattr(o, "VexInsert", "") == name)
+assert inserts.insert(back) is not None, name
+doc.removeObject(back.Name)
 
 # dots: a flex wheel's 3/8 hex bore and an adapter's 1/4 square, both faces each, and every hole of a rail both sides
 for name, n in (("2 Flex Wheel (45A)", 2), ("Plastic VersaHex Adapter (0.25 Long)", 2), ("6 Hole Linear Rail", 12)):
