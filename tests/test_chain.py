@@ -46,7 +46,7 @@ belt = 2 * math.sqrt(D * D - (r2 - r1) ** 2) + r1 * (math.pi - 2 * phi) + r2 * (
 got = sum(chain.length(g) for g in segs)
 assert joined(segs) < 1e-12 and abs(got - belt) < 1e-12, (got, belt)
 pins, gap = chain.pins(segs, P)
-assert 0 < gap < P and max(abs(d - P) for d in links(pins)) < 1e-6, gap
+assert len(pins) == 68 and abs(gap - 0.0232026) < 1e-6 and max(abs(d - P) for d in links(pins)) < 1e-6, (len(pins), gap)  # 67 links 0.023 short of closing
 # on a wheel the pins are on its pitch circle, lines are tangent there
 on = [p for p in pins if abs(abs(p) - r1) < 1e-6 or abs(abs(p - D) - r2) < 1e-6]
 assert len(on) > 12, len(on)
