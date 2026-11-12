@@ -87,6 +87,9 @@ for m in cat["menu"]:
     for p in m["parts"]:
         assert names.count(p["part"]) == 1 and catalog.shipped(steps[names.index(p["part"])]).is_file(), p["part"]
 assert all(names.count(n) == 1 for n in cat["insert"].values()), cat["insert"]
+# every chain a sprocket or link comes in has a pitch
+chains = {p["Chain"] for m in cat["menu"] if "Chain" in m["axes"] for p in m["parts"]} | {v["params"]["chain"] for v in gen if v["family"] == "chain-link"}
+assert chains == set(cat["chain"]), chains ^ set(cat["chain"])
 # the boxes only offer what goes with the picks above, a pick that doesnt fit anymore goes to the first
 wheels = next(m for m in cat["menu"] if m["id"] == "wheels")
 rows, part = catalog.narrowed(wheels, {"Type": "Mecanum", "Size": "2.75", "Kind": "V1, Right"})
