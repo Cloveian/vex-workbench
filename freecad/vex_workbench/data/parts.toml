@@ -43,6 +43,7 @@ Charcoal = [0.145098, 0.156863, 0.164706] # InvGen-071 37,40,42, v5 electronics
 "Flex 60A" = [0.25098, 0.25098, 0.25098] # 64
 "Adapter Grey" = [0.235294, 0.235294, 0.235294] # 60, the plastic versahex adapters
 "Adapter Dark Grey" = [0.25098, 0.25098, 0.25098] # 64, the 0.5 one
+"Truck Grey" = [0.315, 0.315, 0.315] # 80.3, the slide trucks
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -620,6 +621,16 @@ thickness = "1.2 mm"
 lean = 15 # deg, walls lean in off square
 height = "8.7992 mm" # outside of the wall tops
 chamfer = 0.075 # 45 deg off the wall tops at each end, along the rail
+
+[[family]]
+id = "slide-truck"
+title = "Slide Truck"
+folder = "Motion/Linear Slides"
+name = "Slide Truck {side}"
+material = "Acetal" # fusion just says thermoplastic, its a slide so acetal. a guess
+color = "Truck Grey"
+# off the fusion library's f3ds, ~0.4% heavy. the inner one rides inside the rail
+side = ["Inner"]
 
 # per chain, keys are the sprockets menu's Chain. link = the part the chain tool puts on. one thats not generated says where its chain frame is in its own coords:
 # pins = its pin axis, along = toward its next pin, middle = on pin 0 halfway across (in)

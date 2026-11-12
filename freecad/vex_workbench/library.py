@@ -10,12 +10,12 @@ import FreeCAD as App
 import Part
 from FreeCAD import Placement, Rotation, Vector
 
-from . import catalog, chainlink, derived, flexwheel, metal, rail, stock, versahex
+from . import catalog, chainlink, derived, flexwheel, metal, rail, slide, stock, versahex
 
 GROUP = "VexParts"
 # family id -> make(part, cat)
 GENERATORS = dict.fromkeys(metal.PROFILES, metal.make)
-for m in (stock, derived, chainlink, flexwheel, versahex, rail):
+for m in (stock, derived, chainlink, flexwheel, versahex, rail, slide):
     GENERATORS |= dict.fromkeys(m.FAMILIES, m.make)
 # mm, outside these it isnt a hole you'd put a screw or shaft through. the 11W motor step has 0.008-0.07 bits inside its screw holes
 HOLE_MIN, HOLE_MAX = 0.1 * metal.IN, 0.5 * metal.IN
