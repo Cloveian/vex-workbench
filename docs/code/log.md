@@ -1,5 +1,11 @@
 # Log
 
+## 2026-11-12 - slide trucks
+
+- both slide trucks, off the fusion library's f3ds. theyre molded parts, 1 deg draft on every wall and 0.3 / 0.5 mm fillets on every edge (434 faces on the inner one, 838 on the outer, which isnt even a valid solid), so they arent exact like the adapters. the section goes in as a point table with arc centers, gets pushed along y, and the pockets between the ribs and bosses get cut from below. inner is 0.2096 in3 vs fusion's 0.2087, +0.41%, xor ~1.4% by 20k points cuz booleans against fusion's step just return nothing. outer is +0.00%, which is the missing fillets and the missing end chamfers canceling out more than me being good at this lol
+- acetal on both is a guess, fusion just says thermoplastic. Truck Grey is fusion's 0.315
+- the versahex adapters use `stock.section` and `metal.square` now, the rail uses `metal.BIG`
+
 ## 2026-11-11 - more parts
 
 - 3/8" HS spacer. vex has no step for it, so its their 1/2" with 1/8" cut out of the middle. theyre molded with draft both ways off a parting line in the middle (0.3937 across there, ~0.0088"/in a side smaller going out), so the two halves meet on the same section and it just looks molded. 0.02158 in3, 1.7% under halfway between the 1/4 and the 1/2, which is 0.007 g. the four real ones are fixtures now too, which is how the 1/16" (actually 1.6 mm, 0.063) turned out to be getting a 0.0005" sliver cut out of it. not anymore

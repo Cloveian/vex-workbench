@@ -110,13 +110,14 @@ ok = got == [0.3464, 0.8206, 17.5] and abs(vol) < 0.0005 and rail.isValid()
 bad += not ok
 print(f"{'ok ' if ok else 'BAD'} 35 hole linear rail: {got} vol {vol * 100:+.3f}% on the first half")
 
-# inner slide truck vs fusion's, 0.208715 in3. no drafts or rib fillets so it isnt exact, the xor is ~1.4%
-truck = library.GENERATORS["slide-truck"](next(p for p in gen if p["name"] == "Slide Truck Inner"), cat)
-got = size(truck)
-vol = truck.Volume / IN**3 / 0.208715 - 1
-ok = got == [0.3296, 0.6867, 1.995] and abs(vol) < 0.01 and truck.isValid()
-bad += not ok
-print(f"{'ok ' if ok else 'BAD'} inner slide truck: {got} vol {vol * 100:+.2f}%")
+# slide trucks vs fusion's. no drafts or rib fillets so not exact, the inner one's xor is ~1.4%
+for name, in3, box in (("Slide Truck Inner", 0.208715, [0.3296, 0.6867, 1.995]), ("Slide Truck Outer", 0.325974, [0.5603, 0.9994, 1.9874])):
+    truck = library.GENERATORS["slide-truck"](next(p for p in gen if p["name"] == name), cat)
+    got = size(truck)
+    vol = truck.Volume / IN**3 / in3 - 1
+    ok = got == box and abs(vol) < 0.01 and truck.isValid()
+    bad += not ok
+    print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.2f}%")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)

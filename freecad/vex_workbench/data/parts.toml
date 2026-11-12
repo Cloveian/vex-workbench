@@ -629,8 +629,8 @@ folder = "Motion/Linear Slides"
 name = "Slide Truck {side}"
 material = "Acetal" # fusion just says thermoplastic, its a slide so acetal. a guess
 color = "Truck Grey"
-# off the fusion library's f3ds, ~0.4% heavy. the inner one rides inside the rail
-side = ["Inner"]
+# off the fusion library's f3ds, within 0.5%. the inner one rides inside the rail, the outer one round it with the inner one's feet in its grooves
+side = ["Inner", "Outer"]
 
 # per chain, keys are the sprockets menu's Chain. link = the part the chain tool puts on. one thats not generated says where its chain frame is in its own coords:
 # pins = its pin axis, along = toward its next pin, middle = on pin 0 halfway across (in)

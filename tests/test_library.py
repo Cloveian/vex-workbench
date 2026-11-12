@@ -369,8 +369,8 @@ back = next(o for o in doc.Objects if getattr(o, "VexInsert", "") == name)
 assert inserts.insert(back) is not None, name
 doc.removeObject(back.Name)
 
-# dots: a flex wheel's 3/8 hex bore and an adapter's 1/4 square, both faces each, and every hole of a rail and a slide truck both sides
-for name, n in (("2 Flex Wheel (45A)", 2), ("Plastic VersaHex Adapter (0.25 Long)", 2), ("6 Hole Linear Rail", 12), ("Slide Truck Inner", 8)):
+# dots: a flex wheel's 3/8 hex bore and an adapter's 1/4 square, both faces each, and every hole of a rail and the slide trucks both sides
+for name, n in (("2 Flex Wheel (45A)", 2), ("Plastic VersaHex Adapter (0.25 Long)", 2), ("6 Hole Linear Rail", 12), ("Slide Truck Inner", 8), ("Slide Truck Outer", 8)):
     dots = library.hole_dots(library.place(doc, gen[name]))
     assert len(dots) == n and all(abs(d.x) < 1e-6 for d in dots), (name, dots)
 doc.recompute()
