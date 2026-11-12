@@ -792,6 +792,12 @@ try:
     doc.undo()
     assert set(doc.Objects) == had, [o.Label for o in set(doc.Objects) - had]
     panel.reject()
+    # a family color with the params in it, flex wheels go by hardness
+    flex = library.place(doc, gen["2 Flex Wheel (60A)"])
+    doc.recompute()
+    got = flex.LinkedObject.Group[0].ViewObject.ShapeColor[:3]
+    assert all(abs(c - 0.25098) < 1e-4 for c in got), got
+    doc.removeObject(flex.Name)
     # chain panel round a 16T and a 32T 6P 6in apart, back on the first closes it. one link array, the parts list counts every link
     from freecad.vex_workbench import chain, partslist
     cd = App.newDocument("chain")
