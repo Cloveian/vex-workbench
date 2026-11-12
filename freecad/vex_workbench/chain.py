@@ -7,7 +7,7 @@ import Part
 from FreeCAD import Placement, Rotation, Vector
 from PySide import QtCore, QtWidgets
 
-from . import library, snap, ui
+from . import catalog, library, snap, ui
 from .metal import IN
 
 TOL = 1e-9
@@ -103,7 +103,7 @@ def sprocket(s):
     row = library.row(link)
     if not row or "Teeth" not in row:
         raise ValueError(f"{link.Label} isn't a sprocket")
-    pitch = library.cat()["chain"][row["Chain"]] * IN
+    pitch = library.cat()["chain"][row["Chain"]]["pitch"] * IN
     teeth = int(row["Teeth"])
     r = pitch_radius(teeth, pitch)
     c, n = library.hole_at(link, pt)
@@ -180,9 +180,15 @@ def put_on(doc, parent, sprockets, turn=True):
     plane, flat = lay(sprockets)
     kind, pitch = sprockets[0]["chain"], sprockets[0]["pitch"]
     pts, gap = pins(from_middle(loop(flat)), pitch)
-    part = next((p for p in library.index()[1].values() if p["family"] == "chain-link" and p["params"]["chain"] == kind), None)
+    c = library.cat()["chain"][kind]
+    _, gen, steps = library.index()
+    part = gen.get(c["link"]) or next((p for p in steps.values() if p["name"] == c["link"] and catalog.has(p)), None)
     if part is None:
-        raise ValueError(f"there's no {kind} link to put on yet")
+        raise ValueError(f"there's no {c['link']} to put on")
+    own = Placement()  # the link's own coords -> chain frame
+    if "pins" in c:
+        x, y = Vector(*c["pins"]), Vector(*c["along"])
+        own = Placement(Vector(*c["middle"]) * IN, Rotation(x, y, x.cross(y), "XYZ")).inverse()
     if turn:
         axis = plane.Rotation.multVec(Vector(0, 0, 1))
         for w, (center, _) in zip(sprockets, flat):
@@ -194,7 +200,7 @@ def put_on(doc, parent, sprockets, turn=True):
     n = len(pts)
     link.ShowElement = False  # one row in the tree
     link.ElementCount = n
-    link.PlacementList = [local.multiply(f) for f in frames(plane, pts)]
+    link.PlacementList = [local.multiply(f).multiply(own) for f in frames(plane, pts)]
     if abs(gap - pitch) < 0.001 * IN:
         return link, f"{n} links, a perfect fit"
     return link, f"{n} links with {(pitch - gap) / IN:.3f} in slack, {n - 1} is {gap / IN:.3f} short"

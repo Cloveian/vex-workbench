@@ -799,7 +799,11 @@ try:
     sp = [library.place(cd, steps[f"Motion/Sprockets/6P/{t}T/{t}T Sprocket, 6P ({sku}).step"]) for t, sku in ((16, "276-8328"), (32, "276-8330"))]
     sp[1].Placement.Base = App.Vector(6 * IN, 0, 0)
     cd.recompute()
-    bores = [(s, min(library.hole_dots(s), key=lambda d: App.Vector(d.x, d.y, 0).Length), s.Placement, (s, "")) for s in sp]
+
+    def bore(s):
+        return s, min(library.hole_dots(s), key=lambda d: App.Vector(d.x, d.y, 0).Length), s.Placement, (s, "")
+
+    bores = [bore(s) for s in sp]
     panel = chain.Panel()
     Gui.Control.showDialog(panel)
     panel.turn.setChecked(True)
@@ -818,6 +822,22 @@ try:
     # with Turn sprockets each one went round its shaft under half a tooth to sit in the chain (8.81 and -5.315 deg)
     yaw = [s.Placement.Rotation.toEuler()[0] for s in sp]
     assert all(0.1 < abs(a) < 180 / t for a, t in zip(yaw, (16, 32))), yaw
+    # 9P goes on as vex's own link step, its chain frame off [chain]
+    hs = [library.place(cd, steps[f"Motion/Sprockets/9P/{t}T/{t}T High Strength Sprocket ({sku}).stp"]) for t, sku in ((12, "276-3877"), (24, "276-3879"))]
+    hs[0].Placement.Base = App.Vector(0, 5 * IN, 0)
+    hs[1].Placement.Base = App.Vector(7 * IN, 5 * IN, 0)
+    cd.recompute()
+    for s in hs + hs[:1]:
+        panel.take(bore(s))
+    QtWidgets.QApplication.processEvents()
+    assert panel.status.text().startswith("55 links with 0.197 in slack, 54 is 0.189 short"), panel.status.text()
+    assert partslist.count(cd)["High Strength Chain Links"][0] == 55, partslist.count(cd)
+    # its own frame: each link's next pin lands on the next link's first, both on the shafts' axis
+    nine = [o for o in cd.Objects if getattr(o, "VexStep", "").endswith("High Strength Chain Links (276-2252-001).stp")][0]
+    pl = nine.PlacementList
+    pin0, pin1 = App.Vector(0, 0.1575, 0) * IN, App.Vector(0.3858, 0.1575, 0) * IN
+    assert max((a.multVec(pin1) - b.multVec(pin0)).Length for a, b in zip(pl, pl[1:])) < 0.01, "9P links dont meet"
+    assert all(abs(abs(p.Rotation.multVec(App.Vector(0, 1, 0)).z) - 1) < 1e-9 for p in pl), "9P pins off the shafts' axis"
     panel.reject()
     say("ok")
     failed = False

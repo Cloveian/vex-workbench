@@ -13,7 +13,7 @@ from FreeCAD import Placement, Rotation, Vector  # noqa: E402
 
 from freecad.vex_workbench import catalog, chain  # noqa: E402
 
-P = catalog.load()["chain"]["6P"]
+P = catalog.load()["chain"]["6P"]["pitch"]
 
 
 def joined(segs):

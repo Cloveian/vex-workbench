@@ -20,7 +20,7 @@ def side(p):
 
 
 def make(part, cat):
-    p = {**part["params"], "pitch": cat["chain"][part["params"]["chain"]]}
+    p = {**part["params"], "pitch": cat["chain"][part["params"]["chain"]]["pitch"]}
     a, m, o, h, pitch = p["inner"], p["joggle"], p["outer"], p["height"] / 2, p["pitch"]
     # side view, round both ends
     end = Part.Face(Part.Wire(Part.makeCircle(h, Vector(-o, 0, 0), X))).extrude(Vector(2 * o, 0, 0))
