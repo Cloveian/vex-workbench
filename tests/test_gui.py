@@ -42,7 +42,7 @@ try:
     Gui.activateWorkbench("VexWorkbench")
     bar = Gui.getMainWindow().findChild(QtWidgets.QToolBar, "VEX")
     tools = [a.text() for a in bar.actions()]
-    assert tools == ["VEX parts", "Frame on hole", "Align", "Joint", "Screw", "Spacers", "Bend", "Cut", "Drill", "Duplicate", "Parts list"], tools
+    assert tools == ["VEX parts", "Frame on hole", "Align", "Joint", "Chain", "Screw", "Spacers", "Bend", "Cut", "Drill", "Duplicate", "Parts list"], tools
 
     doc = App.newDocument("vexgui")
     # a bug in a tool still raises, and whatever it half built gets undone
@@ -791,6 +791,29 @@ try:
     assert (on.Placement.Base - App.Vector(2.75, 1.25, 0.046) * IN).Length < 1e-6, on.Placement.Base / IN
     doc.undo()
     assert set(doc.Objects) == had, [o.Label for o in set(doc.Objects) - had]
+    panel.reject()
+    # chain panel round a 16T and a 32T 6P 6in apart, back on the first closes it. one link array, the parts list counts every link
+    from freecad.vex_workbench import chain, partslist
+    cd = App.newDocument("chain")
+    QtWidgets.QApplication.processEvents()  # new doc's view first, the processEvents after the close hung offscreen without it
+    sp = [library.place(cd, steps[f"Motion/Sprockets/6P/{t}T/{t}T Sprocket, 6P ({sku}).step"]) for t, sku in ((16, "276-8328"), (32, "276-8330"))]
+    sp[1].Placement.Base = App.Vector(6 * IN, 0, 0)
+    cd.recompute()
+    bores = [(s, min(library.hole_dots(s), key=lambda d: App.Vector(d.x, d.y, 0).Length), s.Placement, (s, "")) for s in sp]
+    panel = chain.Panel()
+    Gui.Control.showDialog(panel)
+    panel.take(bores[0])
+    panel.take(bores[0])
+    assert panel.status.text().startswith("a chain needs two"), panel.status.text()
+    panel.take(bores[1])
+    panel.take(bores[1])
+    assert panel.status.text().startswith(f"{sp[1].Label} is in already"), panel.status.text()
+    panel.take(bores[0])
+    QtWidgets.QApplication.processEvents()
+    ch = [o for o in cd.Objects if getattr(o, "VexFamily", "") == "chain-link"]
+    assert len(ch) == 1 and ch[0].ElementCount == 73, [(o.Label, o.ElementCount) for o in ch]
+    assert panel.status.text().startswith("73 links with 0.182 in slack, 72 is 0.068 short"), panel.status.text()
+    assert partslist.count(cd)["Chain Link (6P)"][0] == 73, partslist.count(cd)
     panel.reject()
     say("ok")
     failed = False
