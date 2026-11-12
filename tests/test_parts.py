@@ -1,4 +1,4 @@
-# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links, flex wheels) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
+# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links, flex wheels, versahex adapters) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
 import re
 import sys
 from pathlib import Path
@@ -89,6 +89,15 @@ for name, cm, box in (("2 Flex Wheel (45A)", 0.871523, [0.5, 2.0, 2.0]), ("1.625
     ok = got == box and abs(vol) < 0.0005 and wheel.isValid() and len(wheel.Faces) == 57
     bad += not ok
     print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.3f}%, {len(wheel.Faces)} faces")
+
+# plastic versahex adapters vs the fusion library's f3ds
+for name, mm3, box in (("Plastic VersaHex Adapter (0.25 Long)", 823.714, [0.2987, 0.625, 0.625]), ("Plastic VersaHex Adapter (0.125 Long)", 531.840, [0.1806, 0.625, 0.625])):
+    adapter = library.GENERATORS["versahex-adapter"](next(p for p in gen if p["name"] == name), cat)
+    got = size(adapter)
+    vol = adapter.Volume / mm3 - 1
+    ok = got == box and abs(vol) < 0.0005 and adapter.isValid()
+    bad += not ok
+    print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.3f}%")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)
