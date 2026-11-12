@@ -583,6 +583,21 @@ bore = "6.38 mm" # square
 bore_round = 0.025
 chamfer = "0.5 mm" # across, every edge but where the hex meets the flange and under the flange
 
+[[family]]
+id = "linear-rail"
+title = "Linear Rail"
+folder = "Motion/Linear Slides"
+name = "{holes} Hole Linear Rail"
+material = "Steel"
+# off the fusion library's 35 hole one, which has the same 0.1 tab off the far end as their angles
+holes = { from = 2, to = 35 }
+across = "16.9314 mm" # between the bend centers. base is taken, thats the step to derive from
+bend = "0.7558 mm" # inside radius
+thickness = "1.2 mm"
+lean = 15 # deg, walls lean in off square
+height = "8.7992 mm" # outside of the wall tops
+chamfer = 0.075 # 45 deg off the wall tops at each end, along the rail
+
 # per chain, keys are the sprockets menu's Chain. link = the part the chain tool puts on. one thats not generated says where its chain frame is in its own coords:
 # pins = its pin axis, along = toward its next pin, middle = on pin 0 halfway across (in)
 [chain."6P"]

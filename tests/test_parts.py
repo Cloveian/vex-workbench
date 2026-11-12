@@ -1,4 +1,4 @@
-# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links, flex wheels, versahex adapters) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
+# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links, flex wheels, versahex adapters, linear rails) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
 import re
 import sys
 from pathlib import Path
@@ -9,6 +9,7 @@ sys.path.insert(0, str(ROOT))
 import freecad  # noqa: E402,F401
 freecad.__path__.insert(0, str(ROOT / "freecad"))
 import Part  # noqa: E402
+from FreeCAD import Vector  # noqa: E402
 
 from freecad.vex_workbench import catalog, library, metal  # noqa: E402
 from freecad.vex_workbench.metal import IN  # noqa: E402
@@ -98,6 +99,14 @@ for name, mm3, box in (("Plastic VersaHex Adapter (0.25 Long)", 823.714, [0.2987
     ok = got == box and abs(vol) < 0.0005 and adapter.isValid()
     bad += not ok
     print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.3f}%")
+
+# linear rail vs fusion's 35 hole one, up to 8.75 in, short of their tab. 8891.95 mm3 there, 42.027 mm2 across
+rail = library.GENERATORS["linear-rail"](next(p for p in gen if p["name"] == "35 Hole Linear Rail"), cat)
+got = size(rail)
+vol = rail.common(Part.makeBox(100, 8.75 * IN, 100, Vector(-50, 0, -10))).Volume / 8891.95 - 1
+ok = got == [0.3464, 0.8206, 17.5] and abs(vol) < 0.0005 and rail.isValid()
+bad += not ok
+print(f"{'ok ' if ok else 'BAD'} 35 hole linear rail: {got} vol {vol * 100:+.3f}% on the first half")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)
