@@ -20,10 +20,14 @@ def section(p):
             f = f.makeOffset2D(-p["round"]).makeOffset2D(p["round"])
         return f
     if "hex" in p:
-        r = p["hex"] / 3**0.5  # across flats -> across corners / 2
-        corners = [Vector(r * math.cos(math.pi / 3 * i), r * math.sin(math.pi / 3 * i), 0) for i in range(7)]
-        return Part.Face(Part.makePolygon(corners))
+        return hexagon(p["hex"])
     return Part.Face(Part.Wire(Part.makeCircle(p["od"] / 2)))
+
+
+def hexagon(flats, turn=0):
+    # on z = 0, corners turn deg round off +x
+    r = flats / 3**0.5  # across flats -> across corners / 2
+    return Part.Face(Part.makePolygon([Vector(r * math.cos(math.radians(turn + 60 * i)), r * math.sin(math.radians(turn + 60 * i)), 0) for i in range(7)]))
 
 
 def blank(h, end):

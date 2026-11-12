@@ -38,6 +38,9 @@ Charcoal = [0.145098, 0.156863, 0.164706] # InvGen-071 37,40,42, v5 electronics
 "Bright Steel" = [0.854902, 0.878431, 0.913725] # "VEX Steel" 218,224,233 on the new pneumatics
 "Joint Grey" = [0.797738, 0.797738, 0.797738] # Prism-073, the universal joint
 "Black Oxide" = [0.1714, 0.1714, 0.1714] # Prism-626 43.7, vex's shoulder screws
+"Flex 30A" = [0.698039, 0.705882, 0.698039] # 178,180,178
+"Flex 45A" = [0.537255, 0.552941, 0.552941] # 137,141,141
+"Flex 60A" = [0.25098, 0.25098, 0.25098] # 64
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -48,6 +51,7 @@ Acetal = 1.41
 PTFE = 2.20
 ABS = 1.06
 "Powdered Metal" = 6.8 # sintered iron, a guess, vex just says metal
+Urethane = 1.15 # flex wheels, a guess too
 
 # uuid of FreeCAD's closest standard material card for each, theres no PA66 or glass filled one. weights still go off [density]
 [freecad_material]
@@ -59,6 +63,7 @@ Acetal = "6d31c041-f189-4715-9911-f52e6de00bef" # POM-Copolymer-Generic
 PTFE = "8ce226db-43ef-4471-93f1-07e7276aa276" # PTFE-Generic
 ABS = "73371529-2983-47dd-b988-6739a2e20029" # ABS-Generic
 "Powdered Metal" = "90bbd8ef-8623-4d78-b3bf-e0bdb9b74dd3" # Steel-Generic
+Urethane = "758cfc44-f4ad-4605-8645-75e9e6b053ab" # PVC-Generic, no rubber one either
 
 # step parts with no listed mass get volume * density off this, longest folder wins. materials off vex's store pages and robosource, "plastic" counts as nylon
 # no wheels or electronics, theyre more than one thing. those get a mass = "..." on the row or a ?
@@ -540,6 +545,24 @@ color = "Sensor Grey" # fusion's 84,88,90
 sizes = [
   { chain = "6P", inner = "3.25 mm", joggle = "4.45 mm", outer = "5.65 mm", height = "4.4 mm", step = ["2.6 mm", "3.75 mm"], corner = "0.5 mm", barrel = "3.2 mm", peg = "2 mm", hole = "2.1 mm" },
 ]
+
+[[family]]
+id = "flex-wheel"
+title = "Flex Wheel"
+folder = "Motion/Wheels/Flex Wheels/{hardness}"
+name = "{od} Flex Wheel ({hardness})"
+material = "Urethane"
+color = "Flex {hardness}"
+# off the fusion library's f3ds, exact in round mm. 30A, 45A and 60A are the same shape, only the color changes
+od = [1.625, 2]
+hardness = ["30A", "45A", "60A"]
+width = 0.5
+hex = "9.5 mm" # across the flats
+rim = "4 mm"
+hub = { "1.625" = "10.16 mm", "2" = "10.15 mm" } # radius where the windows start, by od
+spokes = 6
+spoke = "4 mm"
+corner = "2 mm" # window corners
 
 # per chain, keys are the sprockets menu's Chain. link = the part the chain tool puts on. one thats not generated says where its chain frame is in its own coords:
 # pins = its pin axis, along = toward its next pin, middle = on pin 0 halfway across (in)
