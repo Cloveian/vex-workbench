@@ -12,22 +12,23 @@ O, Z = Vector(0, 0, 0), Vector(0, 0, 1)
 
 def section(p):
     if "size" in p:
-        # square shaft, corners turned down to a circle and / or rounded
         f = square(p["size"], 0)
-        if "turn" in p:
-            f = f.common(Part.Face(Part.Wire(Part.makeCircle(p["turn"] / 2)))).Faces[0]
-        if "round" in p:
-            f = f.makeOffset2D(-p["round"]).makeOffset2D(p["round"])
-        return f
-    if "hex" in p:
-        return hexagon(p["hex"])
-    return Part.Face(Part.Wire(Part.makeCircle(p["od"] / 2)))
+    elif "hex" in p:
+        f = hexagon(p["hex"])
+    else:
+        return Part.Face(Part.Wire(Part.makeCircle(p["od"] / 2)))
+    # corners turned down to a circle and / or rounded
+    if "turn" in p:
+        f = f.common(Part.Face(Part.Wire(Part.makeCircle(p["turn"] / 2)))).Faces[0]
+    if "round" in p:
+        f = f.makeOffset2D(-p["round"]).makeOffset2D(p["round"])
+    return f
 
 
-def hexagon(flats, turn=0):
-    # on z = 0, corners turn deg round off +x
+def hexagon(flats, deg=0):
+    # on z = 0, corners deg round off +x
     r = flats / 3**0.5  # across flats -> across corners / 2
-    return Part.Face(Part.makePolygon([Vector(r * math.cos(math.radians(turn + 60 * i)), r * math.sin(math.radians(turn + 60 * i)), 0) for i in range(7)]))
+    return Part.Face(Part.makePolygon([Vector(r * math.cos(math.radians(deg + 60 * i)), r * math.sin(math.radians(deg + 60 * i)), 0) for i in range(7)]))
 
 
 def blank(h, end):

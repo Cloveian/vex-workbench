@@ -5,10 +5,9 @@ import FreeCAD as App
 import Part
 from FreeCAD import Vector
 
-from .metal import IN, square
+from .metal import BIG, IN, square
 
 FAMILIES = ("linear-rail",)
-BIG = 1e3  # mm, past the whole rail
 
 
 def at(x, z):

@@ -4,21 +4,10 @@ import math
 import Part
 from FreeCAD import Vector
 
-from .metal import IN
-from .stock import hexagon
+from .metal import IN, square
+from .stock import section
 
 FAMILIES = ("versahex-adapter", "versahex-adapter-slotted")
-
-
-def turned(flats, turn):
-    # hex with its flats on y, corners turned down to a circle turn across
-    return hexagon(flats).common(Part.Face(Part.Wire(Part.makeCircle(turn / 2)))).Faces[0]
-
-
-def rounded(side, r):
-    a = side / 2
-    f = Part.Face(Part.makePolygon([Vector(-a, -a, 0), Vector(a, -a, 0), Vector(a, a, 0), Vector(-a, a, 0), Vector(-a, -a, 0)]))
-    return f.makeOffset2D(-r).makeOffset2D(r)
 
 
 def prism(face, z0, z1, bottom=0.0, top=0.0, deg=30):
@@ -41,7 +30,7 @@ def make(part, cat):
     c, flange, deg = p["chamfer"], p["flange_t"], params["deg"]
     z1 = (params["hex_long"][f"{params['length']:g}"] * IN + flange) / 2
     disc = Part.Face(Part.Wire(Part.makeCircle(p["flange"] / 2)))
-    body = prism(turned(p["hex"], p["turn"]), -z1, z1 - flange, bottom=c, deg=deg).fuse(prism(disc, z1 - flange, z1, top=p.get("flange_top", 0), deg=deg))
+    body = prism(section(p), -z1, z1 - flange, bottom=c, deg=deg).fuse(prism(disc, z1 - flange, z1, top=p.get("flange_top", 0), deg=deg))
     if "slot" in params:
         # out through the rim eather side, floor corners and mouth edges rounded
         w, deep, r = (params["slot"][k] * IN for k in ("width", "deep", "round"))
@@ -53,4 +42,4 @@ def make(part, cat):
         body = body.cut(cuts)
         mouth = [e for e in body.Edges if e.BoundBox.XLength < 1e-6 and e.BoundBox.ZLength < 1e-6 and abs(e.BoundBox.ZMin - under) < 1e-6 and abs(abs(e.BoundBox.XMin) - w / 2) < 1e-6]
         body = body.makeFillet(r, mouth)
-    return body.cut(prism(rounded(p["bore"], p["bore_round"]), -z1, z1, bottom=-c, top=-c, deg=deg)).removeSplitter()
+    return body.cut(prism(square(p["bore"], p["bore_round"]), -z1, z1, bottom=-c, top=-c, deg=deg)).removeSplitter()
