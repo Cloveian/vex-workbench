@@ -10,9 +10,9 @@ import freecad  # noqa: E402,F401
 freecad.__path__.insert(0, str(ROOT / "freecad"))
 from FreeCAD import Placement, Rotation, Vector  # noqa: E402
 
-from freecad.vex_workbench import chain  # noqa: E402
+from freecad.vex_workbench import catalog, chain  # noqa: E402
 
-P = 0.25  # 6P
+P = catalog.load()["chain"]["6P"]
 
 
 def joined(segs):
