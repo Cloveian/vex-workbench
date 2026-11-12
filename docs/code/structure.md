@@ -10,6 +10,7 @@
 | `freecad/vex_workbench/metal.py`   | channels, angles, plate, bar, HS lockbars as Part shapes, and the bends, cuts and drilled holes on them |
 | `freecad/vex_workbench/stock.py`   | shafts, standoffs, spacers, washers, plain and flange nuts: a section with lathe ends and a bore |
 | `freecad/vex_workbench/derived.py` | parts cut out of a vex step: screws at any length, the thin nylock, the 3/8 HS spacer, other materials |
+| `freecad/vex_workbench/chain.py` | chain math: tangent lines and arcs round the sprockets (a negative radius wraps the other way, for an idler), pins a straight pitch apart along that by bisection, a link frame on each. no tool on it yet |
 | `freecad/vex_workbench/chainlink.py` | chain links, the 6P one off the fusion library's in round mm numbers. side plates joggled so the next link's peg goes in this one's outer tab |
 | `freecad/vex_workbench/library.py` | parts in a document: hidden source per variant, placed copies are `App::Link`s. steps read once into freecad's cache folder as brep (`remembered`). hole finding too (`holes`, `hole_at`, `hole_dots` kept on the source, `cached` per source). a size change or shop step moves frames and joints on holes that stayed put or turned with a bend onto the new source (`carry`, the bends from `metal.turned`), and joints straight on a face / edge / corner to whatever of it is left (`element`) and deletes the old worked one once nothing links it (`prune`) |
 | `freecad/vex_workbench/browser.py` | the VEX parts dock                                                    |
