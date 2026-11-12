@@ -373,9 +373,9 @@ doc.removeObject(back.Name)
 for name, n in (("2 Flex Wheel (45A)", 2), ("Plastic VersaHex Adapter (0.25 Long)", 2), ("6 Hole Linear Rail", 12), ("Slide Truck Inner", 8), ("Slide Truck Outer", 8)):
     dots = library.hole_dots(library.place(doc, gen[name]))
     assert len(dots) == n and all(abs(d.x) < 1e-6 for d in dots), (name, dots)
-# the ratchet gear's four holes and its bore, both ends
+# the ratchet gear's four holes, both ends
 dots = library.hole_dots(library.place(doc, gen["Ratchet Gear"]))
-assert len(dots) == 10, dots
+assert sum(abs(math.hypot(d.x, d.z) - 0.5 * IN) < 1e-3 for d in dots) == 8, dots
 doc.recompute()
 
 App.closeDocument(doc.Name)

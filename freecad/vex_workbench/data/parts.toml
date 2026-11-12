@@ -641,6 +641,15 @@ material = "Acetal" # fusion's own
 color = "Mid Grey Plastic"
 # off the fusion library's f3d. 25 teeth on a 1/8 square bore, the winch pawl's other half
 
+[[family]]
+id = "winch-pawl"
+title = "Winch Pawl"
+folder = "Motion/Advanced"
+name = "Winch Pawl"
+material = "Acetal" # fusion's own
+color = "Mid Grey Plastic"
+# off the fusion library's f3d, drafts left off. on its own 1/8 shaft, catches the ratchet gear's teeth
+
 # per chain, keys are the sprockets menu's Chain. link = the part the chain tool puts on. one thats not generated says where its chain frame is in its own coords:
 # pins = its pin axis, along = toward its next pin, middle = on pin 0 halfway across (in)
 [chain."6P"]
