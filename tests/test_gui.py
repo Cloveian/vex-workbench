@@ -802,6 +802,7 @@ try:
     bores = [(s, min(library.hole_dots(s), key=lambda d: App.Vector(d.x, d.y, 0).Length), s.Placement, (s, "")) for s in sp]
     panel = chain.Panel()
     Gui.Control.showDialog(panel)
+    panel.turn.setChecked(True)
     panel.take(bores[0])
     panel.take(bores[0])
     assert panel.status.text().startswith("a chain needs two"), panel.status.text()
@@ -814,6 +815,9 @@ try:
     assert len(ch) == 1 and ch[0].ElementCount == 73, [(o.Label, o.ElementCount) for o in ch]
     assert panel.status.text().startswith("73 links with 0.182 in slack, 72 is 0.068 short"), panel.status.text()
     assert partslist.count(cd)["Chain Link (6P)"][0] == 73, partslist.count(cd)
+    # with Turn sprockets each one went round its shaft under half a tooth to sit in the chain (8.81 and -5.315 deg)
+    yaw = [s.Placement.Rotation.toEuler()[0] for s in sp]
+    assert all(0.1 < abs(a) < 180 / t for a, t in zip(yaw, (16, 32))), yaw
     panel.reject()
     say("ok")
     failed = False

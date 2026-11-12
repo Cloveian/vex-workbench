@@ -1,4 +1,5 @@
 # chain loop, pins and link frames, run with: python tests/test_chain.py (needs FreeCAD)
+import cmath
 import math
 import sys
 from pathlib import Path
@@ -65,6 +66,19 @@ for i, (a, b) in enumerate(zip(f, f[1:])):
     assert (a.multVec(Vector(0, P, 0)) - b.Base).Length < 1e-6, i
     assert (a.Rotation.multVec(Vector(1, 0, 0)) - z).Length < 1e-9, i
 assert (f[0].Base - plane.multVec(Vector(pins[0].real, pins[0].imag, 0))).Length < 1e-12
+
+# from_middle is the same loop, starting halfway down the first run
+segs = chain.loop([(0j, r1), (D + 0j, r2)])
+mid = chain.from_middle(segs)
+assert joined(mid) < 1e-12 and abs(sum(map(chain.length, mid)) - belt) < 1e-12
+assert abs(chain.at(mid[0], 0) - (chain.at(segs[1], 0) + chain.at(segs[1], chain.length(segs[1]))) / 2) < 1e-12
+
+# 12 teeth with their middles at 0.1 rad + k * 30 deg, tips 0.05 either side. gaps are at 0.1 + 15 deg, a pin at 0.3 rad wants it turned 0.3 - that
+r = chain.pitch_radius(12, P)
+step = 2 * math.pi / 12
+tips = [Vector(1.1 * r * math.cos(a), 1.1 * r * math.sin(a), 0) for k in range(12) for a in (0.1 + k * step - 0.05, 0.1 + k * step + 0.05)]
+turn = chain.phase(Placement(), 0j, {"tips": tips, "teeth": 12, "r": r}, [r * cmath.exp(0.3j)])
+assert abs(math.radians(turn) - (0.3 - 0.1 - step / 2)) < 1e-9, turn
 
 for bad in ([(0j, r2)], [(0j, r2), (0.5 + 0j, -r2)], [(0j, r1), (0j, r1)]):
     try:

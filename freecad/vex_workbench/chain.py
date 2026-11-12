@@ -2,9 +2,10 @@
 import cmath
 import math
 
+import FreeCAD as App
 import Part
 from FreeCAD import Placement, Rotation, Vector
-from PySide import QtCore
+from PySide import QtCore, QtWidgets
 
 from . import library, snap, ui
 from .metal import IN
@@ -97,16 +98,17 @@ def frames(plane, pts):
 
 
 def sprocket(s):
-    # (teeth middle on the axis, axis, pitch radius, chain, pitch) for a click on a sprocket, world mm
+    # a clicked sprocket in world mm. at = teeth middle on the axis, tips = vertexes out past the pitch circle
     link, pt, plc, _ = s
     row = library.row(link)
     if not row or "Teeth" not in row:
         raise ValueError(f"{link.Label} isn't a sprocket")
     pitch = library.cat()["chain"][row["Chain"]] * IN
-    r = pitch_radius(int(row["Teeth"]), pitch)
+    teeth = int(row["Teeth"])
+    r = pitch_radius(teeth, pitch)
     c, n = library.hole_at(link, pt)
     # teeth middle = middle of everything out past the tooth roots, along the axis. ~120 ms on the 32T 6P, 7612 vertexes
-    out = []
+    out, tips = [], []
     for v in Part.getShape(link.LinkedObject).Vertexes:
         d = v.Point - c
         along = d.dot(n)
@@ -115,22 +117,26 @@ def sprocket(s):
             raise ValueError(f"that's not the middle of {link.Label}, click its bore")
         if far > r - pitch / 2:
             out.append(along)
+        if far > r:
+            tips.append(plc.multVec(v.Point))
     if not out:
         raise ValueError(f"no teeth round that hole on {link.Label}")
     mid = c + n * ((min(out) + max(out)) / 2)
-    return plc.multVec(mid), plc.Rotation.multVec(n), r, row["Chain"], pitch
+    return {"at": plc.multVec(mid), "axis": plc.Rotation.multVec(n), "teeth": teeth, "r": r, "chain": row["Chain"], "pitch": pitch,
+            "tips": tips, "link": link, "plc": plc}
 
 
 def lay(sprockets):
-    # sprockets in the order the chain goes round -> the plane, (center, signed r) in it, chain and pitch
-    if len({w[3] for w in sprockets}) > 1:
+    # sprockets in the order the chain goes round -> the plane, (center, signed r) in it
+    if len({w["chain"] for w in sprockets}) > 1:
         raise ValueError("those sprockets take different chain")
-    c0, z = sprockets[0][0], sprockets[0][1]
-    plane = Placement(c0, Rotation(Vector(0, 0, 1), z))
+    z = sprockets[0]["axis"]
+    plane = Placement(sprockets[0]["at"], Rotation(Vector(0, 0, 1), z))
+    into = plane.inverse()
     flat = []
-    for c, n, *_ in sprockets:
-        q = plane.inverse().multVec(c)
-        if n.cross(z).Length > 1e-3:
+    for w in sprockets:
+        q = into.multVec(w["at"])
+        if w["axis"].cross(z).Length > 1e-3:
             raise ValueError("those sprockets aren't on parallel shafts")
         if abs(q.z) > OFF_PLANE:
             raise ValueError(f"those sprockets are {abs(q.z) / IN:.3f} in out of line")
@@ -142,17 +148,47 @@ def lay(sprockets):
     out = []
     for i, w in enumerate(sprockets):
         turn = ((flat[i] - flat[i - 1]).conjugate() * (flat[(i + 1) % k] - flat[i])).imag
-        out.append((flat[i], w[2] * way * (1 if turn * way >= 0 else -1)))
-    return plane, out, sprockets[0][3], sprockets[0][4]
+        out.append((flat[i], w["r"] * way * (1 if turn * way >= 0 else -1)))
+    return plane, out
 
 
-def put_on(doc, parent, sprockets):
-    # a link array round the sprockets, and what to say about the fit
-    plane, flat, kind, pitch = lay(sprockets)
-    pts, gap = pins(loop(flat), pitch)
+def from_middle(segs):
+    # same loop starting halfway down the first run, where the odd last link goes
+    _, a, b = segs[1]
+    m = (a + b) / 2
+    return [("line", m, b)] + segs[2:] + [segs[0], ("line", a, m)]
+
+
+def phase(plane, center, w, pts):
+    # deg to turn a sprocket so a tooth gap sits on its pins. e^(i teeth a) over the tips averages out to the tooth middles, the gaps are half a tooth on
+    into = plane.inverse()
+    acc = 0j
+    for t in w["tips"]:
+        q = into.multVec(t)
+        z = complex(q.x, q.y) - center
+        acc += (z / abs(z)) ** w["teeth"]
+    gap = cmath.phase(acc) / w["teeth"] + math.pi / w["teeth"]
+    on = next((p for p in pts if abs(abs(p - center) - w["r"]) < 1e-6 * IN), None)
+    if on is None:
+        return 0.0  # chain only touches it, nothing to sit in
+    step = 2 * math.pi / w["teeth"]
+    return math.degrees((cmath.phase(on - center) - gap + step / 2) % step - step / 2)
+
+
+def put_on(doc, parent, sprockets, turn=True):
+    # a link array round the sprockets, and what to say about the fit. turn = each sprocket turned on its shaft to sit in the chain
+    plane, flat = lay(sprockets)
+    kind, pitch = sprockets[0]["chain"], sprockets[0]["pitch"]
+    pts, gap = pins(from_middle(loop(flat)), pitch)
     part = next((p for p in library.index()[1].values() if p["family"] == "chain-link" and p["params"]["chain"] == kind), None)
     if part is None:
         raise ValueError(f"there's no {kind} link to put on yet")
+    if turn:
+        axis = plane.Rotation.multVec(Vector(0, 0, 1))
+        for w, (center, _) in zip(sprockets, flat):
+            spin = Placement(Vector(), Rotation(axis, phase(plane, center, w, pts)), w["at"])
+            held = w["plc"].multiply(w["link"].Placement.inverse())  # whatever its in, world
+            w["link"].Placement = held.inverse().multiply(spin).multiply(w["plc"])
     local = snap.inside(parent)[0]
     link = library.place(doc, part, parent)
     n = len(pts)
@@ -169,7 +205,11 @@ class Panel(snap.Clicks):
 
     def __init__(self):
         self.bores = []
-        super().__init__("VEX chain", [])
+        self.turn = QtWidgets.QCheckBox("Turn sprockets")
+        self.turn.setToolTip("Turn each sprocket on its shaft so a tooth gap sits under every link on it")
+        self.turn.setChecked(App.ParamGet(ui.PARAMS).GetBool("ChainTurn", True))
+        self.turn.toggled.connect(lambda on: App.ParamGet(ui.PARAMS).SetBool("ChainTurn", on))
+        super().__init__("VEX chain", [(self.turn,)])
 
     def ask(self, said=""):
         n = len(self.bores)
@@ -193,7 +233,8 @@ class Panel(snap.Clicks):
 
     def act(self, spots, _):
         parent = ui.active()
-        got = ui.run("VEX chain", lambda: put_on(self.doc, parent, [sprocket(s) for s in spots]))
+        turn = self.turn.isChecked()
+        got = ui.run("VEX chain", lambda: put_on(self.doc, parent, [sprocket(s) for s in spots], turn))
         if got is None:
             return None
         self.doc.recompute()
