@@ -42,6 +42,7 @@ Charcoal = [0.145098, 0.156863, 0.164706] # InvGen-071 37,40,42, v5 electronics
 "Flex 45A" = [0.537255, 0.552941, 0.552941] # 137,141,141
 "Flex 60A" = [0.25098, 0.25098, 0.25098] # 64
 "Adapter Grey" = [0.235294, 0.235294, 0.235294] # 60, the plastic versahex adapters
+"Adapter Dark Grey" = [0.25098, 0.25098, 0.25098] # 64, the 0.5 one
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -581,7 +582,29 @@ flange = 0.625
 flange_t = 0.0625
 bore = "6.38 mm" # square
 bore_round = 0.025
-chamfer = "0.5 mm" # across, every edge but where the hex meets the flange and under the flange
+chamfer = "0.5 mm" # across, the hex end and both ends of the bore
+flange_top = "0.5 mm"
+deg = 30 # chamfers off the end face
+
+[[family]]
+id = "versahex-adapter-slotted"
+title = "0.5 VersaHex Adapter"
+folder = "Motion/Wheels/Flex Wheels"
+name = "0.5 VersaHex Adapter ({length:g} Long)"
+material = "Nylon"
+color = "Adapter Dark Grey"
+# off the fusion library's f3d, exact. a bigger flange than the plastic one with two slots under it
+length = [0.25]
+hex_long = { "0.25" = 0.25 }
+hex = 0.5
+turn = "13.74 mm"
+flange = 0.7
+flange_t = "2.37 mm"
+bore = "6.4262 mm" # square
+bore_round = "0.75 mm"
+chamfer = "0.5 mm" # the hex end and both ends of the bore, flange top stays sharp
+deg = 45
+slot = { width = "4 mm", deep = "0.9 mm", round = "0.2 mm" }
 
 [[family]]
 id = "linear-rail"
