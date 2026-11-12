@@ -1,4 +1,4 @@
-# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links, flex wheels, versahex adapters, linear rails, slide trucks) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
+# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links, flex wheels, versahex adapters, linear rails, slide trucks, the ratchet gear) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
 import re
 import sys
 from pathlib import Path
@@ -118,6 +118,14 @@ for name, in3, box in (("Slide Truck Inner", 0.208715, [0.3296, 0.6867, 1.995]),
     ok = got == box and abs(vol) < 0.01 and truck.isValid()
     bad += not ok
     print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.2f}%")
+
+# ratchet gear vs fusion's, 0.251706 in3
+gear = library.GENERATORS["ratchet-gear"](next(p for p in gen if p["name"] == "Ratchet Gear"), cat)
+got = size(gear)
+vol = gear.Volume / IN**3 / 0.251706 - 1
+ok = got == [0.32, 1.7148, 1.7169] and abs(vol) < 0.002 and gear.isValid()
+bad += not ok
+print(f"{'ok ' if ok else 'BAD'} ratchet gear: {got} vol {vol * 100:+.3f}%")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)

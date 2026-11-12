@@ -43,7 +43,7 @@ Charcoal = [0.145098, 0.156863, 0.164706] # InvGen-071 37,40,42, v5 electronics
 "Flex 60A" = [0.25098, 0.25098, 0.25098] # 64
 "Adapter Grey" = [0.235294, 0.235294, 0.235294] # 60, the plastic versahex adapters
 "Adapter Dark Grey" = [0.25098, 0.25098, 0.25098] # 64, the 0.5 one
-"Truck Grey" = [0.315, 0.315, 0.315] # 80.3, the slide trucks
+"Mid Grey Plastic" = [0.315, 0.315, 0.315] # 80.3, the slide trucks and the ratchet gear
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -628,9 +628,18 @@ title = "Slide Truck"
 folder = "Motion/Linear Slides"
 name = "Slide Truck {side}"
 material = "Acetal" # fusion just says thermoplastic, its a slide so acetal. a guess
-color = "Truck Grey"
+color = "Mid Grey Plastic"
 # off the fusion library's f3ds, within 0.5%. the inner one rides inside the rail, the outer one round it with the inner one's feet in its grooves
 side = ["Inner", "Outer"]
+
+[[family]]
+id = "ratchet-gear"
+title = "Ratchet Gear"
+folder = "Motion/Advanced"
+name = "Ratchet Gear"
+material = "Acetal" # fusion's own
+color = "Mid Grey Plastic"
+# off the fusion library's f3d. 25 teeth on a 1/8 square bore, the winch pawl's other half
 
 # per chain, keys are the sprockets menu's Chain. link = the part the chain tool puts on. one thats not generated says where its chain frame is in its own coords:
 # pins = its pin axis, along = toward its next pin, middle = on pin 0 halfway across (in)

@@ -1,10 +1,12 @@
 # Log
 
-## 2026-11-12 - slide trucks
+## 2026-11-12 - slide trucks and the ratchet
 
 - both slide trucks, off the fusion library's f3ds. theyre molded parts, 1 deg draft on every wall and 0.3 / 0.5 mm fillets on every edge (434 faces on the inner one, 838 on the outer, which isnt even a valid solid), so they arent exact like the adapters. the section goes in as a point table with arc centers, gets pushed along y, and the pockets between the ribs and bosses get cut from below. inner is 0.2096 in3 vs fusion's 0.2087, +0.41%, xor ~1.4% by 20k points cuz booleans against fusion's step just return nothing. outer is +0.00%, which is the missing fillets and the missing end chamfers canceling out more than me being good at this lol
-- acetal on both is a guess, fusion just says thermoplastic. Truck Grey is fusion's 0.315
+- acetal on both is a guess, fusion just says thermoplastic. the Mid Grey Plastic is fusion's 0.315
 - the versahex adapters use `stock.section` and `metal.square` now, the rail uses `metal.BIG`
+- ratchet gear, the winch pawl's other half. 25 sawtooth teeth with the steep face radial, roots at 0.75 and 0.01 rounds on the tips, a round pocket in each face with its draft and 0.5 mm floor rounds (both revolved off one profile each), four 0.175 holes in bosses on a 0.5 radius, and the 1/8 square bore through a hub out front and a square boss round back thats just the bore grown 0.059. +0.07% on fusion's, 0 of 3000 points missing and 3 extra, two of them sitting right on a pocket floor. acetal and the same 0.315 grey as the trucks, so thats one color for both now
+- (todo) the ratchet's bore dots land on the pocket floors (y -0.1156 and -0.1944), not the hub face and the back boss where the bore actually comes out. the four holes are fine
 
 ## 2026-11-11 - more parts
 
