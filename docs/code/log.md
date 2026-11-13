@@ -6,6 +6,8 @@
 - 12 pockets in the v2 hub, deep ones round the lobes down to the recess and shallow ones between, 0.037 walls between them, all drafted 0.5 so the tables are off the middle of each. +0.70%, about half of it the 0.3 mm rounds on the flange's top edges (~24 in of edge, 0.2 in2 less area in fusion's at the very top) and the rest drafts. the first one has the same rounds, its +0.22% is just a smaller hub. insert's +0.01%, once its hex was 0.5012 and not 0.5 (fusion's has a hair of clearance, the first hub's is dead on)
 - the hub's 0.71 bore gets no dot (over the 0.6 hole cap), the insert's hex gets its two
 - versahub.py builds the flange, ribs and hub once for both versions now, each one just adds its own cuts
+- pulled the 30A and 60A 3" and 4" flex wheels off the library too, to check. same solid as the 45A to the last decimal, 130 faces each. their appearance is fusion's default 0.315 in all of them so the per-hardness greys stay the small wheels' ones, the previews do go light / mid / dark the same way
+- "the turned parts" on the roadmap dont match anything in the fusion library by name, so thats on hold till its clear which parts. the legacy omnis and traction wheels are 3-6 MB each with all the rollers, thats its own few nights
 
 ## 2026-11-12 - slide trucks, ratchet, pawl, the big flex wheels and the versahub
 
