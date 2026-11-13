@@ -25,7 +25,7 @@ The [usage guide](docs/using.md) goes through every tool.
 - **A parts dock** with search. The part families sit at the top, and everything else is in folders laid out like the Fusion 360 library.
 - **Generated parts**, built from the numbers in [`parts.toml`](freecad/vex_workbench/data/parts.toml) and checked against VEX's own files, or the Fusion 360 library's where VEX has none:
   - C-channel, U-channel, angles (including 1x1s cut down from 3x channel), plates and bars, every length up to 35 holes (20 for U-channel), with the bends, count notches and bend reliefs, in the materials VEX makes them in
-  - LS, HS and pitch shafts, standoffs, spacers (the 3/8" HS one too), washers, HS lockbars, 6P chain links and the 10T and 15T 3P sprockets
+  - LS, HS and pitch shafts, standoffs, spacers (the 3/8" HS one too), washers, HS lockbars, 6P chain links and the 10T, 15T and 24T 3P sprockets
   - 1.625", 2", 3" and 4" flex wheels in 30A, 45A and 60A, with dots on the hex bore or the VersaHub bolt holes, the VersaHex adapters and both plastic 1/2" hex VersaHubs (the v2 with its hex insert)
   - linear slide rails, any length up to 35 holes, and both slide trucks
   - the ratchet gear and winch pawl

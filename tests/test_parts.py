@@ -115,7 +115,8 @@ print(f"{'ok ' if ok else 'BAD'} 35 hole linear rail: {got} vol {vol * 100:+.3f}
 # slide trucks, the versahubs and the 3P sprockets vs fusion's. no drafts or small rounds so not exact, xor ~1.4% on the inner truck, ~0.75% on the v1 hub
 for name, in3, box in (("Slide Truck Inner", 0.208715, [0.3296, 0.6867, 1.995]), ("Slide Truck Outer", 0.325974, [0.5603, 0.9994, 1.9874]),
                        ("0.5 Hex Bore Plastic VersaHub", 0.613912, [0.5, 2.1505, 2.1978]), ("0.5 Hex Bore Plastic VersaHub v2", 0.509168, [0.5, 2.1505, 2.1978]),
-                       ("10T Sprocket, 3P", 0.029305, [0.4921, 0.5245, 0.5265]), ("15T Sprocket, 3P", 0.052881, [0.4921, 0.7572, 0.7586])):
+                       ("10T Sprocket, 3P", 0.029305, [0.4921, 0.5245, 0.5265]), ("15T Sprocket, 3P", 0.052881, [0.4921, 0.7572, 0.7586]),
+                       ("24T Sprocket, 3P", 0.084590, [0.4921, 1.1817, 1.1817])):
     part = next(p for p in gen if p["name"] == name)
     s = library.GENERATORS[part["family"]](part, cat)
     got = size(s)
