@@ -26,7 +26,7 @@ The [usage guide](docs/using.md) goes through every tool.
 - **Generated parts**, built from the numbers in [`parts.toml`](freecad/vex_workbench/data/parts.toml) and checked against VEX's own files, or the Fusion 360 library's where VEX has none:
   - C-channel, U-channel, angles (including 1x1s cut down from 3x channel), plates and bars, every length up to 35 holes (20 for U-channel), with the bends, count notches and bend reliefs, in the materials VEX makes them in
   - LS, HS and pitch shafts, standoffs, spacers (the 3/8" HS one too), washers, HS lockbars and 6P chain links
-  - 1.625", 2", 3" and 4" flex wheels in 30A, 45A and 60A, with dots on the hex bore or the VersaHub bolt holes, the VersaHex adapters and the plastic 1/2" hex VersaHub
+  - 1.625", 2", 3" and 4" flex wheels in 30A, 45A and 60A, with dots on the hex bore or the VersaHub bolt holes, the VersaHex adapters and both plastic 1/2" hex VersaHubs (the v2 with its hex insert)
   - linear slide rails, any length up to 35 holes, and both slide trucks
   - the ratchet gear and winch pawl
   - star (Torx) and hex screws from 0.25 to 2.5 in, Robosource shoulder screws, the thin nylock, nylon and nylock flange nuts, the 6-40 piston nut for the old pneumatics, and nuts in other materials

@@ -592,6 +592,23 @@ color = "Mid Grey Plastic"
 # off the fusion library's f3d (the first one, not v2). 3 tabs that go in a 3 or 4 in flex wheel's windows
 
 [[family]]
+id = "versahub-v2"
+title = "VersaHub v2"
+folder = "Motion/Wheels/Flex Wheels"
+name = "0.5 Hex Bore Plastic VersaHub v2"
+material = "Glass-Filled Nylon" # wcp's listing
+color = "Mid Grey Plastic"
+# off the fusion library's f3d. same flange, a round bore with a bayonet for the insert
+
+[[family]]
+id = "versahub-insert"
+title = "VersaHub v2 Hex Insert"
+folder = "Motion/Wheels/Flex Wheels"
+name = "VersaHub v2 Hex Insert"
+material = "Steel" # fusion's "Steel - satin", and wcp's 0.050 lb for the hub only works out with a steel one
+# same frame as the v2 hub, seated and locked, so both at one spot is the hub put together
+
+[[family]]
 id = "versahex-adapter"
 title = "VersaHex Adapter"
 folder = "Motion/Wheels/Flex Wheels"

@@ -384,6 +384,10 @@ for name in ("3 Flex Wheel (45A)", "4 Flex Wheel (45A)"):
 dots = library.hole_dots(library.place(doc, gen["0.5 Hex Bore Plastic VersaHub"]))
 rings = sorted(round(math.hypot(d.x, d.y) / IN, 1) for d in dots)
 assert rings == [0.0] * 2 + [0.4] * 6 + [0.9] * 12, rings
+# v2, just the bolt holes (its bore is the insert's), and the insert's hex both ends
+for name, want in (("0.5 Hex Bore Plastic VersaHub v2", [0.9] * 12), ("VersaHub v2 Hex Insert", [0.0] * 2)):
+    rings = sorted(round(math.hypot(d.x, d.y) / IN, 1) for d in library.hole_dots(library.place(doc, gen[name])))
+    assert rings == want, (name, rings)
 doc.recompute()
 
 App.closeDocument(doc.Name)

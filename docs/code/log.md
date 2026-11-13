@@ -1,5 +1,12 @@
 # Log
 
+## 2026-11-13 - versahub v2
+
+- versahub v2 and its hex insert, as two parts: the hub in glass-filled nylon (wcp), the insert in steel. fusion has the insert as "Steel - satin", and wcp's 0.050 lb (~23 g) only works with a steel one, ~24 g that way vs ~14 g if it was all nylon. same flange as the first one, but the hub's a 0.71 round bore with a bayonet in it: the insert's collar is 6 lobes, it goes down 6 deep pockets on the 60s and turns 30 into an undercut recess right over the flange. fusion's file has it unseated, 0.1875 low and not turned, mine are built seated and locked in the same frame, so placing both at one spot is the hub put together (0 overlap). collar and recess are one shape, a disc minus 6 scallops with the lobe tips rounded by an offset in and back out
+- 12 pockets in the v2 hub, deep ones round the lobes down to the recess and shallow ones between, 0.037 walls between them, all drafted 0.5 so the tables are off the middle of each. +0.70%, about half of it the 0.3 mm rounds on the flange's top edges (~24 in of edge, 0.2 in2 less area in fusion's at the very top) and the rest drafts. the first one has the same rounds, its +0.22% is just a smaller hub. insert's +0.01%, once its hex was 0.5012 and not 0.5 (fusion's has a hair of clearance, the first hub's is dead on)
+- the hub's 0.71 bore gets no dot (over the 0.6 hole cap), the insert's hex gets its two
+- versahub.py builds the flange, ribs and hub once for both versions now, each one just adds its own cuts
+
 ## 2026-11-12 - slide trucks, ratchet, pawl, the big flex wheels and the versahub
 
 - both slide trucks, off the fusion library's f3ds. theyre molded parts, 1 deg draft on every wall and 0.3 / 0.5 mm fillets on every edge (434 faces on the inner one, 838 on the outer, which isnt even a valid solid), so they arent exact like the adapters. the section goes in as a point table with arc centers, gets pushed along y, and the pockets between the ribs and bosses get cut from below. inner is 0.2096 in3 vs fusion's 0.2087, +0.41%, xor ~1.4% by 20k points cuz booleans against fusion's step just return nothing. outer is +0.00%, which is the missing fillets and the missing end chamfers canceling out more than me being good at this lol

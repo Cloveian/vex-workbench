@@ -1,4 +1,4 @@
-# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links, flex wheels, versahex adapters, the versahub, linear rails, slide trucks, the ratchet gear and winch pawl) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
+# everything generated thats not metal (shafts, standoffs, spacers, screws, nuts, chain links, flex wheels, versahex adapters, both versahubs and the v2's insert, linear rails, slide trucks, the ratchet gear and winch pawl) vs vex's steps or fusion's numbers, run with: python tests/test_parts.py (needs FreeCAD + vex-step/)
 import re
 import sys
 from pathlib import Path
@@ -112,9 +112,9 @@ ok = got == [0.3464, 0.8206, 17.5] and abs(vol) < 0.0005 and rail.isValid()
 bad += not ok
 print(f"{'ok ' if ok else 'BAD'} 35 hole linear rail: {got} vol {vol * 100:+.3f}% on the first half")
 
-# slide trucks and the versahub vs fusion's. no drafts or small rounds so not exact, xor ~1.4% on the inner truck, ~0.75% on the hub
+# slide trucks and the versahubs vs fusion's. no drafts or small rounds so not exact, xor ~1.4% on the inner truck, ~0.75% on the v1 hub
 for name, in3, box in (("Slide Truck Inner", 0.208715, [0.3296, 0.6867, 1.995]), ("Slide Truck Outer", 0.325974, [0.5603, 0.9994, 1.9874]),
-                       ("0.5 Hex Bore Plastic VersaHub", 0.613912, [0.5, 2.1505, 2.1978])):
+                       ("0.5 Hex Bore Plastic VersaHub", 0.613912, [0.5, 2.1505, 2.1978]), ("0.5 Hex Bore Plastic VersaHub v2", 0.509168, [0.5, 2.1505, 2.1978])):
     part = next(p for p in gen if p["name"] == name)
     s = library.GENERATORS[part["family"]](part, cat)
     got = size(s)
@@ -123,8 +123,8 @@ for name, in3, box in (("Slide Truck Inner", 0.208715, [0.3296, 0.6867, 1.995]),
     bad += not ok
     print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.2f}%")
 
-# ratchet gear and winch pawl vs fusion's. the pawl's 1 deg draft is left off, so a hair under its box
-for name, in3, box in (("Ratchet Gear", 0.251706, [0.32, 1.7148, 1.7169]), ("Winch Pawl", 0.054859, [0.39, 0.62, 0.6581])):
+# ratchet gear, winch pawl and the versahub v2's insert vs fusion's. the pawl's 1 deg draft is left off, so a hair under its box
+for name, in3, box in (("Ratchet Gear", 0.251706, [0.32, 1.7148, 1.7169]), ("Winch Pawl", 0.054859, [0.39, 0.62, 0.6581]), ("VersaHub v2 Hex Insert", 0.101087, [0.5, 0.8917, 0.9676])):
     part = next(p for p in gen if p["name"] == name)
     s = library.GENERATORS[part["family"]](part, cat)
     got = size(s)
