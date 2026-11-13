@@ -43,7 +43,7 @@ Charcoal = [0.145098, 0.156863, 0.164706] # InvGen-071 37,40,42, v5 electronics
 "Flex 60A" = [0.25098, 0.25098, 0.25098] # 64
 "Adapter Grey" = [0.235294, 0.235294, 0.235294] # 60, the plastic versahex adapters
 "Adapter Dark Grey" = [0.25098, 0.25098, 0.25098] # 64, the 0.5 one
-"Mid Grey Plastic" = [0.315, 0.315, 0.315] # 80.3, the slide trucks and the ratchet gear
+"Mid Grey Plastic" = [0.315, 0.315, 0.315] # 80.3, the slide trucks, ratchet gear and versahub
 
 [density] # g/cm3. 6061 al, mild steel, nylon 6/6, acetal copolymer, 30% glass nylon 6/6
 Aluminum = 2.70
@@ -581,6 +581,15 @@ width = 1
 bore = "28 mm"
 bolts = 1.875 # bolt circle
 hole = 0.1695
+
+[[family]]
+id = "versahub"
+title = "VersaHub"
+folder = "Motion/Wheels/Flex Wheels"
+name = "0.5 Hex Bore Plastic VersaHub"
+material = "Glass-Filled Nylon" # wcp's listing for the v2, fusion just says steel
+color = "Mid Grey Plastic"
+# off the fusion library's f3d (the first one, not v2). 3 tabs that go in a 3 or 4 in flex wheel's windows
 
 [[family]]
 id = "versahex-adapter"
