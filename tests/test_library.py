@@ -376,6 +376,10 @@ for name, n in (("2 Flex Wheel (45A)", 2), ("Plastic VersaHex Adapter (0.25 Long
 # the ratchet gear's four holes, both ends
 dots = library.hole_dots(library.place(doc, gen["Ratchet Gear"]))
 assert sum(abs(math.hypot(d.x, d.z) - 0.5 * IN) < 1e-3 for d in dots) == 8, dots
+# 3 and 4 in flex wheels, the six bolt holes both faces. the 28 mm bore is the versahub's
+for name in ("3 Flex Wheel (45A)", "4 Flex Wheel (45A)"):
+    dots = library.hole_dots(library.place(doc, gen[name]))
+    assert len(dots) == 12 and all(abs(math.hypot(d.x, d.y) - 0.9375 * IN) < 1e-3 for d in dots), (name, dots)
 doc.recompute()
 
 App.closeDocument(doc.Name)

@@ -568,6 +568,21 @@ spoke = "4 mm"
 corner = "2 mm" # window corners
 
 [[family]]
+id = "big-flex-wheel"
+title = "Flex Wheel"
+folder = "Motion/Wheels/Flex Wheels/{hardness}"
+name = "{od} Flex Wheel ({hardness})"
+material = "Urethane"
+color = "Flex {hardness}"
+# off the fusion library's 45A f3ds, goes on a versahub
+od = [3, 4]
+hardness = ["30A", "45A", "60A"]
+width = 1
+bore = "28 mm"
+bolts = 1.875 # bolt circle
+hole = 0.1695
+
+[[family]]
 id = "versahex-adapter"
 title = "VersaHex Adapter"
 folder = "Motion/Wheels/Flex Wheels"

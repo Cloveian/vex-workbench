@@ -1,6 +1,6 @@
 # Log
 
-## 2026-11-12 - slide trucks, ratchet and pawl
+## 2026-11-12 - slide trucks, ratchet, pawl and the big flex wheels
 
 - both slide trucks, off the fusion library's f3ds. theyre molded parts, 1 deg draft on every wall and 0.3 / 0.5 mm fillets on every edge (434 faces on the inner one, 838 on the outer, which isnt even a valid solid), so they arent exact like the adapters. the section goes in as a point table with arc centers, gets pushed along y, and the pockets between the ribs and bosses get cut from below. inner is 0.2096 in3 vs fusion's 0.2087, +0.41%, xor ~1.4% by 20k points cuz booleans against fusion's step just return nothing. outer is +0.00%, which is the missing fillets and the missing end chamfers canceling out more than me being good at this lol
 - acetal on both is a guess, fusion just says thermoplastic. the Mid Grey Plastic is fusion's 0.315
@@ -8,6 +8,7 @@
 - ratchet gear, the winch pawl's other half. 25 sawtooth teeth with the steep face radial, roots at 0.75 and 0.01 rounds on the tips, a round pocket in each face with its draft and 0.5 mm floor rounds (both revolved off one profile each), four 0.175 holes in bosses on a 0.5 radius, and the 1/8 square bore through a hub out front and a square boss round back thats just the bore grown 0.059. +0.07% on fusion's, 0 of 3000 points missing and 3 extra, two of them sitting right on a pocket floor. acetal and the same 0.315 grey as the trucks, so thats one color for both now
 - (todo) the ratchet's and pawl's 1/8 square bores get no dots, `dottable` skips that size on generated parts cuz a plate's diamond is 0.127 across too. and the ratchet gets two it shouldnt, the round outline at the hub's foot and the back boss's, off the any-size-round rule. the four holes are fine. needs a rule that tells a bore from a diamond
 - winch pawl. 1 deg draft both ways off a parting line in the middle, so i took the section halfway up one half and pushed that through the whole 0.39, which gets the volume right to first order without lofting anything. first go was +4.7%, cuz the arm's end is beveled 12 deg off both faces and you only see that slicing near a face (0.113 in2 at y 0.02 vs 0.145 in the middle). two half spaces later its -0.12%, same grey acetal as the gear
+- 3" and 4" flex wheels, their own `big-flex-wheel` family. nothing like the small ones: 1" wide, straight through (no draft at all, *finally*), a 28 mm bore for the versahub, six 0.1695 holes on its 1.875 bolt circle, six windows on the 60s and a slot over every hole. 130 faces on fusion's and every one is a line or an arc, so the window and slot are point tables off its section like the trucks, mirrored and turned round 6 times. +0.004% on the 3", +0.003% on the 4". mine has 154 faces cuz the two halves of each arc land a hair off one circle and removeSplitter wont join them, eh. 30A / 45A / 60A all exist per vex's store and Q&A, fusion only has the 45A. dots on the bolt holes only, 12 a wheel, the bore is the hub's job
 
 ## 2026-11-11 - more parts
 
