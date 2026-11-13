@@ -14,6 +14,7 @@
 - no dots on them, 1/8 squares on generated parts are the same open todo as the ratchet's. not on the sprockets menu either, the chain tool needs a `[chain."3P"]` with a link and theres no 3P link yet. the 24T has 6 swirly lightening windows and a web that thins to 1.5 mm, the 48T has swirl slots, 4 holes and a rim rib both sides, the 40T wont convert at all. later
 - 24T too. same gap again, first one at 95 deg on this size. its web is 0.0098 down off each face out to r 0.3238, then an r 0.9843 arc back up that meets the face at 0.4624 (first try was a straight taper, +1.65%, the face layers were 0.09 in2 too full at half depth). the windows are true arcs on both spoke edges (0.2235 and 0.2446, 6e-5 off fusion's splines), so a window is the ring inside one spoke circle and ourside the other, turned round 6. +0.34%, box exact
 - 48T numbers for next time: same gap (tip 1.1535, round 0.0617, first gap at 95). a ring rib r 0.9752 to 1.0224 standing off both faces (-0.167 and +0.089 at its tops), the 1.5 mm web again with 6 swirl slots out to r 0.8858, and 4 bosses r 0.1181 on a 0.5 circle back to -0.266 with r 0.0888 holes through. a whole sprocket of its own
+- the 40T again: it stops at shell 4, which wont sew cuz 13 of its faces come out invalid (5 cones 280 / 454 / 156 / 1106 / 2473, 8 tori 217 / 231 / 706 / 1206 / 922 / 2177 / 2535 / 2609). so its the cone / torus reading in read_f3d, not the sprocket, every other file tonight had both and came out fine
 
 ## 2026-11-12 - slide trucks, ratchet, pawl, the big flex wheels and the versahub
 
