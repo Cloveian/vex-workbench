@@ -489,9 +489,6 @@ try:
     assert panel.mode.currentText() == screws.PICK_NUT
     panel.mode.setCurrentText(screws.AUTO)
     panel.reject()
-    # these are my real prefs, the nut above left them on Shoulder / Pick nut
-    App.ParamGet(ui.PARAMS).SetString("Screw", "Star")
-    App.ParamGet(ui.PARAMS).SetString("ScrewMode", screws.AUTO)
     # spacer panel, the plates 0.25 apart now
     from freecad.vex_workbench import spacers
     p2.Placement = App.Placement(App.Vector(0, 0, -0.296 * IN), App.Rotation())
