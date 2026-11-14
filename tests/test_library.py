@@ -338,6 +338,14 @@ assert len([o for o in doc.Objects if hasattr(o, "VexSeat")]) == 1
 gear.Insert = "Round"
 assert library.part_of(inserts.insert(gear))["name"] == "Plastic Shaft Inserts"
 assert abs(inserts.insert(gear).LinkedObject.VexMass.getValueAs("g").Value - 0.19) < 0.01
+# a 1/2 long adapter in the middle, flush both faces of the 1/2 hub. flip or not
+gear.Insert = "Round 1/2\" Long"
+ins, b, inside = seated(gear)
+assert library.part_of(ins)["name"] == "High Strength Shaft Adapter (#8 Round Bore, 1/2\" Long)" and inside < 0.01, inside
+assert abs(b.ZMax - 0.25 * IN) < 1e-3 and abs(b.ZMin + 0.25 * IN) < 1e-3 and abs(b.Center.x) < 1e-3 and abs(b.Center.y) < 1e-3, b
+gear.InsertFlip = False
+ins, b, inside = seated(gear)
+assert abs(b.ZMax - 0.25 * IN) < 1e-3 and abs(b.ZMin + 0.25 * IN) < 1e-3 and inside < 0.01, (b, inside)
 # a copy gets one of its own
 before = set(doc.Objects)
 duplicate.duplicate([gear], turn=App.Placement(App.Vector(0, 3 * IN, 0), App.Rotation()))

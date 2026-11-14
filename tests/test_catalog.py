@@ -86,7 +86,8 @@ for m in cat["menu"]:
     assert len(set(picks)) == len(picks) and all(set(p) - {"part", "inserts"} == set(m["axes"]) for p in m["parts"]), m["id"]
     for p in m["parts"]:
         assert names.count(p["part"]) == 1 and catalog.shipped(steps[names.index(p["part"])]).is_file(), p["part"]
-assert all(names.count(n) == 1 for n in cat["insert"].values()), cat["insert"]
+for i in cat["insert"].values():
+    assert names.count(i["part"]) == 1 and catalog.shipped(steps[names.index(i["part"])]).is_file(), i
 # every chain a sprocket or link comes in has a pitch
 chains = {p["Chain"] for m in cat["menu"] if "Chain" in m["axes"] for p in m["parts"]} | {v["params"]["chain"] for v in gen if v["family"] == "chain-link"}
 assert chains == set(cat["chain"]), chains ^ set(cat["chain"])

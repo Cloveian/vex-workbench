@@ -714,10 +714,13 @@ pins = [0, 1, 0]
 along = [1, 0, 0]
 middle = [0, 0.1575, 0] # its barrel runs 0 to 0.315
 
-# shaft inserts for a 1/4 square HS bore, a 0.16 round hole or a 1/8 square through them. menu rows with inserts = true take them
+# shaft inserts for a 1/4 square HS bore, a round hole or a 1/8 square through them. menu rows with inserts = true take them
+# centered = middle of the bore, flush both sides of a 1/2 wide hub. the rest sit on their flange
 [insert]
-Round = "Plastic Shaft Inserts"
-Square = "Metal Shaft Inserts"
+"Round 1/2\" Long" = { part = "High Strength Shaft Adapter (#8 Round Bore, 1/2\" Long)", centered = true }
+"Square 1/2\" Long" = { part = "High Strength Shaft Adapter (1/8\" Square Bore, 1/2\" Long)", centered = true }
+Round = { part = "Plastic Shaft Inserts" }
+Square = { part = "Metal Shaft Inserts" }
 
 # --- place menus ---
 # vex's own step parts picked down a few boxes, like a family but only the combos listed. part = its name in the groups below

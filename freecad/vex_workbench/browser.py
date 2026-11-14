@@ -136,7 +136,7 @@ class Browser(QtWidgets.QWidget):
             if any(p.get("inserts") for p in self.menu["parts"]):
                 self.insert = QtWidgets.QComboBox()
                 self.insert.addItems(inserts.kinds())
-                self.insert.setToolTip("Shaft insert in the HS bore, as its own part. Round is VEX's plastic one, Square the metal one")
+                self.insert.setToolTip("Shaft insert in the HS bore, as its own part. The 1/2\" long adapters sit in the middle, Round and Square are VEX's flanged plastic and metal ones")
                 self.form.addRow("Insert", self.insert)
             self.narrow(part)
         if not kind or kind[0] != "family":

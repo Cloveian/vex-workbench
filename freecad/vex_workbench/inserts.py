@@ -5,7 +5,7 @@ from . import library, snap
 from .metal import IN
 
 BORE = 0.24 * IN, 0.36 * IN  # mm across a HS bore loop's box, 0.25 square to the 8T 6P's 0.339
-FLANGE = 0.05 * IN  # mm, both inserts, off vex's steps
+FLANGE = 0.05 * IN  # mm, both flanged ones, off vex's steps
 NONE = "None"
 
 
@@ -28,16 +28,21 @@ def bores(shape):
     return sorted(out, key=lambda b: -(b[1].x + b[1].y + b[1].z)) if len(out) == 2 else []
 
 
-def seat(bore):
-    # insert's own coords onto the bore. its flange is y 0..FLANGE, into the bore up +y, flats along x and z
-    c, n, d = bore
+def seat(kind, found, flip):
+    # insert's own coords onto the bore, found = bores()
+    if library.cat()["insert"][kind].get("centered"):
+        # the 1/2 long adapters are centered on their origin, axis on z and flats along x and y. flip does nothing, theyre the same both ends
+        (a, n, d), (b, _, _) = found
+        return App.Placement((a + b) * 0.5, App.Rotation(d, n.cross(d), n, "ZXY"))
+    # flange y 0..FLANGE, into the bore up +y, flats along x and z
+    c, n, d = found[int(flip)]
     z = d.cross(-n)
     o = c + n * FLANGE
     return App.Placement(App.Matrix(d.x, -n.x, z.x, o.x, d.y, -n.y, z.y, o.y, d.z, -n.z, z.z, o.z, 0, 0, 0, 1))
 
 
 def step(kind):
-    name = library.cat()["insert"][kind]
+    name = library.cat()["insert"][kind]["part"]
     return next(p for p in library.index()[2].values() if p["name"] == name)
 
 
@@ -73,7 +78,7 @@ def update(link):
     ins = insert(link)
     kind = link.Insert
     found = kind != NONE and takes(link) and library.cached(link.LinkedObject, bores)
-    at = found and seat(found[int(link.InsertFlip)])
+    at = found and seat(kind, found, link.InsertFlip)
     if ins is not None and found and library.part_of(ins)["name"] == step(kind)["name"] and ins.VexSeat.isSame(at, 1e-9):
         return
     if ins is not None:
