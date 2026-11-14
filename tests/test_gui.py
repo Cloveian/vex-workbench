@@ -864,6 +864,17 @@ try:
     pin0, pin1 = App.Vector(0, 0.1575, 0) * IN, App.Vector(0.3858, 0.1575, 0) * IN
     assert max((a.multVec(pin1) - b.multVec(pin0)).Length for a, b in zip(pl, pl[1:])) < 0.01, "9P links dont meet"
     assert all(abs(abs(p.Rotation.multVec(App.Vector(0, 1, 0)).z) - 1) < 1e-9 for p in pl), "9P pins off the shafts' axis"
+    # 3P, generated sprockets and link both, chain and teeth off the family's params
+    tp = [library.place(cd, gen[f"{t}T Sprocket, 3P"]) for t in (10, 24)]
+    tp[0].Placement.Base = App.Vector(0, 10 * IN, 0)
+    tp[1].Placement.Base = App.Vector(3 * IN, 10 * IN, 0)
+    cd.recompute()
+    for s in tp + tp[:1]:
+        panel.take(bore(s))
+    QtWidgets.QApplication.processEvents()
+    three = [o for o in cd.Objects if getattr(o, "VexFamily", "") == "chain-link" and library.part_of(o)["name"] == "Chain Link (3P)"]
+    assert len(three) == 1 and three[0].ElementCount == 58 and partslist.count(cd)["Chain Link (3P)"][0] == 58, [o.ElementCount for o in three]
+    assert panel.status.text().startswith("58 links with 0.017 in slack"), panel.status.text()
     panel.reject()
     say("ok")
     failed = False

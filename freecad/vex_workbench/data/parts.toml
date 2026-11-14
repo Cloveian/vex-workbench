@@ -546,6 +546,7 @@ material = "Acetal"
 color = "Red Acetal" # fusion's preview, its material is called "Acetal Resin, Dark Sea Green" tho
 # off the fusion library's f3ds. its "12T" file has 15 teeth, 15 seats on a 0.3547 radius at 3.75 mm pitch. 40 later
 teeth = [10, 15, 24, 48]
+chain = "3P" # for the chain tool, theyre not on the Sprockets menu (step parts only)
 
 [[family]]
 id = "chain-link"
@@ -554,9 +555,11 @@ folder = "Motion/Chain Links"
 name = "Chain Link ({chain})"
 material = "Acetal"
 color = "Sensor Grey" # fusion's 84,88,90
-# off the fusion library's 6P f3d, exact. x = out from the middle along the pins, pin 0 on the origin, next pin at +y
+# off the fusion library's 6P and 3P f3ds, 6P exact. x = out from the middle along the pins, pin 0 on the origin, next pin at +y
+# joggle = inner tab's outside face, outer tab's inside face. 3P only: slant (deg) on the step edges, waist the side view pinches in to, bevel off the peg tips. its 0.1 mm corner rounds left off, +0.2%
 sizes = [
-  { chain = "6P", inner = "3.25 mm", joggle = "4.45 mm", outer = "5.65 mm", height = "4.4 mm", step = ["2.6 mm", "3.75 mm"], corner = "0.5 mm", barrel = "3.2 mm", peg = "2 mm", hole = "2.1 mm" },
+  { chain = "6P", inner = "3.25 mm", joggle = ["4.45 mm", "4.45 mm"], outer = "5.65 mm", height = "4.4 mm", step = ["2.6 mm", "3.75 mm"], corner = "0.5 mm", barrel = "3.2 mm", peg = "2 mm", hole = "2.1 mm" },
+  { chain = "3P", inner = "1.15 mm", joggle = ["2.05 mm", "2.1 mm"], outer = "3.1 mm", height = "2.74 mm", waist = "2 mm", step = ["1.48 mm", "2.26 mm"], slant = 8, corner = "0.2 mm", barrel = "2.26 mm", peg = "1.17 mm", hole = "1.22 mm", bevel = "0.3 mm" },
 ]
 
 [[family]]
@@ -706,6 +709,10 @@ color = "Mid Grey Plastic"
 [chain."6P"]
 pitch = 0.25
 link = "Chain Link (6P)"
+
+[chain."3P"]
+pitch = "3.75 mm" # off the sprockets' seats, the link's pins agree
+link = "Chain Link (3P)"
 
 [chain."9P (High Strength)"]
 pitch = "9.8 mm" # vex's link step, fusion's agrees

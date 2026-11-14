@@ -25,7 +25,7 @@ The [usage guide](docs/using.md) goes through every tool.
 - **A parts dock** with search. The part families sit at the top, and everything else is in folders laid out like the Fusion 360 library.
 - **Generated parts**, built from the numbers in [`parts.toml`](freecad/vex_workbench/data/parts.toml) and checked against VEX's own files, or the Fusion 360 library's where VEX has none:
   - C-channel, U-channel, angles (including 1x1s cut down from 3x channel), plates and bars, every length up to 35 holes (20 for U-channel), with the bends, count notches and bend reliefs, in the materials VEX makes them in
-  - LS, HS and pitch shafts, standoffs, spacers (the 3/8" HS one too), washers, HS lockbars, 6P chain links and the 10T, 15T, 24T and 48T 3P sprockets
+  - LS, HS and pitch shafts, standoffs, spacers (the 3/8" HS one too), washers, HS lockbars, 6P and 3P chain links and the 10T, 15T, 24T and 48T 3P sprockets
   - 1.625", 2", 3" and 4" flex wheels in 30A, 45A and 60A, with dots on the hex bore or the VersaHub bolt holes, the VersaHex adapters and both plastic 1/2" hex VersaHubs (the v2 with its hex insert)
   - linear slide rails, any length up to 35 holes, and both slide trucks
   - the ratchet gear and winch pawl
@@ -38,7 +38,7 @@ The [usage guide](docs/using.md) goes through every tool.
 - **Hole dots**: while a tool is open, every hole you can use gets a dot to click, on both sides of the metal. The one a click would take lights up under the mouse.
 - **Align**: click a hole on the part to move, then the hole it goes against. It keeps the way the part was turned (rounded to the angle step), and after that you can turn it by any angle or give it a gap. It can move a whole link array, or the whole sub-assembly a part is in. **Flip** turns it over 180 degrees on the hole, so it goes into the part instead of sitting on its face, like an insert going into a gear. It only moves things, joints are the Joint tool's.
 - **Joint**: with an assembly active, click a hole on the part that moves and the hole it's on for a spin or fixed joint, or a third hole along the same face for a slide that stops at both ends. With **Line up** on it moves the part onto the hole first like Align does, and either way the joint is set to where the parts are, so nothing jumps when it solves.
-- **Chain**: click the bore of each sprocket in the order the chain goes round, then the first one again. Chain goes all the way round in the middle of the teeth, idlers included, and it tells you the slack. 6P and high strength (9P) chain.
+- **Chain**: click the bore of each sprocket in the order the chain goes round, then the first one again. Chain goes all the way round in the middle of the teeth, idlers included, and it tells you the slack. 3P, 6P and high strength (9P) chain.
 - **Shaft inserts**: anything with a high strength bore can get a 1/2" HS shaft adapter (round or square bore, sitting flush in a 1/2" hub) or VEX's flanged round or square shaft insert when you place it. The insert is its own part and stays in the bore wherever the gear goes.
 - **Screw**: two clicks and the shortest screw that reaches through the nut goes in, nut and all, or 3/8" into a threaded hole (a standoff, a motor) with no nut. Pick a few holes on one face first and one click across does the lot. Or pick the screw or the nut yourself and place it with one click.
 - **Spacers**: click two holes facing each other, like inside a boxed channel, and the gap fills with spacers and washers. The screw tool can fill its gaps too.

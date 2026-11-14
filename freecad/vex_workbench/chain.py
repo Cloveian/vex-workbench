@@ -101,10 +101,15 @@ def sprocket(s):
     # a clicked sprocket in world mm. at = teeth middle on the axis, tips = vertexes out past the pitch circle
     link, pt, plc, _ = s
     row = library.row(link)
-    if not row or "Teeth" not in row:
-        raise ValueError(f"{link.Label} isn't a sprocket")
-    pitch = library.cat()["chain"][row["Chain"]]["pitch"] * IN
-    teeth = int(row["Teeth"])
+    if row and "Teeth" in row:
+        kind, teeth = row["Chain"], int(row["Teeth"])
+    else:
+        # generated ones (3P) say it in their params
+        p = library.part_of(link)["params"] if hasattr(link, "VexFamily") else {}
+        if "chain" not in p or "teeth" not in p:
+            raise ValueError(f"{link.Label} isn't a sprocket")
+        kind, teeth = p["chain"], p["teeth"]
+    pitch = library.cat()["chain"][kind]["pitch"] * IN
     r = pitch_radius(teeth, pitch)
     c, n = library.hole_at(link, pt)
     # teeth middle = middle of everything out past the tooth roots, along the axis. ~120 ms on the 32T 6P, 7612 vertexes
@@ -122,7 +127,7 @@ def sprocket(s):
     if not out:
         raise ValueError(f"no teeth round that hole on {link.Label}")
     mid = c + n * ((min(out) + max(out)) / 2)
-    return {"at": plc.multVec(mid), "axis": plc.Rotation.multVec(n), "teeth": teeth, "r": r, "chain": row["Chain"], "pitch": pitch,
+    return {"at": plc.multVec(mid), "axis": plc.Rotation.multVec(n), "teeth": teeth, "r": r, "chain": kind, "pitch": pitch,
             "tips": tips, "link": link, "plc": plc}
 
 
