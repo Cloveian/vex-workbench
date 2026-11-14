@@ -48,7 +48,7 @@ Pick No nut, or click a threaded hole second (standoffs, and anything under 0.16
 
 For a row of them, click a few holes on the head side first (all on one face, a second click on one unpicks it), then across. with **Auto finish** on, one click on the far face does every hole that has one lined up under it, off and its a click across for each. any without a hole across stay picked.
 
-Tick **Pick screw** and pick one from the list next to it, then its one click: the hole it goes in, head on that face, no nut and no spacers. Shoulder screws only go in this way, since it cant tell what shoulder length you want.
+The **Place** box up top is Auto (all the above), **Pick screw** or **Pick nut**. Pick screw: pick one from the Size list, then its one click, the hole it goes in, head on that face, no nut and no spacers. Shoulder screws only go in this way, since it cant tell what shoulder length you want (Auto comes back once you're off them). Pick nut: one from the Nut list, click the hole and it lands flat on that face, for when the screw is already in or you just want to put them in by hand. both get the same spin joint in an assembly as the auto ones.
 
 **Spacers** does just the filling: click holes on two faces across from each other, fewest spacers + washers within 1/64 under the gap, never over. spacer OD is a setting, 0.375 to start.
 

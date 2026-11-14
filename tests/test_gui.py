@@ -299,7 +299,7 @@ try:
     panel = screws.Panel()
     Gui.Control.showDialog(panel)
     panel.kind.setCurrentText("Star")
-    panel.mine.setChecked(False)  # whatever the last real use left in the prefs
+    panel.mode.setCurrentText(screws.AUTO)  # whatever the last real use left in the prefs
     panel.nut.setCurrentText(screws.NO_NUT)
     assert not panel.nylon.isEnabled(), "To the nylon with no nut"
     panel.nut.setCurrentText("Nylock Nut")
@@ -449,13 +449,13 @@ try:
     panel = screws.Panel()
     Gui.Control.showDialog(panel)
     panel.kind.setCurrentText("Star")
-    panel.mine.setChecked(True)
+    panel.mode.setCurrentText(screws.PICK_SCREW)
     panel.size.setCurrentText("0.500 Torx (Star) Screw (8-32, Steel)")
     assert panel.status.text().startswith(panel.ONE) and not panel.nut.isEnabled()
     for name, at in (("0.500 Torx (Star) Screw (8-32, Steel)", 0.75), ("0.500, 0.18 Robosource Shoulder Screw (8-32, Steel)", 1.75)):
         if "Shoulder" in name:
             panel.kind.setCurrentText("Shoulder")
-            assert panel.mine.isChecked() and not panel.mine.isEnabled()
+            assert panel.mode.currentText() == screws.PICK_SCREW and not panel.mode.model().item(0).isEnabled()
             panel.size.setCurrentText(name)
         before = set(doc.Objects)
         click(App.Vector(at, 0.25, 0.046) * IN)
@@ -464,14 +464,30 @@ try:
         assert got == [name], (got, panel.status.text())
     # back off shoulder the box goes back to how it was
     panel.kind.setCurrentText("Star")
-    panel.mine.setChecked(False)
+    panel.mode.setCurrentText(screws.AUTO)
     panel.kind.setCurrentText("Shoulder")
-    # and placing one doesnt save the forced tick over it
+    # and placing one doesnt save the forced mode over it
     click(App.Vector(2.75, 0.25, 0.046) * IN)
     QtWidgets.QApplication.processEvents()
-    assert not App.ParamGet(ui.PARAMS).GetBool("ScrewMine", True)
+    assert App.ParamGet(ui.PARAMS).GetString("ScrewMode") == screws.AUTO
     panel.kind.setCurrentText("Star")
-    assert panel.mine.isEnabled() and not panel.mine.isChecked()
+    assert panel.mode.model().item(0).isEnabled() and panel.mode.currentText() == screws.AUTO
+    # just a nut, flat on the face clicked and out from it. over a shoulder screw's forced Pick screw it saves as Pick nut
+    panel.kind.setCurrentText("Shoulder")
+    panel.mode.setCurrentText(screws.PICK_NUT)
+    panel.nut.setCurrentText("Nylock Nut")
+    assert panel.status.text().startswith(panel.ONE) and not panel.size.isEnabled() and not panel.kind.isEnabled()
+    before = set(doc.Objects)
+    click(App.Vector(0.25, 0.25, 0.046) * IN)
+    QtWidgets.QApplication.processEvents()
+    got = [o for o in set(doc.Objects) - before if o.TypeId == "App::Link"]
+    assert [library.part_of(o)["name"] for o in got] == ["Nylock Nut"], (got, panel.status.text())
+    b = got[0].Shape.BoundBox
+    assert abs(b.ZMin - 0.046 * IN) < 1e-3 and abs(b.Center.x - 0.25 * IN) < 1e-3 and abs(b.Center.y - 0.25 * IN) < 1e-3, b
+    assert App.ParamGet(ui.PARAMS).GetString("ScrewMode") == screws.PICK_NUT
+    panel.kind.setCurrentText("Star")
+    assert panel.mode.currentText() == screws.PICK_NUT
+    panel.mode.setCurrentText(screws.AUTO)
     panel.reject()
     # spacer panel, the plates 0.25 apart now
     from freecad.vex_workbench import spacers

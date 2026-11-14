@@ -1,4 +1,4 @@
-# screw tool. click a hole (or a few on one face) on the head side, then across on the nut side, it puts in the shortest screw that makes it through the nut or into a thread. or one picked by hand, one click
+# screw tool. click a hole (or a few on one face) on the head side, then across on the nut side, it puts in the shortest screw that makes it through the nut or into a thread. or a screw or nut picked by hand, one click
 import FreeCAD as App
 import FreeCADGui as Gui
 import Part
@@ -11,6 +11,7 @@ KINDS = {"Star": "star-screw", "Shoulder": "shoulder-screw"}
 BY_HAND = ("shoulder-screw",)  # no auto pick, the shoulder length is my call
 NUT_FOLDER = "Hardware/Nuts/8-32 Nuts"
 NO_NUT = "No nut"
+AUTO, PICK_SCREW, PICK_NUT = MODES = ("Auto", "Pick screw", "Pick nut")
 TAPPED = 0.164 * IN  # mm, 8-32 major. a screw doesnt go through anything smaller so its a thread. 5.5W motor 0.136, 11W 0.1596 lead in
 THREAD = 0.375 * IN, library.MIN_THREAD  # mm in the thread, what it aims for and the least it takes
 LEAD = 0.01 * IN  # mm, probes start this far in past the face
@@ -143,21 +144,28 @@ def fasten(doc, head, tail, family, nut, parent=None, od=None, nylon=False):
     if threaded:
         screw = into(family, gap, deep)
     else:
-        plc, h, metal = seat(library.source(doc, nut))
+        _, h, metal = seat(library.source(doc, nut))
         screw = shortest(family, gap + (metal if nylon else h))
     fills = []
     if od:
         fills = [(s, spacers.pick(t, od)) for s, t in gaps(head, tail, a, gap, max(across, bore(head[0], fa)[0]))]
     s = drop(doc, head, screw, parent)
-    local, asm = snap.inside(parent)
-    n = None
-    if not threaded:
-        n = library.place(doc, nut, parent)
-        n.Placement = local.multiply(b).multiply(plc)
-        if asm:
-            snap.revolute(asm, snap.ref(asm, tail, fb), snap.on(n, library.frame(n, plc.inverse(), "Seat")), bb)
+    n = None if threaded else nut_on(doc, tail, nut, parent)
     put = [o for at, parts in fills for o in spacers.stack(doc, at, parts, parent)]
     return s, n, put
+
+
+def nut_on(doc, tail, nut, parent=None):
+    # nut (a catalog part) flat on the clicked hole's face, out from it
+    fb, b = snap.hole(tail)
+    bb = library.off_metal(*tail[:2])
+    plc = seat(library.source(doc, nut))[0]
+    local, asm = snap.inside(parent)
+    n = library.place(doc, nut, parent)
+    n.Placement = local.multiply(b).multiply(snap.offset(-bb, 0)).multiply(plc)
+    if asm:
+        snap.revolute(asm, snap.ref(asm, tail, fb), snap.on(n, library.frame(n, plc.inverse(), "Seat")), bb)
+    return n
 
 
 def drop(doc, head, screw, parent=None):
@@ -176,7 +184,6 @@ def drop(doc, head, screw, parent=None):
 class Panel(snap.Clicks):
     PROMPTS = ("click a hole on the head side, or a few on one face",
                "more on that face (again to unpick), or the hole on the nut side / the one it screws into")
-    ONE = "click the hole it goes in, the head lands on that face"
 
     def __init__(self):
         p = App.ParamGet(ui.PARAMS)
@@ -187,9 +194,11 @@ class Panel(snap.Clicks):
         self.kind = QtWidgets.QComboBox()
         self.kind.addItems(list(KINDS))
         self.kind.setCurrentText(p.GetString("Screw", "Star"))
-        self.mine = QtWidgets.QCheckBox("Pick screw")
-        self.mine.setToolTip("Pick one from the list, then click the hole it goes in. No nut or spacers")
-        self.mine.setChecked(p.GetBool("ScrewMine", False))
+        self.mode = QtWidgets.QComboBox()
+        self.mode.addItems(MODES)
+        self.mode.setToolTip("Auto: head side then across, the shortest screw that makes it with its nut. Pick screw / Pick nut: the one from its list, one click on the hole it goes on")
+        self.mode.setCurrentText(p.GetString("ScrewMode", AUTO))
+        self.forced = False  # a shoulder screw took it off Auto, back to Auto after
         self.size = QtWidgets.QComboBox()
         self.nut = QtWidgets.QComboBox()
         self.nut.addItems([*nuts(), NO_NUT])
@@ -202,9 +211,9 @@ class Panel(snap.Clicks):
         self.fill.setChecked(p.GetBool("Fill", False))
         self.od = spacers.od_box()
         self.kind.currentTextChanged.connect(self.relist)
-        self.mine.toggled.connect(self.modes)
+        self.mode.currentTextChanged.connect(self.modes)
         self.nut.currentTextChanged.connect(self.nylon_box)
-        super().__init__("VEX screw", [("Screw", self.kind), (self.mine, self.size), ("Nut", self.nut), (self.nylon,), (self.fill, self.od), (self.auto,)])
+        super().__init__("VEX screw", [("Place", self.mode), ("Screw", self.kind), ("Size", self.size), ("Nut", self.nut), (self.nylon,), (self.fill, self.od), (self.auto,)])
         self.relist()
         self.size.setCurrentText(p.GetString("ScrewPick"))
 
@@ -213,19 +222,24 @@ class Panel(snap.Clicks):
         self.size.clear()
         self.size.addItems([s["name"] for s in sizes(family)])
         hand = family in BY_HAND
-        if hand and self.mine.isEnabled():
-            self.before = self.mine.isChecked()  # back to that on a kind it can pick again
-            self.mine.setChecked(True)
-        elif not hand and not self.mine.isEnabled():
-            self.mine.setChecked(self.before)
-        self.mine.setEnabled(not hand)
+        if hand and self.mode.currentText() == AUTO:
+            self.forced = True
+            self.mode.setCurrentText(PICK_SCREW)
+        elif not hand and self.forced:
+            self.mode.setCurrentText(AUTO)
+        self.mode.model().item(MODES.index(AUTO)).setEnabled(not hand)
         self.modes()
 
-    def modes(self):
-        for w in (self.nut, self.fill, self.od, self.auto):
-            w.setEnabled(not self.mine.isChecked())
+    def modes(self, *_):
+        mode = self.mode.currentText()
+        if mode != PICK_SCREW:
+            self.forced = False  # moved off it by hand, thats the one to keep
+        self.kind.setEnabled(mode != PICK_NUT)
+        self.size.setEnabled(mode == PICK_SCREW)
+        self.nut.setEnabled(mode != PICK_SCREW)
+        for w in (self.fill, self.od, self.auto):
+            w.setEnabled(mode == AUTO)
         self.nylon_box()
-        self.size.setEnabled(self.mine.isChecked())
         if self.one():
             self.heads, self.first = [], None
             self.light([])
@@ -233,10 +247,16 @@ class Panel(snap.Clicks):
 
     def nylon_box(self, *_):
         # no nut, nothing to stop short in
-        self.nylon.setEnabled(not self.mine.isChecked() and self.nut.currentText() != NO_NUT)
+        self.nylon.setEnabled(self.mode.currentText() == AUTO and self.nut.currentText() != NO_NUT)
 
     def one(self):
-        return self.mine.isChecked()
+        return self.mode.currentText() != AUTO
+
+    @property
+    def ONE(self):
+        if self.mode.currentText() == PICK_NUT:
+            return "click the hole it goes on, it lands flat on that face"
+        return "click the hole it goes in, the head lands on that face"
 
     def take(self, s):
         if self.one():
@@ -291,10 +311,16 @@ class Panel(snap.Clicks):
         # (head, tail) spots, tail None for one picked by hand
         p = App.ParamGet(ui.PARAMS)
         p.SetString("Screw", self.kind.currentText())
-        p.SetBool("ScrewMine", self.mine.isChecked() if self.mine.isEnabled() else self.before)  # not the forced one shoulder screws get
+        p.SetString("ScrewMode", AUTO if self.forced else self.mode.currentText())  # not the forced one shoulder screws get
         doc = pairs[0][0][0].Document
         active = ui.active()
-        if pairs[0][1] is None:
+        if self.mode.currentText() == PICK_NUT:
+            if self.nut.currentText() == NO_NUT:
+                return "pick a nut from the list first"
+            p.SetString("Nut", self.nut.currentText())
+            nut = nuts()[self.nut.currentText()]
+            put = ui.run("Place VEX nut", lambda: [(None, nut_on(doc, pairs[0][0], nut, active), [])])
+        elif pairs[0][1] is None:
             p.SetString("ScrewPick", self.size.currentText())
             pick = library.index()[1][self.size.currentText()]
             put = ui.run("Place VEX screw", lambda: [(drop(doc, pairs[0][0], pick, active), None, [])])
@@ -312,10 +338,10 @@ class Panel(snap.Clicks):
             return None
         doc.recompute()
         extra = sum(len(x) for _, _, x in put)
-        said = f"put in a {put[0][0].Label}" if len(put) == 1 else f"put in {len(put)} screws"
+        said = f"put in a {(put[0][0] or put[0][1]).Label}" if len(put) == 1 else f"put in {len(put)} screws"
         return said + (f" + {extra} spacers and washers" if extra else "")
 
 
 SCREW = ui.Command(Panel, "vex-screw.svg", "Screw",
                    "Click a hole on the head side, then the one on the nut side. Puts in the shortest screw that makes it through the nut, "
-                   "or gets 3/8\" into a threaded hole (1/4\" if that's all there is). Pick a few holes on one face first and one click across does the lot. Or pick the screw yourself and place it with one click")
+                   "or gets 3/8\" into a threaded hole (1/4\" if that's all there is). Pick a few holes on one face first and one click across does the lot. Or pick the screw or the nut yourself and place it with one click")
