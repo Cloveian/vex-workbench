@@ -24,7 +24,7 @@ in build order, each one is something i can open and poke at
 
 ## From actually using it
 - [x] dots drawn on top of solids, and a bigger area to click them
-- [x] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones. the 11W's output too, its socket is a 1/4 square turned 45 so it goes by across the flats, the dot sits where the square starts 0.5" down the recess
+- [x] dots on round holes too: shaft holes (gears, wheels, sprockets, bearings, motor output), bigger round holes in metal, drilled ones, the 1/8 square bores on the generated ratchet, pawl and 3P sprockets (round cornered, so not the plates' diamonds). the 11W's output too, its socket is a 1/4 square turned 45 so it goes by across the flats, the dot sits where the square starts 0.5" down the recess
 - [x] U-channel inner dots in a hair, to match where a c-channel's outer ones sit. out in the gap, ~~0.025 a side on steel~~ 0.008 a side (aluminum only now)
 - [x] dots on every click-to-do tool, and a "show more" grid with a size box (drill needs it most). all six tools had dots already, drill gets Grid + Show grid
 - [x] screw tool takes several holes on one face, then the ones across. with "auto finish" on, one click across does them all, off and its a click across for each

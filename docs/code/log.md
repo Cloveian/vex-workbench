@@ -8,6 +8,7 @@
 - the HS shaft adapters (#8 round and 1/8 square, 1/2" long, no flange) are in the Insert box now, first in the list after None since theyre what people actually use. dead center in the bore, so flush both faces of a 1/2" hub. `[insert]` rows say `centered` or sit on their flange like before
 - Screw got a Place box: Auto / Pick screw / Pick nut. pick nut puts the nut from the list flat on the face you click with the same spin joint the auto ones get, `fasten` uses that same `nut_on` now. shoulder screws still force Pick screw and Auto comes back after (unless you changed it yourself in between)
 - Joint lines things up first like Align does (Line up, on to start), so its not align-then-joint anymore. same undo step, and with no assembly active it says so before moving anything
+- 1/8 square bores on generated parts get dots now (the ratchet, the pawl and the 3P sprockets, 2 each). the open todo was just that a plate's diamond is 0.127 across its flats too. the bores have round corners and a square box, the diamonds are sharp, and the 3" flex wheel's window ends are that narrow but long. a scan of every generated family picks up just those four
 - a 3.25" omni showing all grey was an old source in that document from before the repaint, a fresh doc has it right. placing again reuses whatever source the doc already has, so old docs keep old colors till that source goes
 
 ## 2026-11-13 - versahub v2, the small 3P sprockets

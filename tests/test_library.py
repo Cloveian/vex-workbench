@@ -389,6 +389,13 @@ for name, n in (("2 Flex Wheel (45A)", 2), ("Plastic VersaHex Adapter (0.25 Long
 # the ratchet gear's four holes, both ends
 dots = library.hole_dots(library.place(doc, gen["Ratchet Gear"]))
 assert sum(abs(math.hypot(d.x, d.z) - 0.5 * IN) < 1e-3 for d in dots) == 8, dots
+# and the 1/8 square bores, ratchet's and a 3P sprocket's both ends. a plate's diamonds are 0.127 across too, still none on those
+assert len(dots) == 10 and sum(math.hypot(d.x, d.z) < 1e-6 for d in dots) == 2, dots
+dots = library.hole_dots(library.place(doc, gen["10T Sprocket, 3P"]))
+assert len(dots) == 2 and all(math.hypot(d.x, d.y) < 1e-6 for d in dots), dots
+plate = library.place(doc, gen["5x2 Aluminum Plate"])
+squares = sum(library.screwable(w) for w, _, _ in library.holes(Part.getShape(plate.LinkedObject)))
+assert len(library.hole_dots(plate)) == squares, (len(library.hole_dots(plate)), squares)
 # 3 and 4 in flex wheels, the six bolt holes both faces. the 28 mm bore is the versahub's
 for name in ("3 Flex Wheel (45A)", "4 Flex Wheel (45A)"):
     dots = library.hole_dots(library.place(doc, gen[name]))

@@ -612,7 +612,7 @@ def screwable(w):
 
 
 def dottable(w, step):
-    # screw holes, and round ones any size on generated metal (drilled, bigger holes) plus the lockbar's shaft one and the hex bores. on vex's steps the 1/8 and 1/4 shaft holes, keyed or rouned corners, no slots or lightening holes
+    # screw holes, and round ones any size on generated metal (drilled, bigger holes) plus the lockbar's shaft one, the hex bores and 1/8 square bores. on vex's steps the 1/8 and 1/4 shaft holes, keyed or rouned corners, no slots or lightening holes
     if screwable(w):
         return True
     curves = [e.Curve.TypeId for e in w.Edges]
@@ -623,7 +623,9 @@ def dottable(w, step):
     flats = 2 * w.distToShape(Part.Vertex(b.Center))[0]  # the 11W socket is a 1/4 square turned 45, 0.35 across its box
     if not step:
         hexed = len(curves) == 6 and all(c == "Part::GeomLine" for c in curves) and any(lo <= flats <= hi for lo, hi in HEX)
-        return hexed or SHAFT[1][0] <= flats <= SHAFT[1][1]  # not the LS size, a plate diamond is 0.127 across its flats
+        # 1/8 squares have round corners (ratchet, pawl, 3P sprockets), a plate diamond is 0.127 across its flats too but sharp
+        eighth = SHAFT[0][0] <= flats <= SHAFT[0][1] and "Part::GeomCircle" in curves and narrow > 0.95 * wide  # big flex wheels' window ends are that narrow
+        return hexed or eighth or SHAFT[1][0] <= flats <= SHAFT[1][1]
     shaft = any(lo <= wide <= hi or lo <= flats <= hi for lo, hi in SHAFT)
     return shaft and narrow > 0.95 * wide and all(c in ("Part::GeomLine", "Part::GeomCircle") for c in curves)
 
