@@ -347,21 +347,24 @@ assert joints.Group[had:] == [], joints.Group[had:]
 # it keeps the turn a part already has, to the nearest step: 80 stays 80, or 90 on a 90 or 45 step
 h = App.Placement(App.Vector(), align.FLIP.multiply(App.Rotation(App.Vector(0, 0, 1), 80)))
 assert [round(align.spun(h, App.Placement(), s), 6) for s in (0, 90, 45)] == [80, 90, 90]
-# lined up again somewhere else, then flipped: the same hole's other face goes on the target, so the clicked face sits a wall out and faces away
+# lined up again somewhere else, then flipped: turned over on the hole's x, same spot, clicked face facing the way the target's does so the bar goes into it
 target = where(p1, App.Vector(2.75, 1.25, 0.046) * IN)
 s = align.align(where(bar, first), target, 0, asm)
 doc.recompute()
+was = x(snap.hole(where(bar, first))[1])
 assert (snap.hole(where(bar, first))[1].Base - snap.hole(target)[1].Base).Length < 1e-9
-s = align.flip(s, 0, 0)
+s = align.flip(s, 0)
+doc.recompute()
+(_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
+assert (got.Base - at.Base).Length < 1e-6 and abs(z(got).dot(z(at)) - 1) < 1e-9 and (x(got) - was).Length < 1e-9, ((got.Base - at.Base) / IN, z(got), x(got))
+# and back, gap still out along the target's face
+s = align.flip(s, 0.25 * IN)
 doc.recompute()
 (_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
 d = got.Base - at.Base
-assert abs(d.dot(z(at)) - 0.046 * IN) < 1e-6 and d.cross(z(at)).Length < 1e-6 and abs(z(got).dot(z(at)) - 1) < 1e-9, (d / IN, z(got))
-# and back
-s = align.flip(s, 0, 0)
+assert abs(d.dot(z(at)) - 0.25 * IN) < 1e-6 and d.cross(z(at)).Length < 1e-6 and abs(z(got).dot(z(at)) + 1) < 1e-9 and (x(got) - was).Length < 1e-9, d / IN
+align.turn(s, 0)
 doc.recompute()
-(_, at), (_, got) = snap.hole(target), snap.hole(where(bar, first))
-assert (got.Base - at.Base).Length < 1e-6 and abs(z(got).dot(z(at)) + 1) < 1e-9, (got.Base - at.Base) / IN
 assert joints.Group[had:] == [], joints.Group[had:]
 # the joint tool holds it right where align put it, a solve moves nothing
 from freecad.vex_workbench import joints as jt  # noqa: E402

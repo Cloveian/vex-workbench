@@ -18,7 +18,7 @@ in build order, each one is something i can open and poke at
 - [x] Screw and nut tool. pick two lined up holes, it works out the stack and the screw
 	two clicks gives the screw + nut now, jointed to the holes in an assembly. or into a thread with no nut, and spacers in the gaps
 - [x] Align tool. hole on the part to move, then the hole it goes against
-	faces land flat, keeps its turn to the nearest step, Rotate / Gap after. moves a link array whole, or the group its in. ~~Revolute joint in an assembly, swapped out if its aligned again~~ no joints, and Flip turns it over onto the hole's other face (inserts)
+	faces land flat, keeps its turn to the nearest step, Rotate / Gap after. moves a link array whole, or the group its in. ~~Revolute joint in an assembly, swapped out if its aligned again~~ no joints, and Flip turns it over ~~onto the hole's other face~~ 180 on the hole so it goes in (inserts)
 - [x] Bending metal, cutting, drilling
 	click a hole, it folds on a line through it (across or along, slid over by any amount), any angle, inside radius 0.032 to start. the cross section at the line swept round, ~~holes the line goes through stay open~~ a band at a time where the section changes, so any hole in the bend wraps round it (square ones exact, round and slanted edges in w / 12 steps). cut on the same lines (to length, or a flange off flush), drill a round hole anywhere snapped to a grid (0.25 to start). all per copy, kept on the link in order and redone if its Holes change
 

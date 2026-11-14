@@ -155,6 +155,7 @@ class Clicks:
         for row in rows:
             lay.addRow(*row)  # (label, widget), or (widget,) across the row
         self.status = QtWidgets.QLabel()
+        self.status.setWordWrap(True)  # one long line with a wheel's name in it pushed Flip off the align panel
         lay.addRow(self.status)
         self.first = None
         self.picked = []  # world points lit green

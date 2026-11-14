@@ -734,10 +734,13 @@ try:
     panel.turn(1)
     assert abs((swing.Placement.Rotation.toEuler()[0] - yaw) % 360 - 90) < 1e-6, (yaw, swing.Placement)
     flip = next(w for w in panel.form.findChildren(QtWidgets.QPushButton) if w.text() == "Flip")
+    was = swing.Placement
     flip.click()
-    flip.click()
+    assert not swing.Placement.isSame(was, 1e-6), "flip didnt turn it"
     now = (swing, hole, asm.getSubObject(swing.Name + ".", retType=3), (asm, swing.Name + "."))
-    assert (snap.hole(now)[1].Base - snap.hole(on)[1].Base).Length < 1e-6, "flipped twice and its not back"
+    assert (snap.hole(now)[1].Base - snap.hole(on)[1].Base).Length < 1e-6, "flip moved the hole"
+    flip.click()
+    assert swing.Placement.isSame(was, 1e-6), "flipped twice and its not back"
     assert len(UtilsAssembly.getJointGroup(asm).Group) == joints, "align made a joint"
     panel.reject()
     # joint panel, a slide's end on the other face keeps it waiting for a good one

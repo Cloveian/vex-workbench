@@ -3,6 +3,7 @@ import collections
 import functools
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 
@@ -28,12 +29,12 @@ OUT = 0.001 * metal.IN  # mm, the open-to-outside ray starts this far off the fa
 MIN_THREAD = 0.25 * metal.IN  # mm, least a screw takes in a thread
 SAME_HOLE = 0.25 * metal.IN  # mm, coaxial loops closer than this along the axis are one hole. 11W lead in to counterbore 0.087
 ON_AXIS = 0.01  # mm, loop centers this close to a hole's axis are on it
-WALL_PROBE = 0.03 * metal.IN  # mm past a hole's edge, into the metal round it. square holes are 0.318 apart
+# WALL_PROBE = 0.03 * metal.IN  # mm past a hole's edge, into the metal round it. square holes are 0.318 apart
 NAMES = {"od": "OD", "n": "Holes"}  # toml key -> link property, where .title() reads wrong
 CACHE = {}
 BREPS = Path(App.getUserCachePath()) / "VexWorkbench"  # read steps as brep + face colors, gone stale ones just sit there
 BREPS_VERSION = 1  # bump when colored() reads a step *dih*frently, old cached ones get skipped
-DOTS_VERSION = 1  # same for outermost()
+DOTS_VERSION = 2  # same for outermost()
 BUSY = set()  # (doc, link) names getting their menu boxes refilled
 
 
@@ -538,8 +539,20 @@ def holes(shape):
         outer = f.OuterWire  # once, its worked out again on every call
         for w in f.Wires:
             if not w.isSame(outer) and HOLE_MIN <= across(w) <= HOLE_MAX:
-                out.append((w, w.BoundBox.Center, n))
+                out.append((w, middle(w), n))
     return out
+
+
+def middle(w):
+    # box center, or a screw size arc's center when the loop runs off it. the 48T HS gear's corner holes are a 0.165 round on the grid with a teardrop out to the rim
+    arcs = [e for e in w.Edges if e.Curve.TypeId == "Part::GeomCircle" and ROUND[0] <= 2 * e.Curve.Radius <= ROUND[1]]
+    if not arcs or len(arcs) == len(w.Edges):
+        return w.BoundBox.Center
+    c, r = arcs[0].Curve.Center, arcs[0].Curve.Radius
+    # half a circle or so, the gears' is 180 deg. short screw radius curves on the sensors and the 2" mecanum put it outside the loop
+    if all((e.Curve.Center - c).Length < 1e-6 for e in arcs) and sum(e.Length for e in arcs) > 0.45 * 2 * math.pi * r:
+        return c
+    return w.BoundBox.Center
 
 
 def across(w):
@@ -729,27 +742,28 @@ def hole_at(link, point):
     return center, n
 
 
-def far_side(link, point):
-    # the hole nearest point where it comes out the other side of the wall its in, link coords. None for a blind one
-    center, n = hole_at(link, point)
-    src = link.LinkedObject
-    shape = Part.getShape(src)
-    if getattr(link, "VexFamily", None) in stock.FAMILIES:
-        return next(c for c, m in ends(shape) if m.dot(n) < 0)
-    found = cached(src, holes)
-    w = next(h[0] for h in found if (h[1] - center).Length < 1e-6)
-    # down through the metal just past the hole's edge, the first face out is the wall's other side. the farthest loop on the axis would be a channel's other flange
-    x, y = square_to(n)
-    faces, far = boxed(shape), shape.BoundBox.DiagonalLength
-    for side in (x, -x, y, -y):
-        wall = hits(faces, center + side * (across(w) / 2 + WALL_PROBE) - n * OUT, -n, far)
-        if wall:
-            break
-    else:
-        return None
-    back = [c for _, c, m in found if m.dot(n) < -1 + 1e-6 and (c - center).cross(n).Length < ON_AXIS]
-    best = min(back, key=lambda c: abs((center - c).dot(n) - wall[0]), default=None)
-    return best if best is not None and abs((center - best).dot(n) - wall[0]) < SAME_HOLE else None
+# the old align flip, replaced by a turn over on the hole
+# def far_side(link, point):
+#     # the hole nearest point where it comes out the other side of the wall its in, link coords. None for a blind one
+#     center, n = hole_at(link, point)
+#     src = link.LinkedObject
+#     shape = Part.getShape(src)
+#     if getattr(link, "VexFamily", None) in stock.FAMILIES:
+#         return next(c for c, m in ends(shape) if m.dot(n) < 0)
+#     found = cached(src, holes)
+#     w = next(h[0] for h in found if (h[1] - center).Length < 1e-6)
+#     # down through the metal just past the hole's edge, the first face out is the wall's other side. the farthest loop on the axis would be a channel's other flange
+#     x, y = square_to(n)
+#     faces, far = boxed(shape), shape.BoundBox.DiagonalLength
+#     for side in (x, -x, y, -y):
+#         wall = hits(faces, center + side * (across(w) / 2 + WALL_PROBE) - n * OUT, -n, far)
+#         if wall:
+#             break
+#     else:
+#         return None
+#     back = [c for _, c, m in found if m.dot(n) < -1 + 1e-6 and (c - center).cross(n).Length < ON_AXIS]
+#     best = min(back, key=lambda c: abs((center - c).dot(n) - wall[0]), default=None)
+#     return best if best is not None and abs((center - best).dot(n) - wall[0]) < SAME_HOLE else None
 
 
 def frame(link, plc, name="Hole"):

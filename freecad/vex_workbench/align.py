@@ -5,21 +5,22 @@ import FreeCAD as App
 from FreeCAD import Placement, Rotation, Vector
 from PySide import QtWidgets
 
-from . import library, snap, ui
+from . import snap, ui
 from .metal import IN
 
 FLIP = Rotation(Vector(1, 0, 0), 180)  # z against z, face to face
 X, Y = Vector(1, 0, 0), Vector(0, 1, 0)
 
 
-def landed(at, gap, spin):
-    # world placement of the moved hole frame, faces together on at, gap mm apart and spin deg around the hole
-    return at.multiply(Placement(Vector(0, 0, gap), FLIP)).multiply(Placement(Vector(), Rotation(Vector(0, 0, 1), spin)))
+def landed(at, gap, spin, flipped=False):
+    # world placement of the moved hole frame, faces together on at, gap mm apart and spin deg around the hole. flipped = turned over on the hole's x so it goes in, an insert into a bore
+    hole = at.multiply(Placement(Vector(0, 0, gap), FLIP)).multiply(Placement(Vector(), Rotation(Vector(0, 0, 1), spin)))
+    return hole.multiply(Placement(Vector(), FLIP)) if flipped else hole
 
 
-def put(link, frame, parent, at, gap, spin):
+def put(link, frame, parent, at, gap, spin, flipped=False):
     # link placed so frame (link coords) lands on at
-    link.Placement = parent.inverse().multiply(landed(at, gap, spin)).multiply(frame.inverse())
+    link.Placement = parent.inverse().multiply(landed(at, gap, spin, flipped)).multiply(frame.inverse())
 
 
 def moving(mover, active, whole):
@@ -36,7 +37,7 @@ def moving(mover, active, whole):
 
 
 def spun(hole, at, step):
-    # the spin put() needs to keep the hole x as near as it is now, to the nearest step deg. x after the flip is cos*ax - sin*ay
+    # the spin put() needs to keep the hole x as near as it is now, to the nearest step deg. x after FLIP is cos*ax - sin*ay
     x = hole.Rotation.multVec(X)
     ax, ay = at.Rotation.multVec(X), at.Rotation.multVec(Y)
     spin = math.degrees(math.atan2(-x.dot(ay), x.dot(ax)))
@@ -55,22 +56,19 @@ def align(mover, target, gap, active=None, whole=False, step=0):
     parent = world.multiply(obj.Placement.inverse())
     spin = spun(hole, at, step)
     put(obj, frame, parent, at, gap, spin)
-    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": spin, "mover": mover, "target": target, "active": active, "whole": whole}
+    return {"moved": obj, "frame": frame, "parent": parent, "at": at, "spin": spin, "flipped": False}
 
 
 def turn(s, gap):
-    # s from align() put at its spin and gap
-    put(s["moved"], s["frame"], s["parent"], s["at"], gap, s["spin"])
+    # s from align() put at its spin, gap and flip
+    put(s["moved"], s["frame"], s["parent"], s["at"], gap, s["spin"], s["flipped"])
 
 
-def flip(s, gap, step):
-    # s from align() done again off the same hole on the part's other face, so its turned over with that face on the target. inserts mostly
-    link, pt, _, (root, path) = s["mover"]
-    back = library.far_side(link, pt)
-    if back is None:
-        raise ValueError(f"{link.Label} has nothing on the other side of that hole to flip onto")
-    # where the link is now, the click's placement is from before the move
-    return align((link, back, snap.placement(root, path), (root, path)), s["target"], gap, s["active"], s["whole"], step)
+def flip(s, gap):
+    # turned over 180 on the hole, or back. same hole on the same spot, clicked face now faces the way the target's does
+    s["flipped"] = not s["flipped"]
+    turn(s, gap)
+    return s
 
 
 class Panel(snap.Clicks):
@@ -83,7 +81,7 @@ class Panel(snap.Clicks):
         back.clicked.connect(lambda: self.turn(-1))
         ahead.clicked.connect(lambda: self.turn(1))
         over = QtWidgets.QPushButton("Flip")
-        over.setToolTip("Turns it over on the hole, so the other side of it goes against the face. For inserts")
+        over.setToolTip("Turns it over 180 on the hole, so it goes in instead of sitting on the face. For inserts")
         over.clicked.connect(self.flip)
         turns = QtWidgets.QWidget()
         row = QtWidgets.QHBoxLayout(turns)
@@ -119,10 +117,8 @@ class Panel(snap.Clicks):
         s = self.still()
         if not s:
             return
-        got = ui.run("Flip VEX part", lambda: flip(s, self.gap.value() * IN, self.angle.value()))
-        if got:
-            self.last = got
-            got["moved"].Document.recompute()
+        if ui.run("Flip VEX part", lambda: flip(s, self.gap.value() * IN)):
+            s["moved"].Document.recompute()
 
     def turn(self, way):
         # way -1 / 1 for the buttons, 0 when the gap changed

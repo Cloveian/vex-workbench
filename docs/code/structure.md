@@ -24,7 +24,7 @@
 | `freecad/vex_workbench/snap.py`    | Frame on hole command, clicked spot -> `library.hole_frame`. plus the joint bits and the click panel (orange hole points, yellow under the mouse, green picked ones) the screw, spacer, align, joint, chain and shop tools build on. screen spots for every dot are one numpy matmul |
 | `freecad/vex_workbench/screws.py`  | Screw command, two hole clicks -> shortest screw + nut (or into a thread), jointed in an assembly |
 | `freecad/vex_workbench/spacers.py` | Spacers command, fills a gap between two holes with spacers + washers |
-| `freecad/vex_workbench/align.py`   | Align command, hole on one part onto a hole on another, faces together, then turned, gapped or flipped over onto the hole's other face. no joints |
+| `freecad/vex_workbench/align.py`   | Align command, hole on one part onto a hole on another, faces together, then turned, gapped or flipped over 180 on the hole so it goes in. no joints |
 | `freecad/vex_workbench/joints.py`  | Joint command, two hole clicks (three for a slide) -> a Revolute, Fixed or Slider set off where the parts already are |
 | `freecad/vex_workbench/inserts.py` | shaft inserts in HS bores, their own link with Placement = the gear's x `VexSeat` as an expression. the gear knows it by name in `VexInsert`, a link back would be a dependency loop |
 | `freecad/vex_workbench/duplicate.py` | Duplicate command, copies of links and groups mirrored or turned. a mirror is world reflection x placement x the part's own middle-plane reflection, so its a turn |

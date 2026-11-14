@@ -157,6 +157,11 @@ radio = library.place(doc, steps["Electronics/V5 Robot Radio (276-4831).step"])
 collar = library.place(doc, steps["Motion/Collars/Rubber Shaft Collar (228-3510).step"])
 doc.recompute()
 assert Part.getShape(w).Volume > 0
+# the HS v2 gears' keyhele holes, a 0.165 round on the grid with a teardrop out. dots on the grid
+g48 = library.place(doc, steps["Motion/Gears/High Strength (v2)/48T/48T High Strength Gear v2 (8-Pack) (276-7573).step"])
+corners = [c / IN for c in library.hole_dots(g48) if abs(c.x) > 0.3 * IN and abs(c.y) > 0.3 * IN]
+assert len(corners) == 8 and all(abs(abs(c.x) - 0.5) < 1e-6 and abs(abs(c.y) - 0.5) < 1e-6 for c in corners), corners
+doc.removeObject(g48.Name)
 
 # wheels repainted in the fusion library's colors, light grey rubber on a dark hub
 colors = library.cat()["colors"]
