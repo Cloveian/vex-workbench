@@ -1,9 +1,9 @@
-# joint tool. click a hole on the part that moves, then the one its on, and they get an assembly joint right where they are. back from the dead
+# joint tool. click a hole on the part that moves, then the one its on, it gets lined up like align does and they get an assembly joint right there. back from the dead
 import FreeCAD as App
 from FreeCAD import Placement, Rotation
 from PySide import QtCore, QtWidgets
 
-from . import snap, ui
+from . import align, snap, ui
 
 KINDS = {"Spin": "Revolute", "Fixed": "Fixed", "Slide": "Slider"}
 
@@ -31,6 +31,13 @@ def rail(target, end):
     return Placement(b.Base, Rotation(z, along.cross(z), along, "ZXY")), along.Length  # x out of the face
 
 
+def lined_up(mover, target, active, step):
+    # align's move, then mover spot again from where it landed
+    align.align(mover, target, 0, active, False, step)["moved"].Document.recompute()
+    link, pt, _, (root, path) = mover
+    return link, pt, snap.placement(root, path), (root, path)
+
+
 def join(asm, kind, mover, target, end=None):
     # offsets off where both holes are now, so the solver has nothing to move
     r1, r2, b, a = refs(asm, mover, target)
@@ -42,7 +49,7 @@ def join(asm, kind, mover, target, end=None):
         j.LengthMin, j.LengthMax = 0, length
         return j
     if kind == "Spin" and snap.line(b, a) is None:
-        raise ValueError(f"those holes on {mover[0].Label} and {target[0].Label} aren't lined up, align it first")
+        raise ValueError(f"those holes on {mover[0].Label} and {target[0].Label} aren't lined up, tick Line up or align it first")
     return snap.joint(asm, KINDS[kind], r1, r2, off2=a.inverse().multiply(b))
 
 
@@ -57,7 +64,10 @@ class Panel(snap.Clicks):
         self.kind.setCurrentText(App.ParamGet(ui.PARAMS).GetString("JointKind", "Spin"))
         self.kind.setToolTip("Spin turns on the hole, Slide runs along a row of holes, Fixed holds it")
         self.kind.currentTextChanged.connect(self.restart)
-        super().__init__("VEX joint", [("Kind", self.kind)])
+        self.lineup = QtWidgets.QCheckBox("Line up")
+        self.lineup.setToolTip("Moves it onto the hole first like Align does (faces flat, turn kept to Align's angle step). Off, the joint goes in right where it is")
+        self.lineup.setChecked(App.ParamGet(ui.PARAMS).GetBool("JointLineUp", True))
+        super().__init__("VEX joint", [("Kind", self.kind), (self.lineup,)])
 
     def restart(self, kind):
         App.ParamGet(ui.PARAMS).SetString("JointKind", kind)
@@ -90,8 +100,19 @@ class Panel(snap.Clicks):
 
     def act(self, mover, target):
         kind, end, self.end = self.kind.currentText(), self.end, None
-        asm = snap.inside(ui.active())[1]
-        j = ui.run("VEX joint", lambda: join(asm, kind, mover, target, end))
+        p = App.ParamGet(ui.PARAMS)
+        lineup = self.lineup.isChecked()
+        p.SetBool("JointLineUp", lineup)
+        active = ui.active()
+        asm = snap.inside(active)[1]
+        step = align.angle()
+
+        def go():
+            # no assembly, join() says so before anyting moves
+            moved = lined_up(mover, target, active, step) if lineup and asm else mover
+            return join(asm, kind, moved, target, end)
+
+        j = ui.run("VEX joint", go)
         if j is None:
             return None
         j.Document.recompute()
@@ -99,4 +120,4 @@ class Panel(snap.Clicks):
 
 
 JOINT = ui.Command(Panel, "vex-joint.svg", "Joint",
-                   "Click a hole on the part that moves, then the one it's on. A spin, slide or fixed assembly joint right where they are")
+                   "Click a hole on the part that moves, then the one it's on. Lined up like Align, then a spin, slide or fixed assembly joint")

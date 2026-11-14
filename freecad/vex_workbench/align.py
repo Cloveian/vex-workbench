@@ -71,12 +71,17 @@ def flip(s, gap):
     return s
 
 
+def angle():
+    # the angle box as last used, the joint tool lines up to it too
+    return App.ParamGet(ui.PARAMS).GetFloat("AlignAngle", 90)
+
+
 class Panel(snap.Clicks):
     PROMPTS = ("click a hole on the part to move", "now the hole it goes against")
 
     def __init__(self):
         p = App.ParamGet(ui.PARAMS)
-        self.angle = ui.number(-360, 360, " deg", p.GetFloat("AlignAngle", 90))
+        self.angle = ui.number(-360, 360, " deg", angle())
         back, ahead = QtWidgets.QPushButton("Rotate -"), QtWidgets.QPushButton("Rotate +")
         back.clicked.connect(lambda: self.turn(-1))
         ahead.clicked.connect(lambda: self.turn(1))

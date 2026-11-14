@@ -389,6 +389,16 @@ doc.removeObject(j.Name)
 j = jt.join(asm, "Fixed", where(bar, first), target)
 assert j.JointType == "Fixed" and asm.solve() == 0 and bar.Placement.isSame(was, 1e-6)
 doc.removeObject(j.Name)
+# knocked off the hole, the joint panel's line up puts it back first and the spin goes on right there
+bar.Placement = was.multiply(App.Placement(App.Vector(0.3, 0.2, 0.1) * IN, App.Rotation(5, 10, 15)))
+doc.recompute()
+back = jt.lined_up(where(bar, first), target, asm, 90)
+j = jt.join(asm, "Spin", back, target)
+(_, at), (_, got) = snap.hole(target), snap.hole(back)
+assert (got.Base - at.Base).Length < 1e-6 and abs(z(got).dot(z(at)) + 1) < 1e-9, (got.Base - at.Base, z(got))
+lined = bar.Placement
+assert asm.solve() == 0 and bar.Placement.isSame(lined, 1e-6), bar.Placement
+doc.removeObject(j.Name)
 # spin on two holes that arent lined up says so, and nothing outside an assembly
 for args in ((asm, "Spin", where(bar, first), where(p1, App.Vector(4.75, 1.25, 0.046) * IN)), (None, "Fixed", where(bar, first), target)):
     try:

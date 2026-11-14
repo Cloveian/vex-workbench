@@ -34,7 +34,7 @@ All the clicking tools (Align, Joint, Chain, Screw, Spacers, Bend, Cut, Drill) p
 
 ## Joint
 
-**Joint** is for after Align, with an assembly active. pick the **Kind**, then click a hole on the part that moves and the hole its on. **Spin** is a Revolute on that hole (the holes have to be lined up, it says so if theyre not), **Fixed** holds it, **Slide** wants a third click on another hole further along the same face and makes a Slider that stops at both holes. a third click anywhere else (the other face, another part) just gets told off and it keeps waiting for a good one. the joint is set off where everything already is, so a solve doesnt move a thing. the slide's stops only count when you drag, a plain solve ignores them (thats ondsel's, not mine)
+**Joint** needs an assembly active. pick the **Kind**, then click a hole on the part that moves and the hole its on. with **Line up** ticked (it is to start) the part gets Align's move first, faces flat and its turn kept to Align's angle step, a slide onto its first rail hole, so you dont need Align beforehand. untick it to joint things right where they sit. **Spin** is a Revolute on that hole (with Line up off the holes have to be lined up already, it says so if theyre not), **Fixed** holds it, **Slide** wants a third click on another hole further along the same face and makes a Slider that stops at both holes. a third click anywhere else (the other face, another part) just gets told off and it keeps waiting for a good one. the joint is set off where everything already is, so a solve doesnt move a thing. the slide's stops only count when you drag, a plain solve ignores them (thats ondsel's, not mine)
 
 ## Chain
 

@@ -25,7 +25,7 @@
 | `freecad/vex_workbench/screws.py`  | Screw command, two hole clicks -> shortest screw + nut (or into a thread), jointed in an assembly |
 | `freecad/vex_workbench/spacers.py` | Spacers command, fills a gap between two holes with spacers + washers |
 | `freecad/vex_workbench/align.py`   | Align command, hole on one part onto a hole on another, faces together, then turned, gapped or flipped over 180 on the hole so it goes in. no joints |
-| `freecad/vex_workbench/joints.py`  | Joint command, two hole clicks (three for a slide) -> a Revolute, Fixed or Slider set off where the parts already are |
+| `freecad/vex_workbench/joints.py`  | Joint command, two hole clicks (three for a slide) -> lined up with `align.align` unless Line up is off, then a Revolute, Fixed or Slider set off where the parts are |
 | `freecad/vex_workbench/inserts.py` | shaft inserts in HS bores, their own link with Placement = the gear's x `VexSeat` as an expression. the gear knows it by name in `VexInsert`, a link back would be a dependency loop |
 | `freecad/vex_workbench/duplicate.py` | Duplicate command, copies of links and groups mirrored or turned. a mirror is world reflection x placement x the part's own middle-plane reflection, so its a turn |
 | `freecad/vex_workbench/shop.py`    | Bend, Cut and Drill commands, kept on the link as VexSteps in order. the geometry is `metal.work` (fold, cut, slot, sketch, drill). a cut sketch stays in the doc attached to its link, `shop.Sketches` redoes its step when sketch edit closes |

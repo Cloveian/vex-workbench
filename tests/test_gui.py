@@ -763,6 +763,7 @@ try:
     from freecad.vex_workbench import joints as jt
     panel = jt.Panel()
     Gui.Control.showDialog(panel)
+    panel.lineup.setChecked(True)
     panel.kind.setCurrentText("Slide")
     panel.take(now)
     panel.take(on)
