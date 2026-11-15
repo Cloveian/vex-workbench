@@ -243,6 +243,12 @@ try:
     w.search.setText("smart motor")
     assert w.tree.currentItem() is None and not w.button.isEnabled() and not w.combos, (w.tree.currentItem(), w.combos)
     w.search.setText("")
+    # a generated wheel with an HS bore takes one too, off its family
+    w.tree.setCurrentItem(w.tree.findItems("Omni Wheel (Legacy)", QtCore.Qt.MatchExactly)[0])
+    w.insert.setCurrentText("Square")
+    w.place()
+    got = Gui.Selection.getSelection()[0]
+    assert got.Insert == "Square" and library.part_of(inserts.insert(got))["name"] == "Metal Shaft Inserts", got.VexInsert
 
     # a click on the second element of a link array lands on that element's hole
     from freecad.vex_workbench import snap

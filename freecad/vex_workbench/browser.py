@@ -134,10 +134,7 @@ class Browser(QtWidgets.QWidget):
                 self.form.addRow(axis, box)
                 self.combos[axis] = box
             if any(p.get("inserts") for p in self.menu["parts"]):
-                self.insert = QtWidgets.QComboBox()
-                self.insert.addItems(inserts.kinds())
-                self.insert.setToolTip("Shaft insert in the HS bore, as its own part. The 1/2\" long adapters sit in the middle, Round and Square are VEX's flanged plastic and metal ones")
-                self.form.addRow("Insert", self.insert)
+                self.insert_box()
             self.narrow(part)
         if not kind or kind[0] != "family":
             return
@@ -147,9 +144,17 @@ class Browser(QtWidgets.QWidget):
             box.addItems([library.label(c) for c in choices])
             self.form.addRow(prop, box)
             self.combos[prop] = box
+        if self.family.get("inserts"):
+            self.insert_box()
         if part:
             for prop, lb in library.picks(self.family, part).items():
                 self.combos[prop].setCurrentText(lb)
+
+    def insert_box(self):
+        self.insert = QtWidgets.QComboBox()
+        self.insert.addItems(inserts.kinds())
+        self.insert.setToolTip("Shaft insert in the HS bore, as its own part. The 1/2\" long adapters sit in the middle, Round and Square are VEX's flanged plastic and metal ones")
+        self.form.addRow("Insert", self.insert)
 
     def narrow(self, picked=None):
         # refills the menu boxes, signals off or every clear() narrows again

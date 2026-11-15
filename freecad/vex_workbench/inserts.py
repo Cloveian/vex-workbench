@@ -14,7 +14,9 @@ def kinds():
 
 
 def takes(link):
-    return bool((library.row(link) or {}).get("inserts"))
+    # a step part off its menu row, a generated one off its family
+    flags = library.row(link) if hasattr(link, "VexStep") else library.part_of(link)["params"]
+    return bool((flags or {}).get("inserts"))
 
 
 def bores(shape):

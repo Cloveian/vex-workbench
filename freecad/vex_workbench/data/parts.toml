@@ -668,6 +668,7 @@ folder = "Motion/Wheels/Omni Wheels/2.75 Inch/Legacy"
 name = "2.75\" Omni Wheel (Legacy)"
 material = "Nylon" # the rubber's about the same, so its weight is close enough
 paint = { hub = "Wheel Plastic", rim = "Roller Grey" } # like the legacy traction wheels
+inserts = true # HS square bore, like the menu wheels
 # off the fusion library's f3d, the hub's drafts, rounds and logo left off. 14 rollers, so a compound of 43 solids like fusion's
 
 [[family]]
@@ -739,7 +740,7 @@ pins = [0, 1, 0]
 along = [1, 0, 0]
 middle = [0, 0.1575, 0] # its barrel runs 0 to 0.315
 
-# shaft inserts for a 1/4 square HS bore, a round hole or a 1/8 square through them. menu rows with inserts = true take them
+# shaft inserts for a 1/4 square HS bore, a round hole or a 1/8 square through them. menu rows and families with inserts = true take them
 # centered = middle of the bore, flush both sides of a 1/2 wide hub. the rest sit on their flange
 [insert]
 "Round 1/2\" Long" = { part = "High Strength Shaft Adapter (#8 Round Bore, 1/2\" Long)", centered = true }
