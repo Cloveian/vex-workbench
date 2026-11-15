@@ -1,5 +1,11 @@
 # Log
 
+## 2026-11-15 - the 40T 3P converts
+
+- found it, and it wasnt the torus at all. the 40T's web rise is a band all the way round (r 0.5584 to 0.788), so in occ it needs a seam from the inner loop out to the outer one, and ShapeFix runs that seam out from whichever inner vertex sits nearest u = 0. on the rise thats -90 deg, where acis split the edges, and the slot crosses there, so the seam went through a slot and the face came out as the 0.06 mm2 corner. the "3 coedge loop" from last time was what came *out*, the file has 52 + 1 edges like it should. so when a face on a cylinder / cone / torus / revolved surface loses edges going in, read_f3d turns u = 0 to halfway between two vertices (closed circles round the axis start there too) and tries again till one keeps them all
+- and the 131 deg boss's side, same thing plus a 79 in radius circle 1.5 mm long where it meets a slot wall. thats fusion saying straight (two cylinders on parllel axes), but its 2.5e-4 mm off the boss and ShapeFix cant get a pcurve onto it. circles over 1 m come in as the line between their ends now
+- 40T: one valid closed solid, 524 faces, 0.256661 in3. ran old and new over all 217 f3ds: 200 the same, the V5 rotation sensor goes from not sewing to valid, the limit switch from not closed to valid, the 2.75 legacy traction now sews (still not closed), the 4" mecanum left drops one bad shell and matches the right's volume. the V5 brain gets further and then dies on a zero length line, same as the GPS sensor always has. the universal joint isnt closed both ways and its volume moved 7.5%, so that number never meant anything anyway. the 2.75 legacy omni came out the same, so its hub is something else
+
 ## 2026-11-13 - a round of bugs off actually using it
 
 - Flip in Align was never what i wanted it for. it redid the align off the same hole's other face, so the part stayed *on* the target, just the other way up and a wall out. now its a plain 180 on the hole's own x: hole stays put, the clicked face ends up facing the way the target's does and the part goes *into* it. thats the one for inserts, a 1/2" adapter in a 1/2" hub comes out flush both sides. again turns it back, Rotate and Gap keep working on a flipped one. `far_side` (the ray down through the wall to find the other face) is commnted out, nothing needs it anymore

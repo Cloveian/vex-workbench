@@ -236,6 +236,9 @@ def make_edge(recs, ei, mm):
         return Part.LineSegment(a, b).toShape()
     if name == "ellipse-curve":
         center, normal, major = vec(c[0], mm), vec(c[1]), vec(c[2], mm)
+        if abs(c[3] - 1) < 1e-9 and major.Length > 1000 and (a - b).Length > 1e-6:
+            # fusion's way of saying straight. the 40T's 131 deg boss has a 79 in one 1.5 mm long between two cylinders on parallel axes, 2.5e-4 mm off the boss and shapefix cant get a pcurve onto it
+            return Part.LineSegment(a, b).toShape()
         if abs(c[3] - 1) < 1e-9:
             g = Part.Circle(center, normal, major.Length)
             g.XAxis = major
@@ -375,13 +378,63 @@ def make_face(recs, fi, edges, mm):
     # loops go ccw around the acis face normal (= surface normal, flipped if the face is reversed)
     # if occ's surface normal disagrees, build on it with the wires backwards and flip the face after
     agree = d[5] == flip
+    wires = [loop_wire(recs, li, edges, mm) for li in chain(recs, d[1], "loop")]
+    f = on(surf, wires, agree)
+    want = sum(len(w.Edges) for w in wires)
+    if len(f.Edges) < want and spin_axis(surf):
+        # a band all the way round needs a seam loop to loop, shapefix runs it out from the vertex nearest u = 0. the 40T's web rise has one on a slot there and came out a 0.06 mm2 corner of itself
+        # so u = 0 goes between two vertices instead, and closed circles round the axis start there too
+        for a in gaps(surf, wires):
+            g = on(turned(surf, surf, a), [restarted(surf, w, a) for w in wires], agree)
+            if len(g.Edges) >= want:
+                return g
+    return f
+
+
+def on(surf, wires, agree):
     fix = Part.ShapeFix.Face(surf, 1e-7, True)
-    for li in chain(recs, d[1], "loop"):
-        w = loop_wire(recs, li, edges, mm)
+    for w in wires:
         fix.add(w if agree else w.reversed())
     fix.perform()
     f = fix.face()
     return f if agree else f.reversed()
+
+
+def spin_axis(s):
+    if isinstance(s, (Part.Cylinder, Part.Cone, Part.Toroid)):
+        return s.Center, s.Axis
+    if isinstance(s, Part.SurfaceOfRevolution):
+        return s.Location, s.Direction
+    return None
+
+
+def angle(surf, p):
+    # u is the turn round the axis on all four
+    return surf.parameter(p)[0]
+
+
+def turned(surf, g, a):
+    # a copy of g turned a radians round the surface axis
+    c, n = spin_axis(surf)
+    g = g.copy()
+    g.rotate(App.Placement(App.Vector(), App.Rotation(n, math.degrees(a)), c))
+    return g
+
+
+def gaps(surf, wires):
+    # halfway between each pair of verticies going round, as angles off u = 0
+    at = sorted({round(angle(surf, v.Point), 9) for w in wires for v in w.Vertexes})
+    return [(a + b) / 2 for a, b in zip(at, at[1:] + [at[0] + 2 * math.pi])]
+
+
+def restarted(surf, w, a):
+    # a one circle loop round the same axis gets started at a, any other loop comes back as is
+    c, n = spin_axis(surf)
+    e = w.Edges[0]
+    if len(w.Edges) != 1 or e.Curve.TypeId != "Part::GeomCircle" or e.Curve.Axis.cross(n).Length > 1e-9 or ((e.Curve.Center - c) - n * (e.Curve.Center - c).dot(n)).Length > 1e-6:
+        return w
+    moved = turned(surf, e.Curve, a - angle(surf, e.valueAt(e.FirstParameter))).toShape(e.FirstParameter, e.LastParameter)
+    return Part.Wire([moved.reversed() if e.Orientation == "Reversed" else moved])
 
 
 # [0] points at the next one, -1 ends it
