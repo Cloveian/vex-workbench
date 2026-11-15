@@ -230,9 +230,13 @@ def make_edge(recs, ei, mm):
     d = data(recs, ei, "edge")
     a, b = point(recs, d[0], mm), point(recs, d[2], mm)
     ci, rev = d[5], d[6]
+    if ci == -1:
+        return None  # no curve, an edge thats just a point (cone tips on the torx screws)
     name = recs[ci][0]
     c = data(recs, ci)
     if name == "straight-curve":
+        if (a - b).Length < 1e-9:
+            return None  # a cone's apex, the gps has them. loop_wire leaves it out
         return Part.LineSegment(a, b).toShape()
     if name == "ellipse-curve":
         center, normal, major = vec(c[0], mm), vec(c[1]), vec(c[2], mm)
@@ -361,11 +365,15 @@ def loop_wire(recs, li, edges, mm):
         d = data(recs, ci, "coedge")
         ei = d[3]
         if ei not in edges:
-            edges[ei] = fit_ends(recs, ei, make_edge(recs, ei, mm), mm)
-        out.append(edges[ei].reversed() if d[4] else edges[ei])
+            e = make_edge(recs, ei, mm)
+            edges[ei] = e and fit_ends(recs, ei, e, mm)
+        if edges[ei]:
+            out.append(edges[ei].reversed() if d[4] else edges[ei])
         ci = d[0]
         if ci == first or ci == -1:
             break
+    if not out:
+        return None  # just the apex
     w = Part.Wire(out)
     if len(w.Edges) != len(out):
         sys.exit(f"loop {li}: wire came out with {len(w.Edges)} of {len(out)} edges")
@@ -378,7 +386,13 @@ def make_face(recs, fi, edges, mm):
     # loops go ccw around the acis face normal (= surface normal, flipped if the face is reversed)
     # if occ's surface normal disagrees, build on it with the wires backwards and flip the face after
     agree = d[5] == flip
-    wires = [loop_wire(recs, li, edges, mm) for li in chain(recs, d[1], "loop")]
+    loops = [loop_wire(recs, li, edges, mm) for li in chain(recs, d[1], "loop")]
+    wires = [w for w in loops if w]
+    # a loop that was just a point. shapefix on one takes the whole process down, no traceback
+    if len(wires) < len(loops):
+        if isinstance(surf, Part.Cone) and len(wires) == 1 and len(wires[0].Edges) == 1:
+            return tip(surf, wires[0], agree)
+        sys.exit(f"face {fi}: a loop thats just a point, on a {recs[d[4]][0]} with {[len(w.Edges) for w in wires]} edges round it, not handled")
     f = on(surf, wires, agree)
     want = sum(len(w.Edges) for w in wires)
     lost = len(f.Edges) < want
@@ -393,6 +407,17 @@ def make_face(recs, fi, edges, mm):
             if len(g.Edges) >= want and (lost or g.isValid() and abs(g.Area - f.Area) < 0.01 * f.Area):
                 return g
     return f
+
+
+def tip(surf, w, agree):
+    # a cone out to its apex round one circle
+    c = w.Edges[0].Curve
+    h = surf.Apex - c.Center
+    f = next(x for x in Part.makeCone(c.Radius, 0, h.Length, c.Center, h).Faces if x.Surface.TypeId == "Part::GeomCone")
+    u0, u1, v0, v1 = f.ParameterRange
+    u, v = (u0 + u1) / 2, (v0 + v1) / 2
+    want = surf.normal(*surf.parameter(f.valueAt(u, v))) * (1 if agree else -1)
+    return f if f.normalAt(u, v).dot(want) > 0 else f.reversed()
 
 
 def on(surf, wires, agree):
