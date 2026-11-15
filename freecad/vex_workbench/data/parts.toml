@@ -662,6 +662,15 @@ deg = 45
 slot = { width = "4 mm", deep = "0.9 mm", round = "0.2 mm" }
 
 [[family]]
+id = "legacy-omni"
+title = "Omni Wheel (Legacy)"
+folder = "Motion/Wheels/Omni Wheels/2.75 Inch/Legacy"
+name = "2.75\" Omni Wheel (Legacy)"
+material = "Nylon" # the rubber's about the same, so its weight is close enough
+paint = { hub = "Wheel Plastic", rim = "Roller Grey" } # like the legacy traction wheels
+# off the fusion library's f3d, the hub's drafts, rounds and logo left off. 14 rollers, so a compound of 43 solids like fusion's
+
+[[family]]
 id = "linear-rail"
 title = "Linear Rail"
 folder = "Motion/Linear Slides"

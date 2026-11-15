@@ -11,12 +11,12 @@ import FreeCAD as App
 import Part
 from FreeCAD import Placement, Rotation, Vector
 
-from . import catalog, chainlink, derived, flexwheel, metal, rail, ratchet, slide, sprocket, stock, versahex, versahub
+from . import catalog, chainlink, derived, flexwheel, metal, omni, rail, ratchet, slide, sprocket, stock, versahex, versahub
 
 GROUP = "VexParts"
 # family id -> make(part, cat)
 GENERATORS = dict.fromkeys(metal.PROFILES, metal.make)
-for m in (stock, derived, chainlink, sprocket, flexwheel, versahex, versahub, rail, slide, ratchet):
+for m in (stock, derived, chainlink, sprocket, flexwheel, versahex, versahub, rail, slide, ratchet, omni):
     GENERATORS |= dict.fromkeys(m.FAMILIES, m.make)
 # mm, outside these it isnt a hole you'd put a screw or shaft through. the 11W motor step has 0.008-0.07 bits inside its screw holes
 HOLE_MIN, HOLE_MAX = 0.1 * metal.IN, 0.6 * metal.IN  # a 1/2 hex is 0.577 across its corners
@@ -214,8 +214,9 @@ def source(doc, part, steps=()):
             faces = [max(set(was), key=was.count)] * len(s.Faces)
     else:
         s, faces = shape(part)  # first, or no generator leaves an empty source behind
-        if part.get("paint") and App.GuiUp:
-            faces = painted(s, part["paint"], faces)
+        wheel = part.get("paint") or part.get("params", {}).get("paint")  # step wheels by folder, the legacy omni in its family
+        if wheel and App.GuiUp:
+            faces = painted(s, wheel, faces)
         elif faces and part.get("color"):
             faces = stood_in(faces, cat()["colors"][part["color"]])
     src = doc.addObject("App::Part", "VexPart")
@@ -642,7 +643,10 @@ def hole_dots(link):
         if step and App.GuiUp and not getattr(src, "VexSteps", ""):
             dots = step_dots(part_of(link), Part.getShape(src))
         else:
-            dots = outermost(Part.getShape(src), step)
+            s = Part.getShape(src)
+            if not step and len(s.Solids) > 1:
+                s = max(s.Solids, key=lambda x: x.Volume)  # the legacy omni's hub, its rollers spin
+            dots = outermost(s, step)
         src.addProperty("App::PropertyVectorList", "VexHoleDots", "VEX")
         src.setPropertyStatus("VexHoleDots", "Hidden")
         src.VexHoleDots = dots

@@ -1,5 +1,16 @@
 # Log
 
+## 2026-11-15 - the legacy omni
+
+- the 2.75 legacy omni, off last night's closed hub. it wasnt a whole night after all, plotting my slices over fusion's in matplotlib did most of it: one picture per height and you can see straight away whats missing
+- the hub is two copies of one side, the back one turned over on x so its cradles land on the front's pockets. a side is a thin web ring round 7 scallops (R 1.4186 circles 2.165 out on each roller's line) plus 7 wedge cradles between them, hollow 0.0646 in from their walls with a 0.059 end plate, and the cradle sides are planes square to the roller axis 0.357 out from its middle, the pockets' end walls. the middle disc is 0.059 thick in, 0.098 out under the cradles, and the cavities go right through it into the other side's pockets
+- the 6 spokes go straight through both sides, each one the piece of a crescent between two circles (R 0.5871 about (-0.3937, 0) and R 0.4557 about (-0.4724, -0.0669)), the other piece of that crescent is a fat blob where no spoke is, so its picked by angle like the sprocket windows. the groove down each one is the same trick off two more circles
+- the holes through the middle round each roller are the rubber's barrel 1 mm bigger (R 1.4153 vs 1.376 on the same center), cut only through |z| < 0.05. a plain 0.3346 cylinder came out as rectangles where fusion has ellipses. the rubber's barrel arc is centered on the wheel's axis pretty much, so the whole wheel is round at 1.378 all the way across
+- pins snap in from the face down a 0.099 slot into a hole round the pin end, thats 2% of the hub on its own, and two lottle lugs stand up off the barrel's tube to 0.447 (why? idk)
+- hub 1.36323 in3 vs 1.36912, -0.43%, box 2.5984 x 2.5984 x 0.894 exact. rollers +0.13% rubber, -0.64% core, +0.23% pin. whole thing 43 solids like fusion's, -0.26%, 62 g as nylon. left off: drafts, the rounds, the logo, the material round the pin ends inside the cavities, the 45 deg V under each pin slot. the rubber reaches r 1.3786, fusion's box says 1.37795, so thats 0.015 mm im not chasing
+- painted like the legacy traction wheels (hub Wheel Plastic, rollers Roller Grey), the family carries a `paint` now and `source` reads it off the params too. dots only off the biggest solid on a generated part, the rubber ends are round loops with one center and got 56 dots at first
+- its a family in the dock, not on the Wheels menu, menus only take step parts. and only the 2.75, the 3.25 and 4.125 legacy omni f3ds arent in downloads/
+
 ## 2026-11-15 - the 40T 3P converts
 
 - found it, and it wasnt the torus at all. the 40T's web rise is a band all the way round (r 0.5584 to 0.788), so in occ it needs a seam from the inner loop out to the outer one, and ShapeFix runs that seam out from whichever inner vertex sits nearest u = 0. on the rise thats -90 deg, where acis split the edges, and the slot crosses there, so the seam went through a slot and the face came out as the 0.06 mm2 corner. the "3 coedge loop" from last time was what came *out*, the file has 52 + 1 edges like it should. so when a face on a cylinder / cone / torus / revolved surface loses edges going in, read_f3d turns u = 0 to halfway between two vertices (closed circles round the axis start there too) and tries again till one keeps them all

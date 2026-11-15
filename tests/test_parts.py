@@ -61,7 +61,7 @@ for fam in cat["family"]:
     # every size has to build as one valid solid, ~13 s for all of them. the ones with nothing to check against (wsahers, robosource parts, other materials) get a line each
     for p in parts:
         s = make(p, cat)
-        ok = s.isValid() and len(s.Solids) == 1
+        ok = s.isValid() and len(s.Solids) == (43 if fam["id"] == "legacy-omni" else 1)  # the omni's hub + 14 x rubber, core, pin
         bad += not ok
         if not ok or "fixtures" not in fam:
             print(f"{'ok ' if ok else 'BAD'} {p['name']}: builds")
@@ -142,6 +142,16 @@ for name, in3, box in (("Ratchet Gear", 0.251706, [0.32, 1.7148, 1.7169]), ("Win
     ok = got == box and abs(vol) < 0.002 and s.isValid()
     bad += not ok
     print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.3f}%")
+
+# legacy omni vs fusion's, the hub (the most faces) and the whole wheel. the rubber reaches r 1.3786, fusion's box says 1.37795
+omni = library.GENERATORS["legacy-omni"](next(p for p in gen if p["family"] == "legacy-omni"), cat)
+hub = max(omni.Solids, key=lambda x: len(x.Faces))
+for name, s, in3, box in (("legacy omni hub", hub, 1.36912, [0.894, 2.5984, 2.5984]), ("legacy omni", omni, 3.33383, [1.2205, 2.7559, 2.7559])):
+    got = size(s)
+    vol = s.Volume / IN**3 / in3 - 1
+    ok = max(abs(a - b) for a, b in zip(got, box)) < 0.002 and abs(vol) < 0.01 and s.isValid()
+    bad += not ok
+    print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.2f}%")
 
 print("all good" if not bad else f"{bad} bad")
 sys.exit(1 if bad else 0)

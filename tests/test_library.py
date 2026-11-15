@@ -397,6 +397,9 @@ assert len(dots) == 2 and all(math.hypot(d.x, d.y) < 1e-6 for d in dots), dots
 for n, ends in ((40, 1), (48, 2)):
     rings = sorted(round(math.hypot(d.x, d.y) / IN, 3) for d in library.hole_dots(library.place(doc, gen[f"{n}T Sprocket, 3P"])))
     assert rings == [0.0] * 2 + [0.5] * 4 * ends, (n, rings)
+# legacy omni, its 1/4 square bore both faces. nothing on the rollers, their rubber ends are round loops too
+dots = library.hole_dots(library.place(doc, gen['2.75" Omni Wheel (Legacy)']))
+assert len(dots) == 2 and all(math.hypot(d.x, d.y) < 1e-6 for d in dots), dots
 plate = library.place(doc, gen["5x2 Aluminum Plate"])
 squares = sum(library.screwable(w) for w, _, _ in library.holes(Part.getShape(plate.LinkedObject)))
 assert len(library.hole_dots(plate)) == squares, (len(library.hole_dots(plate)), squares)
