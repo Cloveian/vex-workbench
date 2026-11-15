@@ -382,9 +382,9 @@ def make_face(recs, fi, edges, mm):
     f = on(surf, wires, agree)
     want = sum(len(w.Edges) for w in wires)
     lost = len(f.Edges) < want
+    # a band all the way round needs a seam loop to loop, shapefix runs it out from the vertex nearest u = 0. the 40T's web rise has one on a slot there and came out a 0.06 mm2 corner of itself
     # swept tori can come out invalid off a bad seam too and keep every edge (the 2.75 legacy omni hub's 872 mm2 one, an edge crosses u = 0 right under the outer circle's vertex)
     if (lost or not f.isValid() and isinstance(surf, Part.SurfaceOfRevolution)) and spin_axis(surf):
-        # a band all the way round needs a seam loop to loop, shapefix runs it out from the vertex nearest u = 0. the 40T's web rise has one on a slot there and came out a 0.06 mm2 corner of itself
         # so u = 0 goes between two vertices instead, and closed circles round the axis start there too
         for a in gaps(surf, wires):
             # copies, shapefix changes the edges it gets and the faces next door share them. tries that didnt work broke the small turntabel bearing's sewing
