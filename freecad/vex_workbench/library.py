@@ -616,8 +616,8 @@ def dottable(w, step):
     if screwable(w):
         return True
     curves = [e.Curve.TypeId for e in w.Edges]
-    if not step and all(c == "Part::GeomCircle" for c in curves):
-        return True
+    if not step and all(c == "Part::GeomCircle" for c in curves) and all((e.Curve.Center - w.Edges[0].Curve.Center).Length < 1e-6 for e in w.Edges):
+        return True  # one center, the 40T 3P's slot bits off its bosses are all arcs too
     b = w.BoundBox
     narrow, wide = sorted([b.XLength, b.YLength, b.ZLength])[1:]
     flats = 2 * w.distToShape(Part.Vertex(b.Center))[0]  # the 11W socket is a 1/4 square turned 45, 0.35 across its box

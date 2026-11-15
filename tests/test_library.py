@@ -393,9 +393,10 @@ assert sum(abs(math.hypot(d.x, d.z) - 0.5 * IN) < 1e-3 for d in dots) == 8, dots
 assert len(dots) == 10 and sum(math.hypot(d.x, d.z) < 1e-6 for d in dots) == 2, dots
 dots = library.hole_dots(library.place(doc, gen["10T Sprocket, 3P"]))
 assert len(dots) == 2 and all(math.hypot(d.x, d.y) < 1e-6 for d in dots), dots
-# 48T, the bore and its 4 boss holes, both ends of each
-rings = sorted(round(math.hypot(d.x, d.y) / IN, 3) for d in library.hole_dots(library.place(doc, gen["48T Sprocket, 3P"])))
-assert rings == [0.0] * 2 + [0.5] * 8, rings
+# 40T and 48T, the bore and its 4 boss holes, both ends on the 48T. the 40T's come out the back where the web starts to rise, not flat so no dot
+for n, ends in ((40, 1), (48, 2)):
+    rings = sorted(round(math.hypot(d.x, d.y) / IN, 3) for d in library.hole_dots(library.place(doc, gen[f"{n}T Sprocket, 3P"])))
+    assert rings == [0.0] * 2 + [0.5] * 4 * ends, (n, rings)
 plate = library.place(doc, gen["5x2 Aluminum Plate"])
 squares = sum(library.screwable(w) for w, _, _ in library.holes(Part.getShape(plate.LinkedObject)))
 assert len(library.hole_dots(plate)) == squares, (len(library.hole_dots(plate)), squares)

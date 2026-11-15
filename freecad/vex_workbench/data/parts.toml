@@ -544,8 +544,8 @@ folder = "Motion/Sprockets/3P/{teeth}T"
 name = "{teeth}T Sprocket, 3P"
 material = "Acetal"
 color = "Red Acetal" # fusion's preview, its material is called "Acetal Resin, Dark Sea Green" tho
-# off the fusion library's f3ds. its "12T" file has 15 teeth, 15 seats on a 0.3547 radius at 3.75 mm pitch. 40 later
-teeth = [10, 15, 24, 48]
+# off the fusion library's f3ds. its "12T" file has 15 teeth, 15 seats on a 0.3547 radius at 3.75 mm pitch
+teeth = [10, 15, 24, 40, 48]
 chain = "3P" # for the chain tool, theyre not on the Sprockets menu (step parts only)
 
 [[family]]
