@@ -381,12 +381,16 @@ def make_face(recs, fi, edges, mm):
     wires = [loop_wire(recs, li, edges, mm) for li in chain(recs, d[1], "loop")]
     f = on(surf, wires, agree)
     want = sum(len(w.Edges) for w in wires)
-    if len(f.Edges) < want and spin_axis(surf):
+    lost = len(f.Edges) < want
+    # swept tori can come out invalid off a bad seam too and keep every edge (the 2.75 legacy omni hub's 872 mm2 one, an edge crosses u = 0 right under the outer circle's vertex)
+    if (lost or not f.isValid() and isinstance(surf, Part.SurfaceOfRevolution)) and spin_axis(surf):
         # a band all the way round needs a seam loop to loop, shapefix runs it out from the vertex nearest u = 0. the 40T's web rise has one on a slot there and came out a 0.06 mm2 corner of itself
         # so u = 0 goes between two vertices instead, and closed circles round the axis start there too
         for a in gaps(surf, wires):
-            g = on(turned(surf, surf, a), [restarted(surf, w, a) for w in wires], agree)
-            if len(g.Edges) >= want:
+            # copies, shapefix changes the edges it gets and the faces next door share them. tries that didnt work broke the small turntabel bearing's sewing
+            g = on(turned(surf, surf, a), [restarted(surf, w.copy(), a) if lost else w.copy() for w in wires], agree)
+            # an invalid one has to come back the same face, a different area is the other side of a seam (the pneumatic manifold, 9.9 -> 10.4 mm2)
+            if len(g.Edges) >= want and (lost or g.isValid() and abs(g.Area - f.Area) < 0.01 * f.Area):
                 return g
     return f
 
