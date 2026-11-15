@@ -9,6 +9,9 @@
 - 30 teeth round the rim on 12s (tops on r 1.8287, roots 1.75, straight flanks), a channel under them closed by the tire's lips with 15 bridges across it that stop at z 0.1969. tooth tops as straight lines made the box 3.6545, on their circle its fusion's 3.6574
 - the tire is two arcs a side (a bit flatter on top than the 0.375 circle it looks like), revolved, teeth cut out. fusion's is lopsided, its back half 0.0038 wider with a lower lip, so mine (symmetric, 0.75) comes out 1.16% light on its own and the box check is against 0.75 not 0.7538
 - hub +0.62%, whole wheel -0.11%, 78 g as nylon. dots on the bore both ends, painted like the omni
+- a 4th go at the draft, the other way round: outlines off z 0.27 near the top, shrunk going down (shrinking works), ruled loft between. the volume looked right but the window came out twisted, 15 edges on the shrunk end vs 18 on top so the loft pairs the wrong ones (+0.145 in2 in one band and -0.145 in the next at z 0.1). hub went to +2.06%. back to straight
+- the legacy omni takes inserts now, `inserts = true` on its family like a menu row. and its last -0.43%: fusion fills each cradle's cavity from about z 0.26 up in a bar along the pin line (0.12-0.18 in2 a layer over all 7), while my barrel and spokes run a bit fat (no rounds, no draft, and the gap round the boss is open between the groove walls on fusion's). the two cancel, so fixing one alone makes it worse. left it
+- fusion's 9P "flap links": the screw one is vex's attachment link (0.079501 vs 0.0795 in3), the large / medium / short ones are a different 0.07078 base link with a 0.157 blade (0.48, 0.88, 1.27 long) on it. vex doesnt sell anything like that as far as i can find, so theyre left out
 
 ## 2026-11-15 - the legacy omni
 
