@@ -27,7 +27,7 @@ The [usage guide](docs/using.md) goes through every tool.
   - C-channel, U-channel, angles (including 1x1s cut down from 3x channel), plates and bars, every length up to 35 holes (20 for U-channel), with the bends, count notches and bend reliefs, in the materials VEX makes them in
   - LS, HS and pitch shafts, standoffs, spacers (the 3/8" HS one too), washers, HS lockbars, 6P and 3P chain links and the 10T, 15T, 24T, 40T and 48T 3P sprockets
   - 1.625", 2", 3" and 4" flex wheels in 30A, 45A and 60A, with dots on the hex bore or the VersaHub bolt holes, the VersaHex adapters and both plastic 1/2" hex VersaHubs (the v2 with its hex insert)
-  - the 2.75" legacy omni wheel, with all 14 rollers
+  - the 2.75" legacy omni wheel, with all 14 rollers, and the 4" legacy round wheel
   - linear slide rails, any length up to 35 holes, and both slide trucks
   - the ratchet gear and winch pawl
   - star (Torx) and hex screws from 0.25 to 2.5 in, Robosource shoulder screws, the thin nylock, nylon and nylock flange nuts, the 6-40 piston nut for the old pneumatics, and nuts in other materials

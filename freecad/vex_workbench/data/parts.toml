@@ -671,6 +671,15 @@ paint = { hub = "Wheel Plastic", rim = "Roller Grey" } # like the legacy tractio
 # off the fusion library's f3d, the hub's drafts, rounds and logo left off. 14 rollers, so a compound of 43 solids like fusion's
 
 [[family]]
+id = "round-wheel"
+title = "Round Wheel (Legacy)"
+folder = "Motion/Wheels/Traction Wheels/4 Inch/Legacy"
+name = "4\" Round Wheel (Legacy)"
+material = "Nylon"
+paint = { hub = "Wheel Plastic", rim = "Roller Grey" }
+# off the fusion library's "4 Legacy Round Traction" f3d, no vex step for it. hub and tire, 2 solids
+
+[[family]]
 id = "linear-rail"
 title = "Linear Rail"
 folder = "Motion/Linear Slides"

@@ -24,6 +24,7 @@ OFF = {
     "3 High Strength Shaft (276-3522)": "1 mm short, the 24 isnt",
     "4 High Strength Shaft (276-3523)": "1 mm short, the 24 isnt",
 }
+SOLIDS = {"legacy-omni": 43, "round-wheel": 2}  # the omni's hub + 14 x rubber, core, pin. hub and tire
 
 
 def size(shape):
@@ -58,10 +59,10 @@ for fam in cat["family"]:
             note, ok = f" (known: {OFF[fx]})", True
         bad += not ok
         print(f"{'ok ' if ok else 'BAD'} {fx}: {got} vs {want} vol {vol * 100:+.2f}%{note}")
-    # every size has to build as one valid solid, ~13 s for all of them. the ones with nothing to check against (wsahers, robosource parts, other materials) get a line each
+    # every size has to build valid, one solid but for the SOLIDS ones, ~13 s for all of them. the ones with nothing to check against (wsahers, robosource parts, other materials) get a line each
     for p in parts:
         s = make(p, cat)
-        ok = s.isValid() and len(s.Solids) == (43 if fam["id"] == "legacy-omni" else 1)  # the omni's hub + 14 x rubber, core, pin
+        ok = s.isValid() and len(s.Solids) == SOLIDS.get(fam["id"], 1)
         bad += not ok
         if not ok or "fixtures" not in fam:
             print(f"{'ok ' if ok else 'BAD'} {p['name']}: builds")
@@ -143,10 +144,12 @@ for name, in3, box in (("Ratchet Gear", 0.251706, [0.32, 1.7148, 1.7169]), ("Win
     bad += not ok
     print(f"{'ok ' if ok else 'BAD'} {name}: {got} vol {vol * 100:+.3f}%")
 
-# legacy omni vs fusion's, the hub (the most faces) and the whole wheel. the rubber reaches r 1.3786, fusion's box says 1.37795
-omni = library.GENERATORS["legacy-omni"](next(p for p in gen if p["family"] == "legacy-omni"), cat)
-hub = max(omni.Solids, key=lambda x: len(x.Faces))
-for name, s, in3, box in (("legacy omni hub", hub, 1.36912, [0.894, 2.5984, 2.5984]), ("legacy omni", omni, 3.33383, [1.2205, 2.7559, 2.7559])):
+# legacy omni and round wheel vs fusion's, the hub (biggest solid) and the whole wheel. the omni's rubber reaches r 1.3786, fusion's box says 1.37795
+# the round wheel's tire is 0.0038 wider on the back on fusion's, so its 0.7538 box is 0.75 here and the tire on its own is ~1% light
+wheels = {f: library.GENERATORS[f](next(p for p in gen if p["family"] == f), cat) for f in ("legacy-omni", "round-wheel")}
+hubs = {f: max(w.Solids, key=lambda x: x.Volume) for f, w in wheels.items()}
+for name, s, in3, box in (("legacy omni hub", hubs["legacy-omni"], 1.36912, [0.894, 2.5984, 2.5984]), ("legacy omni", wheels["legacy-omni"], 3.33383, [1.2205, 2.7559, 2.7559]),
+                          ("round wheel hub", hubs["round-wheel"], 2.46245, [0.75, 3.6498, 3.6574]), ("round wheel", wheels["round-wheel"], 4.17791, [0.75, 4.0, 4.0])):
     got = size(s)
     vol = s.Volume / IN**3 / in3 - 1
     ok = max(abs(a - b) for a, b in zip(got, box)) < 0.002 and abs(vol) < 0.01 and s.isValid()

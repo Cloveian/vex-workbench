@@ -1,5 +1,15 @@
 # Log
 
+## 2026-11-15 - the round wheel
+
+- turns out the legacy traction wheels werent all covered after all. fusion's "4 Legacy Traction" is vex's 276-1497 (4.41 vs 4.47 in3, 0.878 wide), but "4 Legacy Round Traction" is its own wheel with no vex step: 0.754 wide, a round tire over a hub with the omni's swirl spokes, a 1/8 square bore. so thats in now as the 4" round wheel (legacy)
+- 6 spokes, not 5 like i counted off the render, and theyre not arc pairs this time, the sides miss a circle by 0.01-0.025. so the windows are fusion's slice outlines run through a fitter that splits a curve in half till every piece is an arc within 0.001: 14 to 17 entries a window instead of 75 points
+- the windows have a *7.7 deg* draft (0.782 in2 at z 0.05, 0.911 at 0.25), the grooves 1.7, the gap holes 1. tried it 3 ways: makeLoft between offsets (offsetting outward adds arcs at every corner so the two ends never match), 3 steps of offsets (works, -0.3% overall, but it looked like a layer cake), and Part::Extrusion's TaperAngle (only ever shrinks, growing says "end face of tapered extrusion is empty", and shrinking down off the grown one gave a null shape). so no draft, the outlines off z 0.15 halfway up, like the slide trucks and versahubs
+- the rim's inside is one arc, R 0.8577 round (0.6619, 0.3593), r 1.4567 at the disc to 1.5193 at the top, fits to 7e-5. the windows run out past it and get cut off on it, they stopped short of it up top at first and that was a whole 1%
+- 30 teeth round the rim on 12s (tops on r 1.8287, roots 1.75, straight flanks), a channel under them closed by the tire's lips with 15 bridges across it that stop at z 0.1969. tooth tops as straight lines made the box 3.6545, on their circle its fusion's 3.6574
+- the tire is two arcs a side (a bit flatter on top than the 0.375 circle it looks like), revolved, teeth cut out. fusion's is lopsided, its back half 0.0038 wider with a lower lip, so mine (symmetric, 0.75) comes out 1.16% light on its own and the box check is against 0.75 not 0.7538
+- hub +0.62%, whole wheel -0.11%, 78 g as nylon. dots on the bore both ends, painted like the omni
+
 ## 2026-11-15 - the legacy omni
 
 - the 2.75 legacy omni, off last night's closed hub. it wasnt a whole night after all, plotting my slices over fusion's in matplotlib did most of it: one picture per height and you can see straight away whats missing
