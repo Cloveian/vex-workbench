@@ -1,5 +1,6 @@
 clawbot.png, the cover. a clawbot-ish robot off the kit with an 84T arm, no claw. placed by box centers, nothing screwed together
 hero.png, screenshot out of freecad. the script makes one too but its weird
+chain.png, 82 links of 6P round a 32T and two 16Ts
 align.png, a channel lined up on a plate
 bend.png, a plate bent up 90 at a hole row
 

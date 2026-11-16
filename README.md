@@ -49,6 +49,8 @@ The [usage guide](docs/using.md) goes through every tool.
 
 ![two channels screwed to a plate with the screw tool's hole dots showing](docs/img/hero.png)
 
+![6P chain round a 32T and two 16T sprockets, every link in the teeth](docs/img/chain.png)
+
 ![align](docs/img/align.png)
 
 ### Shop work

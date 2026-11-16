@@ -1,4 +1,4 @@
-# renders hero / clawbot / align / bend pngs into downloads/ off the offscreen gui, software gl. no panels in them
+# renders hero / clawbot / chain / align / bend pngs into downloads/ off the offscreen gui, software gl. no panels in them
 # env QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 freecad -M . tools/render_shots.py
 import os
 import shutil
@@ -14,7 +14,7 @@ import FreeCADGui as Gui
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "downloads")
 sys.path.insert(0, ROOT)
-from freecad.vex_workbench import align, library, screws, shop, snap  # noqa: E402
+from freecad.vex_workbench import align, chain, library, screws, shop, snap  # noqa: E402
 from freecad.vex_workbench.metal import IN  # noqa: E402
 
 V, P, R = App.Vector, App.Placement, App.Rotation
@@ -113,6 +113,25 @@ def clawbot(gen, steps):
     App.closeDocument(doc.Name)
 
 
+def chained(steps):
+    # 6P round a 32T and two 16Ts, the middle one pushing the top run out
+    doc = App.newDocument("chain")
+    sprockets = []
+    for t, sku, x, y in ((32, "276-8330", 0, 0), (16, "276-8328", 7, 0.5), (16, "276-8328", 4, 1.6)):
+        s = library.place(doc, steps[f"Motion/Sprockets/6P/{t}T/{t}T Sprocket, 6P ({sku}).step"])
+        s.Placement.Base = V(x, y, 0) * IN
+        sprockets.append(s)
+    doc.recompute()
+    clicks = []
+    for s in sprockets:
+        bore = min(library.hole_dots(s), key=lambda d: V(d.x, d.y, 0).Length)
+        clicks.append(chain.sprocket((s, bore, s.Placement, (s, ""))))
+    chain.put_on(doc, None, clicks)  # 82 links
+    doc.recompute()
+    render("chain.png", (-0.6, 0.9, -1), 1600, 800, zup=True)
+    App.closeDocument(doc.Name)
+
+
 def lined_up(gen):
     doc = App.newDocument("align")
     base = library.place(doc, gen["5x10 Steel Plate"])
@@ -145,9 +164,10 @@ try:
     _, gen, steps = library.index()
     hero(gen, steps)
     clawbot(gen, steps)
+    chained(steps)
     lined_up(gen)
     bent(gen)
-    sys.__stdout__.write(f"hero.png, clawbot.png, align.png and bend.png in {OUT}\n")
+    sys.__stdout__.write(f"hero.png, clawbot.png, chain.png, align.png and bend.png in {OUT}\n")
     failed = False
 except BaseException:  # Ctrl-C and sys.exit too, or the os._exit below never runs
     traceback.print_exc(file=sys.__stdout__)
