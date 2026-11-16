@@ -2,9 +2,9 @@
 
 A FreeCAD 1.1 workbench for designing VEX V5 robots in real CAD, with every part at its exact size instead of 'close enough' (*ahem protobot ahem*)
 
-![hero](docs/img/hero.png)
+![a clawbot-style robot built from the workbench's parts](docs/img/clawbot.png)
 
-TODO: replace this ugly ah cover image.
+TODO: actually have a real design here, this is just a placeholder
 
 It makes the parts, lines them up hole to hole, and does the joints with FreeCAD's own Assembly workbench, so what's on screen is what gets built. Two channels joined hole to hole land exactly on top of each other d(๑˃ᴗ˂̵)b
 
@@ -46,6 +46,8 @@ The [usage guide](docs/using.md) goes through every tool.
 - **Frame on hole**: a frame on a hole's exact center, for joining parts by hand in the Assembly workbench.
 - **Duplicate**: copy a side of the robot mirrored across a plane or turned about an axis. Every part stays a real part, turned into its mirror spot instead of flipped inside out, and the joints come along too, onto the matching holes of whatever the copy is bolted to.
 - In an assembly, screws, nuts and spacers get revolute joints, so they can still spin.
+
+![two channels screwed to a plate with the screw tool's hole dots showing](docs/img/hero.png)
 
 ![align](docs/img/align.png)
 

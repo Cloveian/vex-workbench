@@ -1,4 +1,4 @@
-# renders hero / align / bend pngs into downloads/ off the offscreen gui, software gl. no panels in them
+# renders hero / clawbot / align / bend pngs into downloads/ off the offscreen gui, software gl. no panels in them
 # env QT_QPA_PLATFORM=offscreen LIBGL_ALWAYS_SOFTWARE=1 freecad -M . tools/render_shots.py
 import os
 import shutil
@@ -22,10 +22,17 @@ WIDTH, BORDER = 2400, 40  # px out, github shows them ~900 wide, 2x+ for hidpi
 SS = 3  # drawn this many times bigger then shrunk, software gl has no antialiasing and 1:1 came out crunchy
 
 
-def render(name, d, w, h):
+def render(name, d, w, h, zup=False):
     # w x h is the shape, drawn SS times that. fitAll leaves a wide margin, trimmed back to BORDER
     v = Gui.ActiveDocument.ActiveView
-    v.setViewDirection(d)
+    v.setAnimationEnabled(False)  # or a camra turn is still going when it saves
+    if zup:  # setViewDirection picks its own up, a robot wants z
+        z = -V(*d).normalize()
+        x = V(0, 0, 1).cross(z).normalize()
+        y = z.cross(x)
+        v.setCameraOrientation(R(App.Matrix(x.x, y.x, z.x, 0, x.y, y.y, z.y, 0, x.z, y.z, z.z, 0, 0, 0, 0, 1)).Q)
+    else:
+        v.setViewDirection(d)
     Gui.updateGui()
     v.fitAll()
     Gui.updateGui()
@@ -38,6 +45,15 @@ def render(name, d, w, h):
 def spot(link, x, y, z):
     # a click on link at (x, y, z) inches, its own coords
     return (link, V(x, y, z) * IN, link.Placement, (link, ""))
+
+
+def put(doc, src, rot, x, y, z):
+    # turned by rot, box center on (x, y, z) inches
+    link = library.place(doc, src)
+    link.Placement = P(V(), rot)
+    doc.recompute()
+    link.Placement = P(V(x, y, z) * IN - link.Shape.BoundBox.Center, rot)
+    return link
 
 
 def hero(gen, steps):
@@ -63,6 +79,37 @@ def hero(gen, steps):
     Gui.updateGui()
     render("hero.png", (-1, -1.3, -1.4), 1600, 930)
     Gui.Control.closeDialog()
+    App.closeDocument(doc.Name)
+
+
+def clawbot(gen, steps):
+    # a clawbot-ish one off the kit's layout, no claw. x forward, y left, nothing actually screwed together
+    doc = App.newDocument("clawbot")
+    X, Y, Z = V(1, 0, 0), V(0, 1, 0), V(0, 0, 1)
+    side = R(X, -90)  # wheels and motors, axle along y
+    down = R(Z, 90) * R(X, -90)  # across, web down
+    wheel = steps["Motion/Wheels/Traction Wheels/4 Inch/Legacy/4 Wheel (276-1497) .step"]
+    motor = steps["Electronics/V5 Smart Motor (276-4840).step"]
+    rail = gen["1x2x1x25 Aluminum C-Channel"]
+    for s in (1, -1):
+        flip = R(Z, 0 if s > 0 else 180)  # open side in
+        put(doc, rail, flip, 0, s * 4.725, 0.5)
+        for x in (4.5, -4.5):
+            put(doc, wheel, flip * side, x, s * 5.55, 0.5)
+        put(doc, motor, flip * side, -4.5, s * 2.98, 0.5)  # output out through the rail
+        put(doc, gen["1x2x1x15 Aluminum C-Channel"], flip * R(Y, -90), -1, s * 4.725, 4.75)  # tower
+        put(doc, steps["Motion/Gears/Low Strength/84T Gear (276-2169-004).step"], R(X, -90 * s), -1, s * 5.25, 6.75)
+        put(doc, steps["Motion/Gears/Low Strength/12T Gear (276-2169-001).step"], R(X, -90 * s), -1, s * 5.2, 4.75)
+        put(doc, motor, flip * side, -1, s * 2.98, 4.75)
+        put(doc, rail, flip * R(Y, -20 * s), 4.64, s * 5.775, 8.8)  # arm, 20 deg up off the 84T
+    put(doc, gen["5x20 Aluminum Plate"], R(Z, 90), -3, 0, 1.03)
+    for x in (5.75, -5.75):
+        put(doc, gen["1x2x1x20 Aluminum C-Channel"], down, x, 0, 1.275)
+    put(doc, gen["1x2x1x23 Aluminum C-Channel"], down, 10.4, 0, 11.1)
+    put(doc, steps["Electronics/V5 Robot Brain (276-4810).step"], R(Z, 90), -3, 0, 1.68)
+    put(doc, steps["Electronics/V5 Robot Battery (276-4811).step"], R(Z, 90), 2.5, 0, 0.5)
+    doc.recompute()
+    render("clawbot.png", (-1, 1.5, -0.8), 1600, 1000, zup=True)
     App.closeDocument(doc.Name)
 
 
@@ -97,9 +144,10 @@ try:
     App.addDocumentObserver(library.Observer())
     _, gen, steps = library.index()
     hero(gen, steps)
+    clawbot(gen, steps)
     lined_up(gen)
     bent(gen)
-    sys.__stdout__.write(f"hero.png, align.png and bend.png in {OUT}\n")
+    sys.__stdout__.write(f"hero.png, clawbot.png, align.png and bend.png in {OUT}\n")
     failed = False
 except BaseException:  # Ctrl-C and sys.exit too, or the os._exit below never runs
     traceback.print_exc(file=sys.__stdout__)

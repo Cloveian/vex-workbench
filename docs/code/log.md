@@ -1,5 +1,12 @@
 # Log
 
+## 2026-11-15 - 0.3.0
+
+- version bump, 71 commits since 0.2.0: 3P sprockets, the flex wheels, both legacy wheels, VersaHubs and HS adapters, inserts, the chain tool, joint lining up on its own, fusion colors on most of the plain grey steps. `package.xml` lists joint and chain in the tools now too
+- new cover image, finally. a clawbot-ish robot off the kit's layout (4" wheels, 4 motors, brain, battery, towers and an 84T arm on 12Ts), all generated or shipped parts, placed by box centers in `render_shots.py`. no claw, the claw kit doesnt ship. its *close*, not screwed together, nobodys gonna count the holes in a README picture (well. i would)
+- `setViewDirection` picks its own up, so the robot came out on its side, then upside down. the cover builds its camera off z instead, with animations off or the turn is still going when it saves and you get the top view
+- the old hero (screw panel and dots) moved down to the screw section, it actually shows a tool
+
 ## 2026-11-15 - the round wheel
 
 - turns out the legacy traction wheels werent all covered after all. fusion's "4 Legacy Traction" is vex's 276-1497 (4.41 vs 4.47 in3, 0.878 wide), but "4 Legacy Round Traction" is its own wheel with no vex step: 0.754 wide, a round tire over a hub with the omni's swirl spokes, a 1/8 square bore. so thats in now as the 4" round wheel (legacy)
